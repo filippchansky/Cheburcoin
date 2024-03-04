@@ -3,8 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header/Header";
 import Providers from "@/components/Providers/Providers";
-
-const inter = Inter({ subsets: ["latin"] });
+import MainLayout from "@/components/MainLayout/MainLayout";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,12 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-black text-white">
-        <Providers>
-          <main className="mx-auto max-w-[1300px]">
-            <Header />
-            {children}
-          </main>
-        </Providers>
+        <AntdRegistry>
+          <Providers>
+            <MainLayout>{children}</MainLayout>
+          </Providers>
+        </AntdRegistry>
       </body>
     </html>
   );

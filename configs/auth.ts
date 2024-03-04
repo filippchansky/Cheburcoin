@@ -8,8 +8,10 @@ export const authConfig: AuthOptions = {
       clientSecret: process.env.GOOGLE_SECRET!,
       authorization: {
         params: {
-          prompt: "consent",
-        },
+            prompt: "consent",
+            access_type: "offline",
+            response_type: "code",
+          },
       },
     }),
   ],

@@ -24,19 +24,22 @@ const Header = ({}) => {
     },
   ];
 
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || undefined;
+  const session = useSession();
+  const { data, status } = session;
+  console.log(data);
   const content = (
     <div>
-      <Button type="primary" onClick={() => signOut()} danger>
+      <Button
+        type="primary"
+        onClick={() => signOut({ callbackUrl: "/" })}
+        danger
+      >
         Sign Out
       </Button>
     </div>
   );
-  const searchParams = useSearchParams();
-  const callbackUrl =
-    searchParams.get("callbackUrl") || undefined
-  const session = useSession();
-  const { data, status } = session;
-  console.log(data);
   return (
     <>
       <nav>

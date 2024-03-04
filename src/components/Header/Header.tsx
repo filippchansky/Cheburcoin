@@ -1,26 +1,26 @@
-'use client'
+"use client";
 import { Avatar, Button, Popover, Skeleton } from "antd";
 import SkeletonAvatar from "antd/es/skeleton/Avatar";
 import { getServerSession } from "next-auth";
 import { useSession, signOut, signIn } from "next-auth/react";
 import Image from "next/image";
-import React from "react";
+import React, { Suspense } from "react";
 import { authConfig } from "../../../configs/auth";
 import { useSearchParams } from "next/navigation";
 
 interface HeaderProps {}
 
-const Header =  ({}) => {
+const Header = ({}) => {
   const nav = [
     {
       id: 0,
       value: "About",
-      path: "about/",
+      path: "#",
     },
     {
       id: 1,
       value: "Nav Link 2",
-      path: "/",
+      path: "#",
     },
   ];
 
@@ -31,11 +31,12 @@ const Header =  ({}) => {
       </Button>
     </div>
   );
-  const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const searchParams = useSearchParams();
+  const callbackUrl =
+    searchParams.get("callbackUrl") || undefined
   const session = useSession();
-  const {data, status} = session
-    console.log(data)
+  const { data, status } = session;
+  console.log(data);
   return (
     <>
       <nav>
@@ -50,7 +51,7 @@ const Header =  ({}) => {
           active
           size={50}
           className="flex items-center h-[50px]"
-          style={{backgroundColor: 'rgb(27 28 30)'}}
+          style={{ backgroundColor: "rgb(27 28 30)" }}
         />
       )}
       {status === "authenticated" && (
@@ -58,7 +59,17 @@ const Header =  ({}) => {
           <Avatar src={data?.user?.image} size={50} />
         </Popover>
       )}
-      {status === 'unauthenticated' && <Button type="primary" onClick={() => signIn("google", {callbackUrl})}>Sign In with Google</Button>}
+      {status === "unauthenticated" && (
+        // <h1>qwe</h1>
+        <Suspense>
+          <Button
+            type="primary"
+            onClick={() => signIn("google", { callbackUrl })}
+          >
+            Sign In with Google
+          </Button>
+        </Suspense>
+      )}
     </>
   );
 };

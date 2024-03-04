@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header/Header";
@@ -21,7 +22,10 @@ export default function RootLayout({
       <body className="bg-black text-white">
         <AntdRegistry>
           <Providers>
-            <MainLayout>{children}</MainLayout>
+            <MainLayout>
+              {children}
+              <Analytics />
+            </MainLayout>
           </Providers>
         </AntdRegistry>
       </body>

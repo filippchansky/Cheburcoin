@@ -11,51 +11,27 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { darkTheme } = useDarkTheme();
-  const [colors, setColors] = useState({
-    text: "#fff",
-    bgHeader: "black",
-    bgContent: "rgb(27 28 30)",
-  });
-
-  useEffect(() => {
-    if (!darkTheme) {
-      setColors({
-        ...colors,
-        bgContent: "white",
-        text: "black",
-        bgHeader: "#e0e0e0",
-      });
-    } else {
-      setColors({
-        ...colors,
-        text: "#fff",
-        bgHeader: "black",
-        bgContent: "rgb(27 28 30)",
-      });
-    }
-  }, [darkTheme]);
 
   const headerStyle: React.CSSProperties = {
     textAlign: "center",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    color: colors.text,
+    // color: colors.text,
     height: "100px",
     paddingInline: 48,
     lineHeight: "64px",
-    backgroundColor: colors.bgHeader,
-    transition: 'background ease-out .5s, color ease-out 1s',
+    // backgroundColor: colors.bgHeader,
+    transition: 'background ease-out .2s, color ease-out .2s',
   };
 
   const contentStyle: React.CSSProperties = {
     textAlign: "center",
     minHeight: "calc(100vh - 100px)",
     lineHeight: "120px",
-    color: colors.text,
-    backgroundColor: colors.bgContent,
-    transition: 'background ease-out .5s, color ease-out .5s',
+    // color: colors.text,
+    // backgroundColor: colors.bgContent,
+    // transition: 'background ease-out .5s, color ease-out .5s',
   };
 
   const layoutStyle = {

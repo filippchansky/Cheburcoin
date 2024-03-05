@@ -1,5 +1,5 @@
 "use client";
-import { Avatar, Button, Popover, Skeleton } from "antd";
+import { Avatar, Button, Popover, Skeleton, Switch } from "antd";
 import SkeletonAvatar from "antd/es/skeleton/Avatar";
 import { getServerSession } from "next-auth";
 import { useSession, signOut, signIn } from "next-auth/react";
@@ -7,6 +7,8 @@ import Image from "next/image";
 import React, { Suspense } from "react";
 import { authConfig } from "../../../configs/auth";
 import { useSearchParams } from "next/navigation";
+import { MoonOutlined, SunOutlined } from "@ant-design/icons";
+import SwitchTeme from "./SwitchTeme/SwitchTeme";
 
 interface HeaderProps {}
 
@@ -28,7 +30,6 @@ const Header = ({}) => {
   const callbackUrl = searchParams.get("callbackUrl") || undefined;
   const session = useSession();
   const { data, status } = session;
-  console.log(data);
   const content = (
     <div>
       <Button
@@ -41,7 +42,6 @@ const Header = ({}) => {
     </div>
   );
 
-  
   return (
     <>
       <nav>
@@ -51,30 +51,37 @@ const Header = ({}) => {
           ))}
         </ul>
       </nav>
-      {status === "loading" && (
-        <SkeletonAvatar
-          active
-          size={50}
-          className="flex items-center h-[50px]"
-          style={{ backgroundColor: "rgb(27 28 30)" }}
-        />
-      )}
-      {status === "authenticated" && (
-        <Popover content={content} title={data?.user?.name}>
-          <Avatar src={data?.user?.image} size={50} />
-        </Popover>
-      )}
-      {status === "unauthenticated" && (
-        // <h1>qwe</h1>
-        <Suspense>
-          <Button
-            type="primary"
-            onClick={() => signIn("google", { callbackUrl })}
-          >
-            Sign In with Google
-          </Button>
-        </Suspense>
-      )}
+      <div className="flex items-center gap-5">
+        <SwitchTeme />
+        {status === "loading" && (
+          <SkeletonAvatar
+            active
+            size={50}
+            className="flex items-center h-[50px]"
+            style={{ backgroundColor: "rgb(27 28 30)" }}
+          />
+        )}
+        {status === "authenticated" && (
+          <Popover content={content} title={data?.user?.name} trigger="click">
+            <Avatar
+              className="cursor-pointer"
+              src={data?.user?.image}
+              size={50}
+            />
+          </Popover>
+        )}
+        {status === "unauthenticated" && (
+          // <h1>qwe</h1>
+          <Suspense>
+            <Button
+              type="primary"
+              onClick={() => signIn("google", { callbackUrl })}
+            >
+              Sign In with Google
+            </Button>
+          </Suspense>
+        )}
+      </div>
     </>
   );
 };

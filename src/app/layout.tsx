@@ -20,14 +20,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-black text-white">
-        <AntdRegistry>
           <Providers>
             <MainLayout>
               {children}
               <Analytics />
             </MainLayout>
           </Providers>
-        </AntdRegistry>
       </body>
     </html>
   );

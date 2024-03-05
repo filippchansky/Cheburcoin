@@ -44,7 +44,10 @@ const Header = ({}) => {
 
   return (
     <>
-      <nav>
+    <div className="hidden max-[450px]:block">
+      <Button>Burger</Button>
+      </div>
+      <nav className="max-[450px]:hidden">
         <ul className="flex gap-5">
           {nav.map((item) => (
             <li key={item.id}>{item.value}</li>

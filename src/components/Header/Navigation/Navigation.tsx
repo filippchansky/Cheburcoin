@@ -30,7 +30,7 @@ const Navigation: React.FC<NavigationProps> = ({}) => {
     <>
       <div className="max-w-[500px] w-full">
         <Menu
-          theme={darkTheme ? "dark" : "light"}
+          // theme={darkTheme ? "dark" : "light"}
           mode="horizontal"
           defaultSelectedKeys={["/"]}
           selectedKeys={[`${path}`]}

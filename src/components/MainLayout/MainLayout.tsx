@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Layout, Flex } from "antd";
 import Header from "../Header/Header";
 import { useDarkTheme } from "@/store/darkTheme";
+import style from "./style.module.scss"
 
 const { Header: HeaderLayout, Footer, Sider, Content } = Layout;
 
@@ -15,13 +16,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const headerStyle: React.CSSProperties = {
     textAlign: "center",
     display: "flex",
+    gap: '20px',
     alignItems: "center",
     justifyContent: "space-between",
     // color: colors.text,
     height: "100px",
     paddingInline: 48,
     lineHeight: "64px",
-    // backgroundColor: colors.bgHeader,
     transition: 'background ease-out .2s, color ease-out .2s',
   };
 
@@ -42,9 +43,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   return (
-    <Flex gap="middle" wrap="wrap">
+    <Flex gap="middle" wrap="wrap" className="darkMode">
       <Layout style={layoutStyle}>
-        <HeaderLayout style={headerStyle}>
+        <HeaderLayout className={style.header}>
           <Header />
         </HeaderLayout>
         <Content style={contentStyle}>{children}</Content>

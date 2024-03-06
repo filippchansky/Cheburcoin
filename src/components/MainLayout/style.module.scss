@@ -1,0 +1,17 @@
+.header {
+    text-align: center;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    height: 100px !important;
+    padding-inline: 48px;
+    line-height: 64px;
+    transition: background ease-out .2s, color ease-out .2s;
+
+    @media (max-width: 1024px) {
+        padding: 10px !important;
+    }
+  }
+
+  

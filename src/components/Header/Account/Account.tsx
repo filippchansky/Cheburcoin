@@ -1,13 +1,28 @@
-import { Avatar, Button, Input, Modal, Popover, Space } from "antd";
+import {
+  Avatar,
+  Button,
+  Checkbox,
+  Flex,
+  Input,
+  Modal,
+  Popover,
+  Space,
+} from "antd";
+import style from "./style.module.scss"
 import SkeletonAvatar from "antd/es/skeleton/Avatar";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import React, { Suspense, useState } from "react";
 import SwitchTeme from "../SwitchTeme/SwitchTeme";
+import googleIconDark from "@public/Icon/google_auth_dark.png";
+import googleIconLight from "@public/Icon/google_auth_light.png";
+import Image from "next/image";
+import { useDarkTheme } from "@/store/darkTheme";
 
 interface AccountProps {}
 
 const Account: React.FC<AccountProps> = ({}) => {
+  const {darkTheme} = useDarkTheme()
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || undefined;
   const session = useSession();
@@ -79,27 +94,41 @@ const Account: React.FC<AccountProps> = ({}) => {
             footer={null}
             centered
           >
-            <Space direction="vertical">
-              <Input placeholder="Basic usage" />
-              <Space>
-                <Input.Password
-                  placeholder="input password"
-                  visibilityToggle={{
-                    visible: passwordVisible,
-                    onVisibleChange: setPasswordVisible,
-                  }}
-                />
+            <div className={darkTheme? [style.modal_content, style.darkMode].join(' ') : [style.modal_content, style.lightMode].join(' ')}>
+              <Space direction="vertical">
+                <Input placeholder="Basic usage"/>
+                <Flex gap={10}>
+                  <Input.Password
+                  className={style.input_pass}
+                    placeholder="input password"
+                    visibilityToggle={{
+                      visible: passwordVisible,
+                      onVisibleChange: setPasswordVisible,
+                    }}
+                  />
 
-                <Button
-                  type="primary"
-                  style={{ width: 80 }}
-                  onClick={() => setPasswordVisible((prevState) => !prevState)}
-                >
-                  {passwordVisible ? "Hide" : "Show"}
-                </Button>
+                  <Button
+                    type="default"
+                    style={{ width: 80 }}
+                    onClick={() =>
+                      setPasswordVisible((prevState) => !prevState)
+                    }
+                  >
+                    {passwordVisible ? "Hide" : "Show"}
+                  </Button>
+                </Flex>
+                <Checkbox onChange={() => console.log()}>Remember me</Checkbox>
+                <Button type="primary" disabled>Sign in</Button>
               </Space>
-            </Space>
-            <p>Some contents...</p>
+              <Flex vertical gap={19}>
+                <h2>Or sign in with</h2>
+                <div className={style.signIn_with}>
+                  <button onClick={() => signIn("google", { callbackUrl })}>
+                    <Image src={darkTheme? googleIconDark : googleIconLight } alt={""} width={32} height={32} />
+                  </button>
+                </div>
+              </Flex>
+            </div>
           </Modal>
         </>
       )}

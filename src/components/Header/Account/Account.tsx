@@ -16,6 +16,7 @@ import React, { Suspense, useState } from "react";
 import SwitchTeme from "../SwitchTeme/SwitchTeme";
 import googleIconDark from "@public/Icon/google_auth_dark.png";
 import googleIconLight from "@public/Icon/google_auth_light.png";
+import yandexIcon from "@public/Icon/yandex.png"
 import Image from "next/image";
 import { useDarkTheme } from "@/store/darkTheme";
 
@@ -145,7 +146,7 @@ const Account: React.FC<AccountProps> = ({}) => {
                   </button>
                   <button onClick={() => signIn("yandex", {callbackUrl: '/'})}>
                     <Image
-                      src={darkTheme ? googleIconDark : googleIconLight}
+                      src={darkTheme ? yandexIcon : yandexIcon}
                       alt={""}
                       width={32}
                       height={32}

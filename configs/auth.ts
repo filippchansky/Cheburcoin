@@ -9,15 +9,22 @@ export const authConfig: AuthOptions = {
       clientSecret: process.env.GOOGLE_SECRET!,
       authorization: {
         params: {
-            prompt: "consent",
-            access_type: "offline",
-            response_type: "code",
-          },
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
       },
     }),
     Yandex({
       clientId: process.env.YANDEX_CLIENT_ID!,
       clientSecret: process.env.YANDEX_SECRET!,
-    })
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
   ],
 };

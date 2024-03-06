@@ -1,5 +1,6 @@
 import { AuthOptions } from "next-auth";
 import Google from "next-auth/providers/google";
+import Yandex from "next-auth/providers/yandex";
 
 export const authConfig: AuthOptions = {
   providers: [
@@ -14,5 +15,9 @@ export const authConfig: AuthOptions = {
           },
       },
     }),
+    Yandex({
+      clientId: process.env.YANDEX_CLIENT_ID!,
+      clientSecret: process.env.YANDEX_SECRET!,
+    })
   ],
 };

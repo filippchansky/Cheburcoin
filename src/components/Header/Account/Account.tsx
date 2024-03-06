@@ -8,7 +8,7 @@ import {
   Popover,
   Space,
 } from "antd";
-import style from "./style.module.scss"
+import style from "./style.module.scss";
 import SkeletonAvatar from "antd/es/skeleton/Avatar";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -22,11 +22,12 @@ import { useDarkTheme } from "@/store/darkTheme";
 interface AccountProps {}
 
 const Account: React.FC<AccountProps> = ({}) => {
-  const {darkTheme} = useDarkTheme()
+  const { darkTheme } = useDarkTheme();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || undefined;
   const session = useSession();
   const { data, status } = session;
+  console.log({session});
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -42,13 +43,14 @@ const Account: React.FC<AccountProps> = ({}) => {
     setIsModalOpen(false);
   };
 
+  const handlerSignOut = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    e.preventDefault();
+    signOut({ callbackUrl: "/" });
+  };
+
   const content = (
     <div>
-      <Button
-        type="primary"
-        onClick={() => signOut({ callbackUrl: "/" })}
-        danger
-      >
+      <Button type="primary" onClick={(e) => handlerSignOut(e)} danger>
         Sign Out
       </Button>
     </div>
@@ -94,12 +96,18 @@ const Account: React.FC<AccountProps> = ({}) => {
             footer={null}
             centered
           >
-            <div className={darkTheme? [style.modal_content, style.darkMode].join(' ') : [style.modal_content, style.lightMode].join(' ')}>
+            <div
+              className={
+                darkTheme
+                  ? [style.modal_content, style.darkMode].join(" ")
+                  : [style.modal_content, style.lightMode].join(" ")
+              }
+            >
               <Space direction="vertical">
-                <Input placeholder="Basic usage"/>
+                <Input placeholder="Basic usage" />
                 <Flex gap={10}>
                   <Input.Password
-                  className={style.input_pass}
+                    className={style.input_pass}
                     placeholder="input password"
                     visibilityToggle={{
                       visible: passwordVisible,
@@ -118,13 +126,30 @@ const Account: React.FC<AccountProps> = ({}) => {
                   </Button>
                 </Flex>
                 <Checkbox onChange={() => console.log()}>Remember me</Checkbox>
-                <Button type="primary" disabled>Sign in</Button>
+                <Button type="primary" disabled>
+                  Sign in
+                </Button>
               </Space>
               <Flex vertical gap={19}>
                 <h2>Or sign in with</h2>
                 <div className={style.signIn_with}>
-                  <button onClick={() => signIn("google", { callbackUrl })}>
-                    <Image src={darkTheme? googleIconDark : googleIconLight } alt={""} width={32} height={32} />
+                  <button
+                    onClick={() => signIn("google", { callbackUrl: "/about" })}
+                  >
+                    <Image
+                      src={darkTheme ? googleIconDark : googleIconLight}
+                      alt={""}
+                      width={32}
+                      height={32}
+                    />
+                  </button>
+                  <button onClick={() => signIn("yandex", {callbackUrl: '/'})}>
+                    <Image
+                      src={darkTheme ? googleIconDark : googleIconLight}
+                      alt={""}
+                      width={32}
+                      height={32}
+                    />
                   </button>
                 </div>
               </Flex>

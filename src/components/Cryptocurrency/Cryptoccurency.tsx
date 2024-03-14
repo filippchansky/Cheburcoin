@@ -72,8 +72,8 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                   </div>
                 }
                 actions={[
-                  <Skeleton.Avatar active />,
-                  <Skeleton.Avatar active size={'small'} />
+                  <Skeleton.Avatar active key={'twitter'} />,
+                  <Skeleton.Avatar active key={'reddit'} />
                 ]}
                 extra={
                   <Skeleton.Button
@@ -106,8 +106,8 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                 }
                 extra={<a href={item.websiteUrl}>More</a>}
                 actions={[
-                  <a target="_blank" href={item.twitterUrl}><TwitterOutlined style={{fontSize: '25px'}} key="twitter" /></a>,
-                  <a target="_blank" href={item.redditUrl}><RedditOutlined style={{fontSize: '25px'}} key="reddit" /></a>,
+                  <a target="_blank" href={item.twitterUrl} key="twitter"><TwitterOutlined style={{fontSize: '25px'}}  /></a>,
+                  <a target="_blank" href={item.redditUrl}  key="reddit"><RedditOutlined style={{fontSize: '25px'}} /></a>,
                 ]}
                 style={{ width: 300 }}
               >

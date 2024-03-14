@@ -1,9 +1,16 @@
-'use client'
+"use client";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { ICoinData } from "../../../models";
-import { Avatar, Card, Pagination, PaginationProps, Select } from "antd";
+import {
+  Avatar,
+  Card,
+  Pagination,
+  PaginationProps,
+  Select,
+  Skeleton,
+} from "antd";
 import style from "./style.module.scss";
 import CardContent from "./CardContent/CardContent";
 
@@ -29,7 +36,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
     queryKey: ["coin", page, limit],
     queryFn: () => fetchCoin(page, limit),
   });
-  console.log(isLoading)
+  console.log(isLoading);
   const onChangePage: PaginationProps["onChange"] = (page) => {
     setPage(page);
   };
@@ -45,30 +52,51 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
     <div className="flex justify-center gap-10">
       <div className="w-[400px]"></div>
       <div className="text-start flex flex-col items-center gap-5">
-        {data?.result.map((item) => (
-          <Card
-            loading={isLoading}
-            key={item.id}
-            title={
-              <div className="flex items-center gap-3">
-                <Avatar src={item.icon} />
-                <p>{item.name}</p>
-              </div>
-            }
-            extra={<a href="#">More</a>}
-            style={{ width: 300 }}
-          >
-            <CardContent item={item} />
-          </Card>
-        ))}
+        {isLoading
+          ? Array.from({ length: 5 }).map((_, index) => (
+              <Card
+                key={index}
+                loading={isLoading}
+                title={
+                  <div className="flex items-center gap-3">
+                    <Avatar />
+                    <p></p>
+                  </div>
+                }
+                style={{ width: 300 }}
+              >
+                <p>qwe</p>
+              </Card>
+            ))
+          : data?.result.map((item) => (
+              <Card
+                loading={isLoading}
+                key={item.id}
+                title={
+                  <div className="flex items-center gap-3">
+                    <Avatar src={item.icon} />
+                    <p>{item.name}</p>
+                  </div>
+                }
+                extra={<a href="#">More</a>}
+                style={{ width: 300 }}
+              >
+                <CardContent item={item} />
+              </Card>
+            ))}
+        {}
       </div>
       <div className="w-[400px]">
-        <Pagination
-          total={totalPage}
-          current={page}
-          onChange={onChangePage}
-          onShowSizeChange={onShowSizeChange}
-        />
+        {totalPage === 0 ? (
+          <Skeleton.Input size="large" style={{ width: "300px" }} active />
+        ) : (
+          <Pagination
+            total={totalPage}
+            current={page}
+            onChange={onChangePage}
+            onShowSizeChange={onShowSizeChange}
+          />
+        )}
       </div>
     </div>
   );

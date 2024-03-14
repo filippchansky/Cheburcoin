@@ -14,6 +14,7 @@ import {
 import style from "./style.module.scss";
 import CardContent from "./CardContent/CardContent";
 import Meta from "antd/es/card/Meta";
+import { RedditOutlined, TwitterOutlined } from "@ant-design/icons";
 
 interface CryptoccurencyProps {
   TOKEN: string;
@@ -38,7 +39,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
   const { data, isError, isLoading } = useQuery<ICoinData>({
     queryKey: ["coin", page, limit],
     queryFn: () => fetchCoin(page, limit),
-    refetchInterval: 10000
+    refetchInterval: 300000
   });
   console.log(isLoading);
   const onChangePage: PaginationProps["onChange"] = (page) => {
@@ -70,6 +71,10 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                     />
                   </div>
                 }
+                actions={[
+                  <Skeleton.Avatar active />,
+                  <Skeleton.Avatar active size={'small'} />
+                ]}
                 extra={
                   <Skeleton.Button
                     size="small"
@@ -77,10 +82,10 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                     style={{ width: "10px" }}
                   />
                 }
-                style={{ width: 300, height: "129px" }}
+                style={{ width: 300, height: "182px" }}
               >
-                <div className="flex justify-center">
-                  <Skeleton loading paragraph={{ rows: 0 }} active />
+                <div className="flex justify-center h-[18px]">
+                  <Skeleton loading paragraph={{ rows: 0, }} active />
                   <Skeleton.Button
                     size="small"
                     active
@@ -99,7 +104,11 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                     <p>{item.name}</p>
                   </div>
                 }
-                extra={<a href="#">More</a>}
+                extra={<a href={item.websiteUrl}>More</a>}
+                actions={[
+                  <a target="_blank" href={item.twitterUrl}><TwitterOutlined style={{fontSize: '25px'}} key="twitter" /></a>,
+                  <a target="_blank" href={item.redditUrl}><RedditOutlined style={{fontSize: '25px'}} key="reddit" /></a>,
+                ]}
                 style={{ width: 300 }}
               >
                 <CardContent item={item} />

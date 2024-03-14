@@ -22,6 +22,11 @@ const Navigation: React.FC<NavigationProps> = ({}) => {
       label: "About Me",
       path: "#",
     },
+    {
+      id: 2,
+      key: '/cryptocurrency',
+      label: 'Crypto'
+    }
   ];
 
   const { push } = useRouter();

@@ -1,0 +1,12 @@
+.price {
+    font-weight: bold;
+}
+
+.difference {
+    font-size: 11px;
+    color: rgb(0, 255, 0);
+
+    &.red {
+        color: red;
+    }
+}

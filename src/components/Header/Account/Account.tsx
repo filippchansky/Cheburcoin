@@ -16,7 +16,7 @@ import React, { Suspense, useState } from "react";
 import SwitchTeme from "../SwitchTeme/SwitchTeme";
 import googleIconDark from "@public/Icon/google_auth_dark.png";
 import googleIconLight from "@public/Icon/google_auth_light.png";
-import yandexIcon from "@public/Icon/yandex.png"
+import yandexIcon from "@public/Icon/yandex.png";
 import Image from "next/image";
 import { useDarkTheme } from "@/store/darkTheme";
 
@@ -28,7 +28,7 @@ const Account: React.FC<AccountProps> = ({}) => {
   const callbackUrl = searchParams.get("callbackUrl") || undefined;
   const session = useSession();
   const { data, status } = session;
-  console.log({session});
+
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -135,7 +135,7 @@ const Account: React.FC<AccountProps> = ({}) => {
                 <h2>Or sign in with</h2>
                 <div className={style.signIn_with}>
                   <button
-                    onClick={() => signIn("google", { callbackUrl: "/about" })}
+                    onClick={() => signIn("google", { callbackUrl: "/cryptocurrency" })}
                   >
                     <Image
                       src={darkTheme ? googleIconDark : googleIconLight}
@@ -144,7 +144,9 @@ const Account: React.FC<AccountProps> = ({}) => {
                       height={32}
                     />
                   </button>
-                  <button onClick={() => signIn("yandex", {callbackUrl: '/'})}>
+                  <button
+                    onClick={() => signIn("yandex", { callbackUrl: "/cryptocurrency" })}
+                  >
                     <Image
                       src={darkTheme ? yandexIcon : yandexIcon}
                       alt={""}

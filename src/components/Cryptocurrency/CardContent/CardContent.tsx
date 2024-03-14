@@ -22,7 +22,7 @@ const CardContent: React.FC<CardContentProps> = ({ item }) => {
         setDiff(item.priceChange1h);
         break;
     }
-  }, [timeDiff]);
+  }, [timeDiff, item]);
 
   return (
     <div className="flex justify-between items-center">

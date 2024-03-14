@@ -135,7 +135,7 @@ const Account: React.FC<AccountProps> = ({}) => {
                 <h2>Or sign in with</h2>
                 <div className={style.signIn_with}>
                   <button
-                    onClick={() => signIn("google", { callbackUrl: "/about" })}
+                    onClick={() => signIn("google", { callbackUrl: "/cryptocurrency" })}
                   >
                     <Image
                       src={darkTheme ? googleIconDark : googleIconLight}
@@ -145,7 +145,7 @@ const Account: React.FC<AccountProps> = ({}) => {
                     />
                   </button>
                   <button
-                    onClick={() => signIn("yandex", { callbackUrl: "/" })}
+                    onClick={() => signIn("yandex", { callbackUrl: "/cryptocurrency" })}
                   >
                     <Image
                       src={darkTheme ? yandexIcon : yandexIcon}

@@ -13,16 +13,19 @@ import {
 } from "antd";
 import style from "./style.module.scss";
 import CardContent from "./CardContent/CardContent";
+import Meta from "antd/es/card/Meta";
 
-interface CryptoccurencyProps {}
+interface CryptoccurencyProps {
+  TOKEN: string;
+}
 
-const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
+const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
   const fetchCoin = async (page: number, limit: number) => {
     const { data } = await axios.get(
       `https://openapiv1.coinstats.app/coins?page=${page}&limit=${limit}`,
       {
         headers: {
-          "X-API-KEY": process.env.NEXT_PUBLIC_AUTH_COIN,
+          "X-API-KEY": TOKEN,
         },
       }
     );
@@ -35,6 +38,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
   const { data, isError, isLoading } = useQuery<ICoinData>({
     queryKey: ["coin", page, limit],
     queryFn: () => fetchCoin(page, limit),
+    refetchInterval: 10000
   });
   console.log(isLoading);
   const onChangePage: PaginationProps["onChange"] = (page) => {
@@ -53,19 +57,36 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
       <div className="w-[400px]"></div>
       <div className="text-start flex flex-col items-center gap-5">
         {isLoading
-          ? Array.from({ length: 5 }).map((_, index) => (
+          ? Array.from({ length: 10 }).map((_, index) => (
               <Card
                 key={index}
-                loading={isLoading}
                 title={
                   <div className="flex items-center gap-3">
-                    <Avatar />
-                    <p></p>
+                    <Skeleton.Avatar active />
+                    <Skeleton.Input
+                      active
+                      size="small"
+                      style={{ width: "10px" }}
+                    />
                   </div>
                 }
-                style={{ width: 300 }}
+                extra={
+                  <Skeleton.Button
+                    size="small"
+                    active
+                    style={{ width: "10px" }}
+                  />
+                }
+                style={{ width: 300, height: "129px" }}
               >
-                <p>qwe</p>
+                <div className="flex justify-center">
+                  <Skeleton loading paragraph={{ rows: 0 }} active />
+                  <Skeleton.Button
+                    size="small"
+                    active
+                    style={{ width: "10px" }}
+                  />
+                </div>
               </Card>
             ))
           : data?.result.map((item) => (

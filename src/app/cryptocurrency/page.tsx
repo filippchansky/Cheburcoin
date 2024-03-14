@@ -6,10 +6,10 @@ interface PageProps {
 }
 
 const Page:React.FC<PageProps> = ({}) => {
-    
+    const TOKEN = process.env.COIN
     return (
         <>
-            <Cryptoccurency/>
+            <Cryptoccurency TOKEN={TOKEN!}/>
         </>
     )
 }

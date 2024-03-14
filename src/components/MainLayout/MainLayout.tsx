@@ -30,6 +30,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     textAlign: "center",
     minHeight: "calc(100vh - 100px)",
     lineHeight: "120px",
+    padding: '20px',
     // color: colors.text,
     // backgroundColor: colors.bgContent,
     // transition: 'background ease-out .5s, color ease-out .5s',

@@ -4,36 +4,24 @@ import style from "./style.module.scss";
 import News from "./News/News";
 import Cryptoccurency from "./Cryptocurrency/Cryptoccurency";
 import { Menu, MenuProps, Select } from "antd";
+import { DollarOutlined, ReadOutlined } from "@ant-design/icons";
 
 interface CryptoPageProps {
   TOKEN: string;
 }
 
-type MenuItem = Required<MenuProps>["items"][number];
-function getItem(
-  label: React.ReactNode,
-  key: React.Key,
-  icon?: React.ReactNode,
-  children?: MenuItem[],
-  type?: "group"
-): MenuItem {
-  return {
-    key,
-    icon,
-    children,
-    label,
-    type,
-  } as MenuItem;
-}
-const items: MenuProps["items"] = [
-  getItem(
-    "",
-    "grp",
-    null,
-    [getItem("News", "news"), getItem("Coins", "coins")],
-    "group"
-  ),
-];
+const items: MenuProps['items'] = [
+    {
+      label: 'News',
+      key: 'news',
+      icon: <ReadOutlined />,
+    },
+    {
+      label: 'Coins',
+      key: 'coins',
+      icon: <DollarOutlined />,
+    },
+]
 const CryptoPage: React.FC<CryptoPageProps> = ({ TOKEN }) => {
   const [type, setType] = useState("coins");
 
@@ -61,7 +49,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ TOKEN }) => {
         <div className="flex justify-center min-[650px]:hidden">
           <Menu
             onClick={onClick}
-            style={{ width: '170px' }}
+            style={{ width: '190px' }}
             defaultSelectedKeys={["coins"]}
             defaultOpenKeys={["sub1"]}
             mode="horizontal"

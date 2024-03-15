@@ -33,7 +33,7 @@ const Navigation: React.FC<NavigationProps> = ({}) => {
   const path = usePathname();
   return (
     <>
-      <div className="max-w-[500px] w-full">
+      <div className="max-w-[500px] w-full max-[420px]:max-w-[200px]">
         <Menu
           // theme={darkTheme ? "dark" : "light"}
           mode="horizontal"

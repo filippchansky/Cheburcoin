@@ -62,7 +62,7 @@ const News: React.FC<NewsProps> = ({ TOKEN }) => {
   };
 
   return (
-    <div className="w-full text-start flex flex-col gap-5">
+    <div className="text-start flex flex-col gap-5">
       {news
         ? news?.map((item) => (
             <Collapse

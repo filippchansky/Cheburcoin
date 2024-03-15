@@ -1,9 +1,19 @@
 .title {
-    width: 500px;
-    white-space: nowrap;
+    white-space: nowrap; 
     overflow-x: hidden;
     text-overflow: ellipsis;
     font-weight: bold;
+
+    @media (max-width:1660px) {
+        white-space: normal;
+    }
+}
+
+.avatar {
+    
+    @media (max-width:1660px) {
+        display: none !important;
+    }
 }
 
 .source {

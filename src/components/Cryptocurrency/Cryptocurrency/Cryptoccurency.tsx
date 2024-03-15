@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { ICoinData } from "../../../models/coinData";
+import { ICoinData } from "../../../../models/coinData";
 import {
   Avatar,
   Card,
@@ -12,7 +12,7 @@ import {
   Skeleton,
 } from "antd";
 import style from "./style.module.scss";
-import CardContent from "./CardContent/CardContent";
+import CardContent from "../CardContent/CardContent";
 import Meta from "antd/es/card/Meta";
 import { RedditOutlined, TwitterOutlined } from "@ant-design/icons";
 
@@ -35,7 +35,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
   };
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(12);
   const { data, isError, isLoading } = useQuery<ICoinData>({
     queryKey: ["coin", page, limit],
     queryFn: () => fetchCoin(page, limit),
@@ -44,6 +44,10 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
   console.log(isLoading);
   const onChangePage: PaginationProps["onChange"] = (page) => {
     setPage(page);
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
   const onShowSizeChange: PaginationProps["onShowSizeChange"] = (
     current,
@@ -54,10 +58,27 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
   };
 
   return (
-    <div className="flex">
+    <div className="flex flex-col gap-5 max-[650px]:flex-col-reverse">
+      <div className={style.paginationContainer}>
+        {totalPage === 0 ? (
+          <Skeleton.Input
+            size="large"
+            className={style.skeletonPagination}
+            style={{ maxWidth: "400px" }}
+            active
+          />
+        ) : (
+          <Pagination
+            total={totalPage}
+            current={page}
+            onChange={onChangePage}
+            onShowSizeChange={onShowSizeChange}
+          />
+        )}
+      </div>
       <div className={style.cardContainer}>
         {isLoading
-          ? Array.from({ length: 10 }).map((_, index) => (
+          ? Array.from({ length: 12 }).map((_, index) => (
               <Card
                 key={index}
                 title={
@@ -117,19 +138,6 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                 <CardContent item={item} />
               </Card>
             ))}
-        {}
-      </div>
-      <div className="w-[400px]">
-        {totalPage === 0 ? (
-          <Skeleton.Input size="large" style={{ width: "300px" }} active />
-        ) : (
-          <Pagination
-            total={totalPage}
-            current={page}
-            onChange={onChangePage}
-            onShowSizeChange={onShowSizeChange}
-          />
-        )}
       </div>
     </div>
   );

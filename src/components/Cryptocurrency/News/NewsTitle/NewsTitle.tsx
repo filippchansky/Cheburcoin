@@ -10,8 +10,8 @@ interface NewsTitleProps {
 const NewsTitle: React.FC<NewsTitleProps> = ({ item }) => {
   return (
     <div className="flex items-center gap-5">
-      <Avatar src={item.imgUrl} />
-      <div>
+      <Avatar className={style.avatar} src={item.imgUrl} />
+      <div className="max-w-[500px]">
         <p className={style.title}>{item.title}</p>
         <div className="flex justify-between">
           <p className={style.source}>{item.source}</p>

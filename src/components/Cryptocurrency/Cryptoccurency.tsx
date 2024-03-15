@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { ICoinData } from "../../../models";
+import { ICoinData } from "../../../models/coinData";
 import {
   Avatar,
   Card,
@@ -39,7 +39,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
   const { data, isError, isLoading } = useQuery<ICoinData>({
     queryKey: ["coin", page, limit],
     queryFn: () => fetchCoin(page, limit),
-    refetchInterval: 300000
+    refetchInterval: 300000,
   });
   console.log(isLoading);
   const onChangePage: PaginationProps["onChange"] = (page) => {
@@ -54,9 +54,8 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
   };
 
   return (
-    <div className="flex justify-center gap-10">
-      <div className="w-[400px]"></div>
-      <div className="text-start flex flex-col items-center gap-5">
+    <div className="flex">
+      <div className={style.cardContainer}>
         {isLoading
           ? Array.from({ length: 10 }).map((_, index) => (
               <Card
@@ -72,8 +71,8 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                   </div>
                 }
                 actions={[
-                  <Skeleton.Avatar active key={'twitter'} />,
-                  <Skeleton.Avatar active key={'reddit'} />
+                  <Skeleton.Avatar active key={"twitter"} />,
+                  <Skeleton.Avatar active key={"reddit"} />,
                 ]}
                 extra={
                   <Skeleton.Button
@@ -85,7 +84,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                 style={{ width: 300, height: "182px" }}
               >
                 <div className="flex justify-center h-[18px]">
-                  <Skeleton loading paragraph={{ rows: 0, }} active />
+                  <Skeleton loading paragraph={{ rows: 0 }} active />
                   <Skeleton.Button
                     size="small"
                     active
@@ -106,8 +105,12 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                 }
                 extra={<a href={item.websiteUrl}>More</a>}
                 actions={[
-                  <a target="_blank" href={item.twitterUrl} key="twitter"><TwitterOutlined style={{fontSize: '25px'}}  /></a>,
-                  <a target="_blank" href={item.redditUrl}  key="reddit"><RedditOutlined style={{fontSize: '25px'}} /></a>,
+                  <a target="_blank" href={item.twitterUrl} key="twitter">
+                    <TwitterOutlined style={{ fontSize: "25px" }} />
+                  </a>,
+                  <a target="_blank" href={item.redditUrl} key="reddit">
+                    <RedditOutlined style={{ fontSize: "25px" }} />
+                  </a>,
                 ]}
                 style={{ width: 300 }}
               >

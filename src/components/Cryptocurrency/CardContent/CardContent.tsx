@@ -1,7 +1,7 @@
 import { Select } from "antd";
 import React, { useEffect, useState } from "react";
 import style from "./style.module.scss";
-import { ICoin } from "../../../../models";
+import { ICoin } from "../../../../models/coinData";
 
 interface CardContentProps {
   item: ICoin;

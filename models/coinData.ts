@@ -34,3 +34,5 @@ export interface ICoinData {
     hasPreviousPage: boolean
     hasNextPage: boolean
   }
+
+  

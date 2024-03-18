@@ -15,6 +15,7 @@ import style from "./style.module.scss";
 import CardContent from "../CardContent/CardContent";
 import Meta from "antd/es/card/Meta";
 import { RedditOutlined, TwitterOutlined } from "@ant-design/icons";
+import Link from "next/link";
 
 interface CryptoccurencyProps {
   TOKEN: string;
@@ -124,7 +125,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                     <p>{item.name}</p>
                   </div>
                 }
-                extra={<a href={item.websiteUrl}>More</a>}
+                extra={<Link href={`cryptocurrency/${item.id}`}>More</Link>}
                 actions={[
                   <a target="_blank" href={item.twitterUrl} key="twitter">
                     <TwitterOutlined style={{ fontSize: "25px" }} />

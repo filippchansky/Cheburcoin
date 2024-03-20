@@ -9,4 +9,12 @@
     width: 100%;
     height: 300px;
   }
+
+  .periodBtn {
+
+    @media (max-width: 450px) {
+      font-size: 11px !important;
+      padding-inline: 11px !important;
+    }
+  }
 }

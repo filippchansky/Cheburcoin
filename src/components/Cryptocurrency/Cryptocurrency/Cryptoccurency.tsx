@@ -125,7 +125,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
                     <p>{item.name}</p>
                   </div>
                 }
-                extra={<Link href={`cryptocurrency/${item.id}`}>More</Link>}
+                extra={<Link href={`/${item.id}`}>More</Link>}
                 actions={[
                   <a target="_blank" href={item.twitterUrl} key="twitter">
                     <TwitterOutlined style={{ fontSize: "25px" }} />

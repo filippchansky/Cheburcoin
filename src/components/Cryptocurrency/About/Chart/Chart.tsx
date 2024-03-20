@@ -20,17 +20,19 @@ const Chart: React.FC<ChartProps> = ({ charts }) => {
 
   useEffect(() => {
     if (charts) {
-      let updatedDataChart = { ...dataChart };
-      charts?.forEach((item) => {
-        const date = new Date(item[0]); // Convert to milliseconds
-        const formattedDate = date.toLocaleString();
-        updatedDataChart.date.push(item[0]);
-        updatedDataChart.value.push(item[1]);
+      const newDataChart: IDataChart = {
+          date: [],
+          value: []
+      };
+      charts.forEach((item) => {
+          newDataChart.date.push(item[0]);
+          newDataChart.value.push(item[1]);
       });
-      setDataChart(updatedDataChart);
-      console.log(updatedDataChart);
-    }
+      setDataChart(newDataChart);
+      console.log(newDataChart);
+  }
   }, [charts]);
+
 
   return (
     <LineChart
@@ -40,7 +42,8 @@ const Chart: React.FC<ChartProps> = ({ charts }) => {
           labelStyle: { color: "white" },
           data: dataChart.date,
           label: "qweewq",
-          valueFormatter: (value) => new Date(value * 1000).toLocaleString(),
+          valueFormatter: (value) =>
+            new Date(value * 1000).toLocaleDateString(),
         },
       ]}
       series={[

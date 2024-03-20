@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import React, { useState } from "react";
 import Chart from "./Chart/Chart";
 import style from "./style.module.scss";
+import { Radio, Select } from "antd";
 
 interface AboutCurrencyProps {
   TOKEN: string;
@@ -28,12 +29,26 @@ const AboutCurrency: React.FC<AboutCurrencyProps> = ({ TOKEN }) => {
   const { data, isError, isLoading } = useQuery({
     queryKey: ["chart", coin_id, period],
     queryFn: () => fetchChart(coin_id, period),
+    refetchOnWindowFocus: false,
+    // refetchInterval: 10000
   });
 
-  //   console.log(data);
+  const handleChange = (value: string) => {
+    console.log(`selected ${value}`);
+    setPeriod(value)
+  };
 
   return (
     <div className={style.chartContainer}>
+      <Radio.Group value={period} onChange={(e) => setPeriod(e.target.value)}>
+        <Radio.Button value="all">All</Radio.Button>
+        <Radio.Button value="24h">24h</Radio.Button>
+        <Radio.Button value="1w">1W</Radio.Button>
+        <Radio.Button value="1m">1M</Radio.Button>
+        <Radio.Button value="3m">3M</Radio.Button>
+        <Radio.Button value="6m">6M</Radio.Button>
+        <Radio.Button value="1y">1Y</Radio.Button>
+      </Radio.Group>
       <Chart charts={data} />
     </div>
   );

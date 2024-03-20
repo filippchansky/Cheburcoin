@@ -1,5 +1,4 @@
-import AboutCurrency from '@/components/Cryptocurrency/About/AboutCurrency';
-import Chart from '@/components/Cryptocurrency/About/Chart/Chart';
+import AboutCurrency from "../../components/Cryptocurrency/About/AboutCurrency"
 import React from 'react'
 
 interface PageProps {

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { graphData } from "../../../../../configs/graph";
+import style from "./style.module.scss"
 
 interface ChartProps {
   charts: number[][];
@@ -36,12 +37,10 @@ const Chart: React.FC<ChartProps> = ({ charts }) => {
 
   return (
     <LineChart
-      className="text-white"
       xAxis={[
         {
-          labelStyle: { color: "white" },
+          labelStyle: {color: 'red'},
           data: dataChart.date,
-          label: "qweewq",
           valueFormatter: (value) =>
             new Date(value * 1000).toLocaleDateString(),
         },

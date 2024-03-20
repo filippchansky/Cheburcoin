@@ -1,7 +1,8 @@
-import { Select } from "antd";
+import { Select, Statistic } from "antd";
 import React, { useEffect, useState } from "react";
 import style from "./style.module.scss";
 import { ICoin } from "../../../../models/coinData";
+import { ArrowDownOutlined, ArrowUpOutlined } from "@ant-design/icons";
 
 interface CardContentProps {
   item: ICoin;
@@ -28,7 +29,25 @@ const CardContent: React.FC<CardContentProps> = ({ item }) => {
     <div className="flex justify-between items-center">
       <div className="flex gap-2">
         <p className={style.price}>{item.price.toFixed(2)}</p>
-        <p
+        {String(diff).split("")[0] === "-" ? (
+          <Statistic
+            value={diff}
+            precision={2}
+            valueStyle={{ color: "#cf1322", fontSize: "12px" }}
+            prefix={<ArrowDownOutlined />}
+            suffix="%"
+          />
+        ) : (
+          <Statistic
+            value={diff}
+            precision={2}
+            valueStyle={{ color: "#3f8600", fontSize: "12px" }}
+            prefix={<ArrowUpOutlined />}
+            suffix="%"
+          />
+        )}
+
+        {/* <p
           className={
             String(diff).split("")[0] === "-"
               ? [style.difference, style.red].join(" ")
@@ -36,7 +55,7 @@ const CardContent: React.FC<CardContentProps> = ({ item }) => {
           }
         >
           {String(diff).split("")[0] !== "-" ? `+${diff}` : diff}%
-        </p>
+        </p> */}
       </div>
       <Select
         defaultValue="Hour"

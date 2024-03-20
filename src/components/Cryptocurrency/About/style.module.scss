@@ -1,5 +1,7 @@
 .chartContainer {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 50%;
   height: 500px;
   color: white !important;
 }

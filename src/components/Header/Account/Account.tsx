@@ -28,6 +28,7 @@ const Account: React.FC<AccountProps> = ({}) => {
   const callbackUrl = searchParams.get("callbackUrl") || undefined;
   const session = useSession();
   const { data, status } = session;
+  console.log(session)
 
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);

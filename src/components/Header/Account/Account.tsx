@@ -28,7 +28,7 @@ const Account: React.FC<AccountProps> = ({}) => {
   const callbackUrl = searchParams.get("callbackUrl") || undefined;
   const session = useSession();
   const { data, status } = session;
-  console.log(session)
+  console.log(session);
 
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -136,7 +136,7 @@ const Account: React.FC<AccountProps> = ({}) => {
                 <h2>Or sign in with</h2>
                 <div className={style.signIn_with}>
                   <button
-                    onClick={() => signIn("google", { callbackUrl: "/cryptocurrency" })}
+                    onClick={() => signIn("google", { callbackUrl: "/" })}
                   >
                     <Image
                       src={darkTheme ? googleIconDark : googleIconLight}
@@ -146,7 +146,7 @@ const Account: React.FC<AccountProps> = ({}) => {
                     />
                   </button>
                   <button
-                    onClick={() => signIn("yandex", { callbackUrl: "/cryptocurrency" })}
+                    onClick={() => signIn("yandex", { callbackUrl: "/" })}
                   >
                     <Image
                       src={darkTheme ? yandexIcon : yandexIcon}

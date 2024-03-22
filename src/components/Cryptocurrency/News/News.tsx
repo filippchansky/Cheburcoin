@@ -36,7 +36,6 @@ const News: React.FC<NewsProps> = ({ TOKEN }) => {
     queryKey: ["news", newsType, currentPage, limit],
     queryFn: () => fetchNews(newsType, currentPage, limit),
   });
-  console.log({ news });
   useEffect(() => {
     if (fetching) {
       setLimit(limit + 10);

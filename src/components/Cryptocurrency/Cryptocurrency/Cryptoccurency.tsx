@@ -42,7 +42,6 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
     queryFn: () => fetchCoin(page, limit),
     refetchInterval: 300000,
   });
-  console.log(isLoading);
   const onChangePage: PaginationProps["onChange"] = (page) => {
     setPage(page);
     window.scrollTo({

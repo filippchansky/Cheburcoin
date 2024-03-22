@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { LineChart } from "@mui/x-charts/LineChart";
 import { graphData } from "../../../../../configs/graph";
-import style from "./style.module.scss"
+import style from "./style.module.scss";
 
 interface ChartProps {
   charts: number[][];
@@ -22,24 +22,22 @@ const Chart: React.FC<ChartProps> = ({ charts }) => {
   useEffect(() => {
     if (charts) {
       const newDataChart: IDataChart = {
-          date: [],
-          value: []
+        date: [],
+        value: [],
       };
       charts.forEach((item) => {
-          newDataChart.date.push(item[0]);
-          newDataChart.value.push(item[1]);
+        newDataChart.date.push(item[0]);
+        newDataChart.value.push(item[1]);
       });
       setDataChart(newDataChart);
-      console.log(newDataChart);
-  }
+    }
   }, [charts]);
-
 
   return (
     <LineChart
       xAxis={[
         {
-          labelStyle: {color: 'red'},
+          labelStyle: { color: "red" },
           data: dataChart.date,
           valueFormatter: (value) =>
             new Date(value * 1000).toLocaleDateString(),

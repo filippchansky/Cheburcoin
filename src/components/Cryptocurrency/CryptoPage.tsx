@@ -10,22 +10,22 @@ interface CryptoPageProps {
   TOKEN: string;
 }
 
-const items: MenuProps['items'] = [
-    {
-      label: 'News',
-      key: 'news',
-      icon: <ReadOutlined />,
-    },
-    {
-      label: 'Coins',
-      key: 'coins',
-      icon: <DollarOutlined />,
-    },
-]
+const items: MenuProps["items"] = [
+  {
+    label: "News",
+    key: "news",
+    icon: <ReadOutlined />,
+  },
+  {
+    label: "Coins",
+    key: "coins",
+    icon: <DollarOutlined />,
+  },
+];
 const CryptoPage: React.FC<CryptoPageProps> = ({ TOKEN }) => {
   const [type, setType] = useState("coins");
 
-  const [width, setWidth] = useState(window.innerWidth);
+  const [width, setWidth] = useState(1920); // TODO window is not defined (window.innerWidth)
 
   useEffect(() => {
     const handleResize = () => {
@@ -39,9 +39,8 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ TOKEN }) => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
-  const onClick: MenuProps['onClick'] = (e) => {
-    console.log('click ', e);
-    setType(e.key)
+  const onClick: MenuProps["onClick"] = (e) => {
+    setType(e.key);
   };
   return (
     <>
@@ -49,7 +48,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ TOKEN }) => {
         <div className="flex justify-center min-[650px]:hidden">
           <Menu
             onClick={onClick}
-            style={{ width: '190px' }}
+            style={{ width: "190px" }}
             defaultSelectedKeys={["coins"]}
             defaultOpenKeys={["sub1"]}
             mode="horizontal"
@@ -62,18 +61,17 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ TOKEN }) => {
             <Cryptoccurency TOKEN={TOKEN} />
           </>
         )}
-        {width <= 650 && type === 'coins' && (
+        {width <= 650 && type === "coins" && (
           <>
             <Cryptoccurency TOKEN={TOKEN} />
           </>
         )}
-        {width <= 650 && type === 'news' && (
+        {width <= 650 && type === "news" && (
           <>
             <News TOKEN={TOKEN} />
           </>
         )}
       </div>
-     
     </>
   );
 };

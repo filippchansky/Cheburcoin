@@ -21,6 +21,7 @@ import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { auth } from "../../../configs/firebase/config";
 import SignIn from "./SignIn/SignIn";
 import SignUp from "./SignUp/SignUp";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 interface ModalAuthProps {
   active: boolean;
@@ -52,6 +53,12 @@ const ModalAuth: React.FC<ModalAuthProps> = ({ active, setActive }) => {
     setActive(false);
   };
 
+  const googleAuth = async () => {
+    const provider = await new GoogleAuthProvider()
+
+    return signInWithPopup(auth, provider)
+  }
+
   const handleCancel = () => {
     setActive(false);
   };
@@ -76,7 +83,7 @@ const ModalAuth: React.FC<ModalAuthProps> = ({ active, setActive }) => {
         <Flex vertical gap={19}>
           <h2>Or sign in with</h2>
           <div className={style.signIn_with}>
-            <button onClick={() => signIn("google", { callbackUrl: "/" })}>
+            <button onClick={() => googleAuth()}>
               <Image
                 src={darkTheme ? googleIconDark : googleIconLight}
                 alt={""}
@@ -84,14 +91,14 @@ const ModalAuth: React.FC<ModalAuthProps> = ({ active, setActive }) => {
                 height={32}
               />
             </button>
-            <button onClick={() => signIn("yandex", { callbackUrl: "/" })}>
+            {/* <button onClick={() => signIn("yandex", { callbackUrl: "/" })}>
               <Image
                 src={darkTheme ? yandexIcon : yandexIcon}
                 alt={""}
                 width={32}
                 height={32}
               />
-            </button>
+            </button> */}
           </div>
         </Flex>
       </div>

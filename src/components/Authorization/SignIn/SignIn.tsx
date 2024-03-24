@@ -5,19 +5,11 @@ import {
   Flex,
   Input,
   Space,
-  Typography,
   notification,
 } from "antd";
 import React, { useState } from "react";
-import {
-  useAuthState,
-  useSignInWithEmailAndPassword,
-  useSignInWithEmailLink,
-} from "react-firebase-hooks/auth";
-import { auth } from "../../../../configs/firebase/config";
 import style from "./style.module.scss";
 import { NotificationPlacement } from "antd/es/notification/interface";
-import { BorderTopOutlined } from "@ant-design/icons";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
 interface SignInProps {
@@ -33,42 +25,32 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
   const auth = getAuth();
   const [api, contextHolder] = notification.useNotification();
 
-  const openNotification = (placement: NotificationPlacement) => {
-    api.error({
-      message: `Error`,
-      description: "Invalid Email or password, please, try again!",
-      placement,
-    });
-  };
-  const fetchData = async () => {
-    try {
-      const res = await signInWithEmailAndPassword(auth, email, password);
-      console.log(res);
-      return res;
-    } catch (error) {
-      console.log(typeof error);
-      throw error;
+  const openNotification = (
+    placement: NotificationPlacement,
+    type: "ok" | "err"
+  ) => {
+    if (type === "err") {
+      api.error({
+        message: `Error`,
+        description: "Invalid Email or password, please, try again!",
+        placement,
+      });
+    } else if (type === "ok") {
+      api.success({
+        message: `Welcome`,
+        description: "Welcome!",
+        placement,
+      });
     }
   };
-  // console.log(email, password, user);
-  // const [SignInWithEmailAndPassword] = useSignInWithEmailAndPassword(auth);
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // const res = await SignInWithEmailAndPassword(email, password);
-    // if (!res) {
-    //   openNotification("top");
-    //   setError(true);
-    // }
     signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Signed in
-        const user = userCredential.user;
-        // ...
-      })
+      .then()
       .catch((error) => {
         const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode)
+        openNotification("top", "err");
+        console.log(errorCode);
       });
   };
 

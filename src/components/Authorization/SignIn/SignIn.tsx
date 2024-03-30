@@ -46,7 +46,8 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     signInWithEmailAndPassword(auth, email, password)
-      .then()
+      .then(
+      )
       .catch((error) => {
         const errorCode = error.code;
         openNotification("top", "err");

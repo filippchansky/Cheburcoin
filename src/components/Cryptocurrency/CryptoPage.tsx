@@ -7,7 +7,6 @@ import { Menu, MenuProps, Select } from "antd";
 import { DollarOutlined, ReadOutlined } from "@ant-design/icons";
 
 interface CryptoPageProps {
-  TOKEN: string;
 }
 
 const items: MenuProps["items"] = [
@@ -22,7 +21,7 @@ const items: MenuProps["items"] = [
     icon: <DollarOutlined />,
   },
 ];
-const CryptoPage: React.FC<CryptoPageProps> = ({ TOKEN }) => {
+const CryptoPage: React.FC<CryptoPageProps> = ({ }) => {
   const [type, setType] = useState("coins");
 
   const [width, setWidth] = useState(1920); // TODO window is not defined (window.innerWidth)
@@ -57,18 +56,18 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ TOKEN }) => {
         </div>
         {width >= 650 && (
           <>
-            <News TOKEN={TOKEN} />
-            <Cryptoccurency TOKEN={TOKEN} />
+            <News />
+            <Cryptoccurency />
           </>
         )}
         {width <= 650 && type === "coins" && (
           <>
-            <Cryptoccurency TOKEN={TOKEN} />
+            <Cryptoccurency />
           </>
         )}
         {width <= 650 && type === "news" && (
           <>
-            <News TOKEN={TOKEN} />
+            <News  />
           </>
         )}
       </div>

@@ -6,23 +6,12 @@ import React, { useState } from "react";
 import Chart from "./Chart/Chart";
 import style from "./style.module.scss";
 import { Radio, Select } from "antd";
+import { fetchChart } from "@api/coinstats/getChartById";
 
 interface AboutCurrencyProps {
-  TOKEN: string;
 }
 
-const AboutCurrency: React.FC<AboutCurrencyProps> = ({ TOKEN }) => {
-  const fetchChart = async (coin_id: string, period: string) => {
-    const { data } = await axios.get(
-      `https://openapiv1.coinstats.app/coins/${coin_id}/charts?period=${period}`,
-      {
-        headers: {
-          "X-API-KEY": TOKEN,
-        },
-      }
-    );
-    return data;
-  };
+const AboutCurrency: React.FC<AboutCurrencyProps> = ({ }) => {
   const { slug } = useParams();
   const coin_id = slug[0];
   const [period, setPeriod] = useState("1w");

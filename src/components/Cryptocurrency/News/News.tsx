@@ -7,26 +7,14 @@ import { Collapse, Pagination, PaginationProps, Skeleton, Spin } from "antd";
 import NewsDescription from "./NewsDescription/NewsDescription";
 import NewsTitle from "./NewsTitle/NewsTitle";
 import style from "./style.module.scss";
+import { fetchNews } from "@api/coinstats/getAllNews";
 
 interface NewsProps {
-  TOKEN: string;
 }
 
-const News: React.FC<NewsProps> = ({ TOKEN }) => {
-  const fetchNews = async (type: string, page: number, limit: number) => {
-    const { data } = await axios.get(
-      `https://openapiv1.coinstats.app/news/type/${type}?page=${page}&limit=${limit}`,
-      {
-        headers: {
-          "X-API-KEY": TOKEN,
-        },
-      }
-    );
-    setNews(data);
-    setFetching(false);
-    return data;
-  };
-  const [news, setNews] = useState<INews>();
+const News: React.FC<NewsProps> = ({ }) => {
+  
+  const [news, setNews] = useState<INews | undefined>();
   const [totalPage, setTotalPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -34,7 +22,7 @@ const News: React.FC<NewsProps> = ({ TOKEN }) => {
   const [fetching, setFetching] = useState(false);
   const { data, isLoading, isError } = useQuery<INews>({
     queryKey: ["news", newsType, currentPage, limit],
-    queryFn: () => fetchNews(newsType, currentPage, limit),
+    queryFn: () => fetchNews(newsType, currentPage, limit, setNews, setFetching),
   });
   useEffect(() => {
     if (fetching) {

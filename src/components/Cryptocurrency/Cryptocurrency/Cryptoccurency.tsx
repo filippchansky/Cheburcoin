@@ -16,32 +16,22 @@ import CardContent from "../CardContent/CardContent";
 import Meta from "antd/es/card/Meta";
 import { RedditOutlined, TwitterOutlined } from "@ant-design/icons";
 import Link from "next/link";
+import {fetchCoin} from "@api/coinstats/getAllCoins"
 
 interface CryptoccurencyProps {
-  TOKEN: string;
 }
 
-const Cryptoccurency: React.FC<CryptoccurencyProps> = ({ TOKEN }) => {
-  const fetchCoin = async (page: number, limit: number) => {
-    const { data } = await axios.get(
-      `https://openapiv1.coinstats.app/coins?page=${page}&limit=${limit}`,
-      {
-        headers: {
-          "X-API-KEY": TOKEN,
-        },
-      }
-    );
-    setTotalPage(data?.meta.pageCount);
-    return data;
-  };
+const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
+  
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
   const [limit, setLimit] = useState(12);
-  const { data, isError, isLoading } = useQuery<ICoinData>({
+  const { data, isError, isLoading, isFetching } = useQuery<ICoinData>({
     queryKey: ["coin", page, limit],
-    queryFn: () => fetchCoin(page, limit),
+    queryFn: () => fetchCoin(page, limit, setTotalPage),
     refetchInterval: 300000,
   });
+  console.log(isFetching);
   const onChangePage: PaginationProps["onChange"] = (page) => {
     setPage(page);
     window.scrollTo({

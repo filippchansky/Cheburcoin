@@ -1,13 +1,16 @@
 import axios from "axios";
+import { config } from "./config";
 
-export const fetchNews = async (type: string, page: number, limit: number, setNews: Function, setFetching: Function ) => {
+export const fetchNews = async (
+  type: string,
+  page: number,
+  limit: number,
+  setNews: Function,
+  setFetching: Function
+) => {
   const { data } = await axios.get(
     `https://openapiv1.coinstats.app/news/type/${type}?page=${page}&limit=${limit}`,
-    {
-      headers: {
-        "X-API-KEY": process.env.NEXT_PUBLIC_COIN,
-      },
-    }
+    config
   );
   // TODO придумать как сделать без setNews и setFetching
   setNews(data);

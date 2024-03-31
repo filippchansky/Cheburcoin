@@ -6,11 +6,9 @@ interface PageProps {
 }
 
 const Page = ({params} : {params: {slug: string}}) => {
-    
-    const TOKEN = process.env.COIN!
 
     return (
-        <AboutCurrency TOKEN={TOKEN}/>
+        <AboutCurrency/>
     )
 }
 export default Page;

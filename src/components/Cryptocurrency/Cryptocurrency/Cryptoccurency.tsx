@@ -4,6 +4,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { ICoinData } from "../../../../models/coinData";
 import {
+  Affix,
   Avatar,
   Card,
   Pagination,
@@ -32,7 +33,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
     queryFn: () => fetchCoin(page, limit, setTotalPage),
     refetchInterval: 300000,
   });
-  console.log(isFetching);
+  
   const onChangePage: PaginationProps["onChange"] = (page) => {
     setPage(page);
     window.scrollTo({
@@ -49,6 +50,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
   };
 
   return (
+    <Affix offsetTop={60}>
     <div className="flex flex-col gap-5 max-[650px]:flex-col-reverse">
       <div className={style.paginationContainer}>
         {totalPage === 0 ? (
@@ -110,6 +112,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
             ))}
       </div>
     </div>
+    </Affix>
   );
 };
 export default Cryptoccurency;

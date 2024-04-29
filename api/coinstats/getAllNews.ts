@@ -1,5 +1,6 @@
 import axios from "axios";
 import { config } from "./config";
+import { api } from "./instance";
 
 export const fetchNews = async (
   type: string,
@@ -8,8 +9,8 @@ export const fetchNews = async (
   setNews: Function,
   setFetching: Function
 ) => {
-  const { data } = await axios.get(
-    `https://openapiv1.coinstats.app/news/type/${type}?page=${page}&limit=${limit}`,
+  const { data } = await api.get(
+    `news/type/${type}?page=${page}&limit=${limit}`,
     config
   );
   // TODO придумать как сделать без setNews и setFetching

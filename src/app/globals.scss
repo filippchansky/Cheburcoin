@@ -7,22 +7,22 @@
 
 /* ===== Scrollbar CSS ===== */
   /* Firefox */
-  * {
-    scrollbar-width: auto;
-    scrollbar-color: #0084ff #ffffff;
-  }
+  // * {
+  //   scrollbar-width: auto;
+  //   scrollbar-color: #0084ff #ffffff;
+  // }
 
-  /* Chrome, Edge, and Safari */
-  *::-webkit-scrollbar {
-    width: 6px;
-  }
+  // /* Chrome, Edge, and Safari */
+  // *::-webkit-scrollbar {
+  //   width: 6px;
+  // }
 
-  *::-webkit-scrollbar-track {
-    background: inherit;
-  }
+  // *::-webkit-scrollbar-track {
+  //   background: inherit;
+  // }
 
-  *::-webkit-scrollbar-thumb {
-    background-color: #0084ff;
-    border-radius: 10px;
-    border: 2px solid inherit;
-  }
+  // *::-webkit-scrollbar-thumb {
+  //   background-color: #0084ff;
+  //   border-radius: 10px;
+  //   border: 2px solid inherit;
+  // }

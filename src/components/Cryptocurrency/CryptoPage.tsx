@@ -3,11 +3,10 @@ import React, { useEffect, useState } from "react";
 import style from "./style.module.scss";
 import News from "./News/News";
 import Cryptoccurency from "./Cryptocurrency/Cryptoccurency";
-import { Menu, MenuProps, Select } from "antd";
+import { Affix, Menu, MenuProps, Select } from "antd";
 import { DollarOutlined, ReadOutlined } from "@ant-design/icons";
 
-interface CryptoPageProps {
-}
+interface CryptoPageProps {}
 
 const items: MenuProps["items"] = [
   {
@@ -21,10 +20,10 @@ const items: MenuProps["items"] = [
     icon: <DollarOutlined />,
   },
 ];
-const CryptoPage: React.FC<CryptoPageProps> = ({ }) => {
+const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
   const [type, setType] = useState("coins");
 
-  const [width, setWidth] = useState(1920); // TODO window is not defined (window.innerWidth)
+  const [width, setWidth] = useState(window.innerWidth); // TODO window is not defined (window.innerWidth)
 
   useEffect(() => {
     const handleResize = () => {
@@ -54,7 +53,15 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ }) => {
             items={items}
           />
         </div>
-        {width >= 650 && (
+        {width > 650 && width > 1520 && (
+          <>
+            <News />
+            <Affix offsetTop={50}>
+              <Cryptoccurency />
+            </Affix>
+          </>
+        )}
+        {width >= 650 && width <= 1520 &&(
           <>
             <News />
             <Cryptoccurency />
@@ -67,7 +74,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({ }) => {
         )}
         {width <= 650 && type === "news" && (
           <>
-            <News  />
+            <News />
           </>
         )}
       </div>

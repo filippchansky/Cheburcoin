@@ -112,7 +112,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
                     <Skeleton.Button
                       size="small"
                       active
-                      style={{ width: "10px" }}
+                      style={{ width: "11px" }}
                     />
                   }
                   style={{ width: 300, height: "182px" }}

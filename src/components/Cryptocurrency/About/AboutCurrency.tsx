@@ -34,7 +34,8 @@ const AboutCurrency: React.FC<AboutCurrencyProps> = ({}) => {
     <div className={style.chartContainer}>
       <div className="flex items-end justify-around">
         <Segmented<string>
-          options={["All", "24h", "1W", "1M", "3M", "6M", "1Y"]}
+          value={period.toUpperCase()}
+          options={["ALL", "24H", "1W", "1M", "3M", "6M", "1Y"]}
           onChange={(value) => {
             console.log(value); // string
             setPeriod(value.toLowerCase());

@@ -33,10 +33,10 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
                 : theme.defaultAlgorithm,
               components: {
                 Layout: {
-                  headerBg: `${darkTheme ? "#000000" : "#e0e0e0"}`,
-                  bodyBg: `${darkTheme ? "rgb(27 28 30)" : "white"}`,
+                  headerBg: `${darkTheme ? "rgb(27 28 30)" : "#e0e0e0"}`,
+                  bodyBg: `${darkTheme ? "rgb(51,51,51)" : "rgb(254,248,239)"}`,
                   colorFillContent: `${
-                    darkTheme ? "rgb(27 28 30)" : "#e0e0e0"
+                    darkTheme ? "rgb(51,51,51)" : "#e0e0e0"
                   }`,
                 },
                 Menu: {

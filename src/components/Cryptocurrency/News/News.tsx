@@ -9,26 +9,32 @@ import NewsTitle from "./NewsTitle/NewsTitle";
 import style from "./style.module.scss";
 import { fetchNews } from "@api/coinstats/getAllNews";
 
-interface NewsProps {
-}
+interface NewsProps {}
 
-const News: React.FC<NewsProps> = ({ }) => {
-  
+const News: React.FC<NewsProps> = ({}) => {
   const [news, setNews] = useState<INews | undefined>();
   const [totalPage, setTotalPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [newsType, setNewsType] = useState("latest");
   const [fetching, setFetching] = useState(false);
-  const { data, isLoading, isError } = useQuery<INews>({
+  const { data, isLoading, isError, isSuccess } = useQuery<INews>({
     queryKey: ["news", newsType, currentPage, limit],
-    queryFn: () => fetchNews(newsType, currentPage, limit, setNews, setFetching),
+    queryFn: () =>
+      fetchNews(newsType, currentPage, limit),
   });
   useEffect(() => {
     if (fetching) {
       setLimit(limit + 10);
     }
   }, [fetching]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      setFetching(false)
+      setNews(data);
+    }
+  }, [isSuccess]);
 
   useEffect(() => {
     document.addEventListener("scroll", scrollHandler);
@@ -63,7 +69,7 @@ const News: React.FC<NewsProps> = ({ }) => {
               ]}
             />
           ))
-        : Array.from({ length: 10 }).map((item, index) => (
+        : Array.from({ length: 9 }).map((item, index) => (
             <div key={index} className="flex items-center max-h-[100px] w-full">
               <Skeleton.Input
                 active

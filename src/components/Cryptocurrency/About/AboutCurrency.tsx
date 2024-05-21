@@ -5,10 +5,11 @@ import { useParams } from "next/navigation";
 import React, { useState } from "react";
 import Chart from "./Chart/Chart";
 import style from "./style.module.scss";
-import { Radio, Select } from "antd";
+import { Card, Radio, Segmented, Select, Skeleton } from "antd";
 import { fetchChart } from "@api/coinstats/getChartById";
 import CoinCard from "@/UI/CoinCard/CoinCard";
 import { getCoinById } from "@api/coinstats/getCoinById";
+import { CardSkeleton } from "@/UI/Skeletons/CardSkeleton";
 
 interface AboutCurrencyProps {}
 
@@ -32,30 +33,19 @@ const AboutCurrency: React.FC<AboutCurrencyProps> = ({}) => {
   return (
     <div className={style.chartContainer}>
       <div className="flex items-end justify-around">
-        <Radio.Group value={period} onChange={(e) => setPeriod(e.target.value)}>
-          <Radio.Button className={style.periodBtn} value="all">
-            All
-          </Radio.Button>
-          <Radio.Button className={style.periodBtn} value="24h">
-            24h
-          </Radio.Button>
-          <Radio.Button className={style.periodBtn} value="1w">
-            1W
-          </Radio.Button>
-          <Radio.Button className={style.periodBtn} value="1m">
-            1M
-          </Radio.Button>
-          <Radio.Button className={style.periodBtn} value="3m">
-            3M
-          </Radio.Button>
-          <Radio.Button className={style.periodBtn} value="6m">
-            6M
-          </Radio.Button>
-          <Radio.Button className={style.periodBtn} value="1y">
-            1Y
-          </Radio.Button>
-        </Radio.Group>
-        {coin_data? <CoinCard item={coin_data} /> : <>loading</>}
+        <Segmented<string>
+          value={period.toUpperCase()}
+          options={["ALL", "24H", "1W", "1M", "3M", "6M", "1Y"]}
+          onChange={(value) => {
+            console.log(value); // string
+            setPeriod(value.toLowerCase());
+          }}
+        />
+        {coin_data ? (
+          <CoinCard item={coin_data} />
+        ) : (
+          <CardSkeleton/>
+        )}
       </div>
       <Chart charts={data} />
     </div>

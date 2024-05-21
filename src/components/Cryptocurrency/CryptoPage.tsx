@@ -23,9 +23,11 @@ const items: MenuProps["items"] = [
 const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
   const [type, setType] = useState("coins");
 
-  const [width, setWidth] = useState(0); // TODO window is not defined (window.innerWidth)
+  const [width, setWidth] = useState(1920); // TODO window is not defined (window.innerWidth)
 
   useEffect(() => {
+    setWidth(window.innerWidth)
+
     const handleResize = () => {
       setWidth(window.innerWidth);
     };
@@ -61,7 +63,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
             </Affix>
           </>
         )}
-        {width >= 650 && width <= 1520 &&(
+        {width >= 650 && width <= 1520 && (
           <>
             <News />
             <Cryptoccurency />

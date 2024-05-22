@@ -3,7 +3,6 @@ import { useDarkTheme } from "@/store/darkTheme";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider, theme } from "antd";
-import { SessionProvider } from "next-auth/react";
 import React, { useState } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -45,7 +44,7 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
               },
             }}
           >
-            <SessionProvider>{children}</SessionProvider>
+           {children}
           </ConfigProvider>
         </ThemeProvider>
       </AntdRegistry>

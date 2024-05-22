@@ -16,7 +16,6 @@ import Image from "next/image";
 import { useDarkTheme } from "@/store/darkTheme";
 import style from "./style.module.scss";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
 import { auth } from "../../../configs/firebase/config";
 import SignIn from "./SignIn/SignIn";

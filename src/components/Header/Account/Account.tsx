@@ -1,7 +1,6 @@
 import { Avatar, Button, Popover } from "antd";
 import style from "./style.module.scss";
 import SkeletonAvatar from "antd/es/skeleton/Avatar";
-import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import React, { Suspense, useState } from "react";
 import SwitchTeme from "../SwitchTeme/SwitchTeme";
@@ -13,8 +12,6 @@ import { signOut } from "firebase/auth";
 interface AccountProps {}
 
 const Account: React.FC<AccountProps> = ({}) => {
-  const session = useSession();
-  const { data, status } = session;
 
   const [user, loading] = useAuthState(auth);
   // console.log({ user });

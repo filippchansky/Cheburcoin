@@ -37,7 +37,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   const layoutStyle = {
-    borderRadius: 8,
     overflow: "hidden",
     width: "100vw",
     maxWidth: "100vw",
@@ -49,7 +48,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <HeaderLayout className={style.header}>
           <Header />
         </HeaderLayout>
-        <Content style={contentStyle}>{children}</Content>
+        <Content className={style.content} >{children}</Content>
       </Layout>
     </Flex>
   );

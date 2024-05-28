@@ -14,4 +14,17 @@
     }
   }
 
+  .content {
+    text-align: center;
+    min-height: calc(100vh - 100px) !important;
+    line-height: 120px;
+    padding: 20px;
+
+
+    @media (max-width: 768px) {
+        padding: 20px 0;
+        
+    }
+  }
+
   

@@ -15,39 +15,37 @@ interface AboutCurrencyProps {}
 
 const AboutCurrency: React.FC<AboutCurrencyProps> = ({}) => {
   const { slug } = useParams();
-  const coin_id = slug[0];
+  const coinId = slug[0];
   const [period, setPeriod] = useState("1w");
   const { data, isError, isLoading } = useQuery({
-    queryKey: ["chart", coin_id, period],
-    queryFn: () => fetchChart(coin_id, period),
+    queryKey: ["chart", coinId, period],
+    queryFn: () => fetchChart(coinId, period),
     refetchOnWindowFocus: false,
     // refetchInterval: 10000
   });
 
   const { data: coin_data } = useQuery({
     queryKey: ["coin"],
-    queryFn: () => getCoinById(coin_id),
+    queryFn: () => getCoinById(coinId),
     refetchOnWindowFocus: false,
   });
-
+  console.log(coin_data);
   return (
-    <div className={style.chartContainer}>
-      <div className="flex items-end justify-around">
-        <Segmented<string>
-          value={period.toUpperCase()}
-          options={["ALL", "24H", "1W", "1M", "3M", "6M", "1Y"]}
-          onChange={(value) => {
-            console.log(value); // string
-            setPeriod(value.toLowerCase());
-          }}
-        />
-        {coin_data ? (
-          <CoinCard item={coin_data} />
-        ) : (
-          <CardSkeleton/>
-        )}
+    <div className={style.wrapper}>
+      <div className={style.chartContainer}>
+        <div className={style.coinInfo}>
+          {coin_data ? <CoinCard item={coin_data} /> : <CardSkeleton />}
+          <Segmented<string>
+            value={period.toUpperCase()}
+            options={["ALL", "24H", "1W", "1M", "3M", "6M", "1Y"]}
+            onChange={(value) => {
+              console.log(value); // string
+              setPeriod(value.toLowerCase());
+            }}
+          />
+        </div>
+        <Chart charts={data} />
       </div>
-      <Chart charts={data} />
     </div>
   );
 };

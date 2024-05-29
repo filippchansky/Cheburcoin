@@ -3,9 +3,12 @@ import { useDarkTheme } from "@/store/darkTheme";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider, theme } from "antd";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { useFavoriteCoins } from "@/store/FavoriteCoins";
+import { auth, db } from "../../../configs/firebase/config";
+import { doc, getDoc } from "firebase/firestore";
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -13,6 +16,23 @@ interface ProvidersProps {
 
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
   const { darkTheme } = useDarkTheme();
+  const { coins, setCoins, addCoins } = useFavoriteCoins();
+  const isFavoriteCoin = async () => {
+    if (auth.currentUser) {
+      const docRef = doc(db, "users", auth.currentUser.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        return docSnap.data().coinList;
+      }
+    }
+  };
+  useEffect(() => {
+    if (auth.currentUser) {
+      console.log("тут");
+    }
+  }, [auth.currentUser]);
+  console.log(coins);
   const darkThemeMui = createTheme({
     palette: {
       mode: darkTheme ? "dark" : "light",
@@ -44,7 +64,7 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
               },
             }}
           >
-           {children}
+            {children}
           </ConfigProvider>
         </ThemeProvider>
       </AntdRegistry>

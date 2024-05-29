@@ -11,9 +11,10 @@ import {
 import style from "./style.module.scss";
 import { FormEvent, useState } from "react";
 import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
-import { auth } from "../../../../configs/firebase/config";
+import { auth, db } from "../../../../configs/firebase/config";
 import { NotificationPlacement } from "antd/es/notification/interface";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
+import { addDoc, collection, doc, setDoc } from "firebase/firestore";
 
 interface SignUpProps {}
 
@@ -45,9 +46,12 @@ const SignUp: React.FC<SignUpProps> = ({}) => {
   const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then( async (userCredential) => {
         // Signed up
         const user = userCredential.user;
+        await setDoc(doc(db, "users", user.uid), {
+          coinList: []
+        });
         // ...
       })
       .catch((error) => {

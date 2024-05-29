@@ -21,6 +21,8 @@ import { RedditOutlined, TwitterOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { fetchCoin } from "@api/coinstats/getAllCoins";
 import CoinCard from "@/UI/CoinCard/CoinCard";
+import {collection, doc, setDoc} from "firebase/firestore"
+import { app, db } from "../../../../configs/firebase/config";
 
 interface CryptoccurencyProps {}
 
@@ -39,6 +41,8 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
     }
   }, [data]);
 
+  
+
   const onChangePage: PaginationProps["onChange"] = (page) => {
     setPage(page);
     window.scrollTo({
@@ -53,6 +57,8 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
     setPage(current);
     setLimit(pageSize);
   };
+
+  console.log(collection(db, 'users'), 'qwe')
 
   if (isError) {
     return (

@@ -31,7 +31,6 @@ const AboutCurrency: React.FC<AboutCurrencyProps> = ({}) => {
     queryFn: () => getCoinById(coinId),
     refetchOnWindowFocus: false,
   });
-  console.log(coin_data);
   return (
     <div className={style.wrapper}>
       <div className={style.chartContainer}>
@@ -41,7 +40,6 @@ const AboutCurrency: React.FC<AboutCurrencyProps> = ({}) => {
             value={period.toUpperCase()}
             options={["ALL", "24H", "1W", "1M", "3M", "6M", "1Y"]}
             onChange={(value) => {
-              console.log(value); // string
               setPeriod(value.toLowerCase());
             }}
           />

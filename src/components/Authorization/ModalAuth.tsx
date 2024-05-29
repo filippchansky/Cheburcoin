@@ -33,7 +33,7 @@ const ModalAuth: React.FC<ModalAuthProps> = ({ active, setActive }) => {
   const { darkTheme } = useDarkTheme();
   const { addCoins } = useFavoriteCoins();
   const onChange = (key: string) => {
-    console.log(key);
+    
   };
 
   const items: TabsProps["items"] = [

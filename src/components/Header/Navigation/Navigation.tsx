@@ -16,12 +16,12 @@ const Navigation: React.FC<NavigationProps> = ({}) => {
       label: "Home",
       path: "#",
     },
-    // {
-    //   id: 1,
-    //   key: "/about",
-    //   label: "About Me",
-    //   path: "#",
-    // },
+    {
+      id: 1,
+      key: "/favorite",
+      label: "Favorite",
+      path: "#",
+    },
     // {
     //   id: 2,
     //   key: '/cryptocurrency',

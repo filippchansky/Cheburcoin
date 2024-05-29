@@ -15,18 +15,18 @@ import { auth, db } from "../../../../configs/firebase/config";
 import { NotificationPlacement } from "antd/es/notification/interface";
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { addDoc, collection, doc, setDoc } from "firebase/firestore";
+import { useFavoriteCoins } from "@/store/FavoriteCoins";
 
 interface SignUpProps {}
 
 const SignUp: React.FC<SignUpProps> = ({}) => {
+  const {addCoins} = useFavoriteCoins()
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [api, contextHolder] = notification.useNotification();
-  const [errorMessage, setErrorMessage] = useState("");
-  const [error, setError] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const auth = getAuth();
   const validRegex =
@@ -52,11 +52,11 @@ const SignUp: React.FC<SignUpProps> = ({}) => {
         await setDoc(doc(db, "users", user.uid), {
           coinList: []
         });
+        addCoins()
         // ...
       })
       .catch((error) => {
         const errorCode = error.code;
-        setErrorMessage(error.message);
         openNotification("top");
       });
   };

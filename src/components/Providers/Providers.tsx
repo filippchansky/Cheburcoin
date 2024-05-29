@@ -15,30 +15,18 @@ interface ProvidersProps {
 }
 
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
+  const {addCoins} = useFavoriteCoins()
   const { darkTheme } = useDarkTheme();
-  const { coins, setCoins, addCoins } = useFavoriteCoins();
-  const isFavoriteCoin = async () => {
-    if (auth.currentUser) {
-      const docRef = doc(db, "users", auth.currentUser.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        return docSnap.data().coinList;
-      }
-    }
-  };
-  useEffect(() => {
-    if (auth.currentUser) {
-      console.log("тут");
-    }
-  }, [auth.currentUser]);
-  console.log(coins);
   const darkThemeMui = createTheme({
     palette: {
       mode: darkTheme ? "dark" : "light",
     },
   });
   const [queryClient] = useState(() => new QueryClient());
+
+  useEffect(() => {
+    addCoins()
+  }, [])
 
   return (
     <QueryClientProvider client={queryClient}>

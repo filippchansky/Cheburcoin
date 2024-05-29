@@ -10,11 +10,13 @@ import { fetchChart } from "@api/coinstats/getChartById";
 import CoinCard from "@/UI/CoinCard/CoinCard";
 import { getCoinById } from "@api/coinstats/getCoinById";
 import { CardSkeleton } from "@/UI/Skeletons/CardSkeleton";
+import { useFavoriteCoins } from "@/store/FavoriteCoins";
 
 interface AboutCurrencyProps {}
 
 const AboutCurrency: React.FC<AboutCurrencyProps> = ({}) => {
   const { slug } = useParams();
+  const {coins} = useFavoriteCoins()
   const coinId = slug[0];
   const [period, setPeriod] = useState("1w");
   const { data, isError, isLoading } = useQuery({
@@ -34,7 +36,7 @@ const AboutCurrency: React.FC<AboutCurrencyProps> = ({}) => {
     <div className={style.wrapper}>
       <div className={style.chartContainer}>
         <div className={style.coinInfo}>
-          {coin_data ? <CoinCard item={coin_data} /> : <CardSkeleton />}
+          {coin_data ? <CoinCard favorite={coins?.includes(coin_data.id)} item={coin_data} /> : <CardSkeleton />}
           <Segmented<string>
             value={period.toUpperCase()}
             options={["ALL", "24H", "1W", "1M", "3M", "6M", "1Y"]}

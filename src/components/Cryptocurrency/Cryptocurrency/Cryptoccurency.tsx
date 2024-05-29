@@ -56,7 +56,6 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
   // }, []);
 
   
-  console.log(coins, 'coins');
 
   const onChangePage: PaginationProps["onChange"] = (page) => {
     setPage(page);

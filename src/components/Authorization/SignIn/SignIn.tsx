@@ -1,22 +1,17 @@
 "use client";
-import {
-  Button,
-  Checkbox,
-  Flex,
-  Input,
-  Space,
-  notification,
-} from "antd";
+import { Button, Checkbox, Flex, Input, Space, notification } from "antd";
 import React, { useState } from "react";
 import style from "./style.module.scss";
 import { NotificationPlacement } from "antd/es/notification/interface";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { useFavoriteCoins } from "@/store/FavoriteCoins";
 
 interface SignInProps {
   setActiveModal: Function;
 }
 
 const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
+  const {addCoins} = useFavoriteCoins()
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -46,8 +41,9 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     signInWithEmailAndPassword(auth, email, password)
-      .then(
-      )
+      .then(() => {
+        addCoins()
+      })
       .catch((error) => {
         const errorCode = error.code;
         openNotification("top", "err");

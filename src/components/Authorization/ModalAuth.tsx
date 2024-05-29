@@ -17,10 +17,12 @@ import { useDarkTheme } from "@/store/darkTheme";
 import style from "./style.module.scss";
 import { useState } from "react";
 import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
-import { auth } from "../../../configs/firebase/config";
+import { auth, db } from "../../../configs/firebase/config";
 import SignIn from "./SignIn/SignIn";
 import SignUp from "./SignUp/SignUp";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useFavoriteCoins } from "@/store/FavoriteCoins";
 
 interface ModalAuthProps {
   active: boolean;
@@ -29,7 +31,7 @@ interface ModalAuthProps {
 
 const ModalAuth: React.FC<ModalAuthProps> = ({ active, setActive }) => {
   const { darkTheme } = useDarkTheme();
-
+  const { addCoins } = useFavoriteCoins();
   const onChange = (key: string) => {
     console.log(key);
   };
@@ -53,10 +55,20 @@ const ModalAuth: React.FC<ModalAuthProps> = ({ active, setActive }) => {
   };
 
   const googleAuth = async () => {
-    const provider = await new GoogleAuthProvider()
+    const provider = new GoogleAuthProvider();
 
-    return signInWithPopup(auth, provider)
-  }
+    const googleUser = await signInWithPopup(auth, provider);
+    const user = googleUser.user;
+    const docRef = doc(db, "users", user.uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      addCoins();
+    } else {
+      await setDoc(doc(db, "users", user.uid), {
+        coinList: [],
+      });
+    }
+  };
 
   const handleCancel = () => {
     setActive(false);

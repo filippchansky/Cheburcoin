@@ -26,7 +26,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
   const [width, setWidth] = useState(1920); // TODO window is not defined (window.innerWidth)
 
   useEffect(() => {
-    setWidth(window.innerWidth)
+    setWidth(window.innerWidth);
 
     const handleResize = () => {
       setWidth(window.innerWidth);
@@ -45,7 +45,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
   return (
     <>
       <div className={style.wrapper}>
-        <div className="flex justify-center min-[650px]:hidden">
+        {/* <div className="flex justify-center min-[650px]:hidden">
           <Menu
             onClick={onClick}
             style={{ width: "190px" }}
@@ -54,8 +54,9 @@ const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
             mode="horizontal"
             items={items}
           />
-        </div>
-        {width > 650 && width > 1520 && (
+        </div> */}
+          <Cryptoccurency />
+        {/* {width > 650 && width > 1520 && (
           <>
             <News />
             <Affix offsetTop={50}>
@@ -78,7 +79,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
           <>
             <News />
           </>
-        )}
+        )} */}
       </div>
     </>
   );

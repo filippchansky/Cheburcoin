@@ -1,4 +1,22 @@
+.wrapper {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+
+  .container {
+    width: 50%;
+    display: flex;
+    text-align: start;
+    flex-direction: column;
+    gap: 15px;
+
+    .collapse {
+      width: 100% !important;
+    }
+  }
+}
+
 .skeleton {
-    height: 70px;
-    width: 100% !important;
+  height: 70px;
+  width: 100% !important;
 }

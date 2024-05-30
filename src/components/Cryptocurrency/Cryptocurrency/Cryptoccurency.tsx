@@ -28,11 +28,10 @@ import { useFavoriteCoins } from "@/store/FavoriteCoins";
 interface CryptoccurencyProps {}
 
 const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
-  const [favoriteCoins, setFavoriteCoins] = useState<string[] | null>(null)
   const {addCoins, coins} = useFavoriteCoins()
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
-  const [limit, setLimit] = useState(12);
+  const [limit, setLimit] = useState(32);
   const { data, isError, isLoading, isFetching } = useQuery<ICoinData>({
     queryKey: ["coin", page, limit],
     queryFn: () => fetchCoin(page, limit),
@@ -87,7 +86,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
   }
 
   return (
-    <div className="flex flex-col gap-5 max-[650px]:flex-col-reverse">
+    <div className="flex  gap-5 flex-col-reverse">
       <div className={style.paginationContainer}>
         {totalPage === 0 ? (
           <Skeleton.Input
@@ -109,7 +108,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
       </div>
       <div className={style.cardContainer}>
         {isLoading
-          ? Array.from({ length: 12 }).map((_, index) => (
+          ? Array.from({ length: 32 }).map((_, index) => (
               <Card
                 key={index}
                 title={

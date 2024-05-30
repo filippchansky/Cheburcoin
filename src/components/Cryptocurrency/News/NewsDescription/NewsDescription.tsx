@@ -23,10 +23,7 @@ const NewsDescription: React.FC<NewsDescriptionProps> = ({ item }) => {
       <div className="">
         <div>
           <p>
-            {item.description}...
-            <Button type="link" target="_blank" href={item.link}>
-              See more
-            </Button>
+            {item.description}
           </p>
         </div>
       </div>

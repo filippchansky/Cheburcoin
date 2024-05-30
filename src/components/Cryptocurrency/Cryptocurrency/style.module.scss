@@ -4,7 +4,7 @@
   display: flex;
   justify-content: flex-start;
 
-  @media (max-width: 960px) {
+  @media (max-width: 1150px) {
     justify-content: center;
   }
   @media (max-width: 760px) {
@@ -14,16 +14,18 @@
 
 .cardContainer {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-auto-rows: max-content;
-  row-gap: 10px;
-  column-gap: 20px;
+  row-gap: 30px;
+  column-gap: 60px;
 
   @media (max-width: 1520px) {
+    grid-template-columns: 1fr 1fr 1fr ;
+  }
+  @media (max-width: 1150px) {
     grid-template-columns: 1fr 1fr;
   }
-
-  @media (max-width: 960px) {
+  @media (max-width: 768px) {
     display: flex;
     flex-direction: column;
     align-items: center;

@@ -1,20 +1,7 @@
 .wrapper {
-  display: grid;
-  grid-template-columns: 0.5fr 1fr;
-  column-gap: 50px;
+  display: flex;
+  justify-content: center;
 
-  @media (max-width: 650px) {
-    grid-template-columns: 1fr;
-  }
-
-  .news {
-    
-    @media (max-width: 650px) {
-    }
-  }
-
-  .coins {
-
-  }
+  
 }
 

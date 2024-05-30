@@ -15,23 +15,22 @@ const News: React.FC<NewsProps> = ({}) => {
   const [news, setNews] = useState<INews | undefined>();
   const [totalPage, setTotalPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(20);
   const [newsType, setNewsType] = useState("latest");
   const [fetching, setFetching] = useState(false);
   const { data, isLoading, isError, isSuccess } = useQuery<INews>({
     queryKey: ["news", newsType, currentPage, limit],
-    queryFn: () =>
-      fetchNews(newsType, currentPage, limit),
+    queryFn: () => fetchNews(newsType, currentPage, limit),
   });
   useEffect(() => {
     if (fetching) {
-      setLimit(limit + 10);
+      setLimit(limit + 20);
     }
   }, [fetching]);
 
   useEffect(() => {
     if (isSuccess) {
-      setFetching(false)
+      setFetching(false);
       setNews(data);
     }
   }, [isSuccess]);
@@ -55,31 +54,37 @@ const News: React.FC<NewsProps> = ({}) => {
   };
 
   return (
-    <div className="text-start flex flex-col gap-5">
-      {news
-        ? news?.map((item) => (
-            <Collapse
-              key={item.id}
-              items={[
-                {
-                  key: item.id,
-                  label: <NewsTitle item={item} />,
-                  children: <NewsDescription item={item} />,
-                },
-              ]}
-            />
-          ))
-        : Array.from({ length: 9 }).map((item, index) => (
-            <div key={index} className="flex items-center max-h-[100px] w-full">
-              <Skeleton.Input
-                active
-                size="large"
-                className={style.skeleton}
-                style={{ height: "70px" }}
+    <div className={style.wrapper}>
+      <div className={style.container}>
+        {news
+          ? news?.map((item) => (
+              <Collapse
+                className={style.collapse}
+                key={item.id}
+                items={[
+                  {
+                    key: item.id,
+                    label: <NewsTitle item={item} />,
+                    children: <NewsDescription item={item} />,
+                  },
+                ]}
               />
-            </div>
-          ))}
-      {fetching && <Spin />}
+            ))
+          : Array.from({ length: 12 }).map((item, index) => (
+              <div
+                key={index}
+                className="flex items-center max-h-[100px] w-full"
+              >
+                <Skeleton.Input
+                  active
+                  size="large"
+                  className={style.skeleton}
+                  style={{ height: "70px" }}
+                />
+              </div>
+            ))}
+        {fetching && <Spin />}
+      </div>
     </div>
   );
 };

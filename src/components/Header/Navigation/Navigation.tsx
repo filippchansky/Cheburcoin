@@ -22,11 +22,12 @@ const Navigation: React.FC<NavigationProps> = ({}) => {
       label: "Favorite",
       path: "#",
     },
-    // {
-    //   id: 2,
-    //   key: '/cryptocurrency',
-    //   label: 'Crypto'
-    // }
+    {
+      id: 2,
+      key: '/news',
+      label: 'News',
+      path: "#",
+    }
   ];
 
   const { push } = useRouter();

@@ -1,7 +1,8 @@
-const { prettier } = require('@siberiacancode/prettier');
+import { prettier } from '@siberiacancode/prettier';
 
 /** @type {import('prettier').Config} */
-module.exports = {
+export default {
   ...prettier,
-  plugins: ['prettier-plugin-tailwindcss']
+  plugins: ['prettier-plugin-tailwindcss'],
+
 };

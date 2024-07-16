@@ -1,27 +1,16 @@
-import CardContent from "@/components/Cryptocurrency/CardContent/CardContent";
-import {
-  RedditOutlined,
-  StarOutlined,
-  StarTwoTone,
-  TwitterOutlined,
-} from "@ant-design/icons";
-import { Avatar, Card, Rate, Skeleton, notification } from "antd";
-import Link from "next/link";
-import React, { useEffect, useState } from "react";
-import { ICoin } from "../../../models/coinData";
-import {
-  arrayRemove,
-  arrayUnion,
-  doc,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
-import { auth, db } from "../../../configs/firebase/config";
-import style from "./style.module.scss";
-import { useQuery } from "@tanstack/react-query";
-import { NotificationPlacement } from "antd/es/notification/interface";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { useFavoriteCoins } from "@/store/FavoriteCoins";
+import CardContent from '@/components/Cryptocurrency/CardContent/CardContent';
+import { RedditOutlined, StarOutlined, StarTwoTone, TwitterOutlined } from '@ant-design/icons';
+import { Avatar, Card, Rate, Skeleton, notification } from 'antd';
+import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
+import { ICoin } from '../../../models/coinData';
+import { arrayRemove, arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../../../configs/firebase/config';
+import style from './style.module.scss';
+import { useQuery } from '@tanstack/react-query';
+import { NotificationPlacement } from 'antd/es/notification/interface';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useFavoriteCoins } from '@/store/FavoriteCoins';
 
 interface CoinCardProps {
   item: ICoin;
@@ -38,16 +27,16 @@ const CoinCard: React.FC<CoinCardProps> = ({ item, favorite }) => {
     setIsFavorite(favorite);
   }, [favorite]);
 
-  const openNotification = (type: "deleted" | "added") => {
-    if (type === "added") {
+  const openNotification = (type: 'deleted' | 'added') => {
+    if (type === 'added') {
       api.info({
         message: `you have successfully added ${item.name} to your favorites`,
-        placement: "topRight",
+        placement: 'topRight'
       });
-    } else if (type === "deleted") {
+    } else if (type === 'deleted') {
       api.info({
         message: `you have successfully deleted  ${item.name} from your favorites`,
-        placement: "topRight",
+        placement: 'topRight'
       });
     }
   };
@@ -55,22 +44,22 @@ const CoinCard: React.FC<CoinCardProps> = ({ item, favorite }) => {
   const addToFavorite = async () => {
     if (!isFavorite) {
       if (auth.currentUser) {
-        await updateDoc(doc(db, "users", auth.currentUser.uid), {
-          coinList: arrayUnion(item.id),
+        await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+          coinList: arrayUnion(item.id)
         });
         addCoins();
         setIsFavorite(true);
-        openNotification("added");
+        openNotification('added');
       }
     }
     if (isFavorite) {
       if (auth.currentUser) {
-        await updateDoc(doc(db, "users", auth.currentUser.uid), {
-          coinList: arrayRemove(item.id),
+        await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+          coinList: arrayRemove(item.id)
         });
         addCoins();
         setIsFavorite(false);
-        openNotification("deleted");
+        openNotification('deleted');
       }
     }
   };
@@ -82,7 +71,7 @@ const CoinCard: React.FC<CoinCardProps> = ({ item, favorite }) => {
         key={item.id}
         title={
           <Link href={`/${item.id}`}>
-            <div className="flex items-center gap-3">
+            <div className='flex items-center gap-3'>
               <Avatar src={item.icon} />
               <p>{item.name}</p>
             </div>
@@ -91,7 +80,7 @@ const CoinCard: React.FC<CoinCardProps> = ({ item, favorite }) => {
         extra={
           user ? (
             isFavorite !== undefined ? (
-              <div className="flex">
+              <div className='flex'>
                 {isFavorite ? (
                   <Rate onChange={addToFavorite} defaultValue={1} count={1} />
                 ) : (
@@ -99,19 +88,19 @@ const CoinCard: React.FC<CoinCardProps> = ({ item, favorite }) => {
                 )}
               </div>
             ) : (
-              <Skeleton.Button size="small" active style={{ width: "11px" }} />
+              <Skeleton.Button size='small' active style={{ width: '11px' }} />
             )
           ) : (
             <Rate count={1} disabled />
           )
         }
         actions={[
-          <a target="_blank" href={item.twitterUrl} key="twitter">
-            <TwitterOutlined style={{ fontSize: "25px" }} />
+          <a target='_blank' href={item.twitterUrl} key='twitter'>
+            <TwitterOutlined style={{ fontSize: '25px' }} />
           </a>,
-          <a target="_blank" href={item.redditUrl} key="reddit">
-            <RedditOutlined style={{ fontSize: "25px" }} />
-          </a>,
+          <a target='_blank' href={item.redditUrl} key='reddit'>
+            <RedditOutlined style={{ fontSize: '25px' }} />
+          </a>
         ]}
         style={{ width: 300 }}
       >

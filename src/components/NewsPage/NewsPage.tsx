@@ -1,13 +1,7 @@
-import React from 'react'
+import React from 'react';
 
-interface NewsPageProps {
-  
-}
+interface NewsPageProps {}
 
-export const NewsPage:React.FC<NewsPageProps> = ({}) => {
-  
-  return (
-    <>
-    </>
-  )
-}
+export const NewsPage: React.FC<NewsPageProps> = ({}) => {
+  return <></>;
+};

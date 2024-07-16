@@ -1,9 +1,9 @@
-"use client";
-import React, { useState } from "react";
-import { Button, Menu } from "antd";
-import style from "./style.module.scss";
-import { useDarkTheme } from "@/store/darkTheme";
-import { useRouter, usePathname } from "next/navigation";
+'use client';
+import React, { useState } from 'react';
+import { Button, Menu } from 'antd';
+import style from './style.module.scss';
+import { useDarkTheme } from '@/store/darkTheme';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface NavigationProps {}
 
@@ -12,21 +12,21 @@ const Navigation: React.FC<NavigationProps> = ({}) => {
   const nav = [
     {
       id: 0,
-      key: "/",
-      label: "Home",
-      path: "#",
+      key: '/',
+      label: 'Home',
+      path: '#'
     },
     {
       id: 1,
-      key: "/favorite",
-      label: "Favorite",
-      path: "#",
+      key: '/favorite',
+      label: 'Favorite',
+      path: '#'
     },
     {
       id: 2,
       key: '/news',
       label: 'News',
-      path: "#",
+      path: '#'
     }
   ];
 
@@ -34,11 +34,11 @@ const Navigation: React.FC<NavigationProps> = ({}) => {
   const path = usePathname();
   return (
     <>
-      <div className="max-w-[500px] w-full max-[420px]:max-w-[200px]">
+      <div className='w-full max-w-[500px] max-[420px]:max-w-[200px]'>
         <Menu
           // theme={darkTheme ? "dark" : "light"}
-          mode="horizontal"
-          defaultSelectedKeys={["/"]}
+          mode='horizontal'
+          defaultSelectedKeys={['/']}
           selectedKeys={[`${path}`]}
           items={nav}
           style={{ flex: 1, minWidth: 0 }}

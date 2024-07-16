@@ -1,7 +1,7 @@
-import React from "react";
-import style from "./style.module.scss";
-import { INewsData } from "../../../../../models/newsData";
-import { Avatar } from "antd";
+import React from 'react';
+import style from './style.module.scss';
+import { INewsData } from '../../../../../models/newsData';
+import { Avatar } from 'antd';
 
 interface NewsTitleProps {
   item: INewsData;
@@ -9,11 +9,11 @@ interface NewsTitleProps {
 
 const NewsTitle: React.FC<NewsTitleProps> = ({ item }) => {
   return (
-    <div className="flex items-center gap-5">
+    <div className='flex items-center gap-5'>
       <Avatar className={style.avatar} src={item.imgUrl} />
-      <div className="">
+      <div className=''>
         <p className={style.title}>{item.title}</p>
-        <div className="flex justify-between">
+        <div className='flex justify-between'>
           <p className={style.source}>{item.source}</p>
         </div>
       </div>

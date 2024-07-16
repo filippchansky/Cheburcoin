@@ -1,13 +1,13 @@
-"use client";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
-import { INews } from "../../../../models/newsData";
-import { Collapse, Pagination, PaginationProps, Skeleton, Spin } from "antd";
-import NewsDescription from "./NewsDescription/NewsDescription";
-import NewsTitle from "./NewsTitle/NewsTitle";
-import style from "./style.module.scss";
-import { fetchNews } from "@api/coinstats/getAllNews";
+'use client';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { INews } from '../../../../models/newsData';
+import { Collapse, Pagination, PaginationProps, Skeleton, Spin } from 'antd';
+import NewsDescription from './NewsDescription/NewsDescription';
+import NewsTitle from './NewsTitle/NewsTitle';
+import style from './style.module.scss';
+import { fetchNews } from '@api/coinstats/getAllNews';
 
 interface NewsProps {}
 
@@ -16,11 +16,11 @@ const News: React.FC<NewsProps> = ({}) => {
   const [totalPage, setTotalPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(20);
-  const [newsType, setNewsType] = useState("latest");
+  const [newsType, setNewsType] = useState('latest');
   const [fetching, setFetching] = useState(false);
   const { data, isLoading, isError, isSuccess } = useQuery<INews>({
-    queryKey: ["news", newsType, currentPage, limit],
-    queryFn: () => fetchNews(newsType, currentPage, limit),
+    queryKey: ['news', newsType, currentPage, limit],
+    queryFn: () => fetchNews(newsType, currentPage, limit)
   });
   useEffect(() => {
     if (fetching) {
@@ -36,10 +36,10 @@ const News: React.FC<NewsProps> = ({}) => {
   }, [isSuccess]);
 
   useEffect(() => {
-    document.addEventListener("scroll", scrollHandler);
+    document.addEventListener('scroll', scrollHandler);
 
     return () => {
-      document.removeEventListener("scroll", scrollHandler);
+      document.removeEventListener('scroll', scrollHandler);
     };
   }, []);
 
@@ -65,21 +65,18 @@ const News: React.FC<NewsProps> = ({}) => {
                   {
                     key: item.id,
                     label: <NewsTitle item={item} />,
-                    children: <NewsDescription item={item} />,
-                  },
+                    children: <NewsDescription item={item} />
+                  }
                 ]}
               />
             ))
           : Array.from({ length: 12 }).map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center max-h-[100px] w-full"
-              >
+              <div key={index} className='flex max-h-[100px] w-full items-center'>
                 <Skeleton.Input
                   active
-                  size="large"
+                  size='large'
                   className={style.skeleton}
-                  style={{ height: "70px" }}
+                  style={{ height: '70px' }}
                 />
               </div>
             ))}

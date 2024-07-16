@@ -1,14 +1,9 @@
-import AboutCurrency from "../../components/Cryptocurrency/About/AboutCurrency"
-import React from 'react'
+import AboutCurrency from '../../components/Cryptocurrency/About/AboutCurrency';
+import React from 'react';
 
-interface PageProps {
-    
-}
+interface PageProps {}
 
-const Page = ({params} : {params: {slug: string}}) => {
-
-    return (
-        <AboutCurrency/>
-    )
-}
+const Page = ({ params }: { params: { slug: string } }) => {
+  return <AboutCurrency />;
+};
 export default Page;

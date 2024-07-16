@@ -1,18 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    missingSuspenseWithCSRBailout: false,
+    missingSuspenseWithCSRBailout: false
   },
-    images: {
-        remotePatterns: [
-          {
-            protocol: 'https',
-            hostname: 'assets.example.com',
-            port: '',
-            pathname: '/account123/**',
-          },
-        ],
-      },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'assets.example.com',
+        port: '',
+        pathname: '/account123/**'
+      }
+    ]
+  }
 };
 
 export default nextConfig;

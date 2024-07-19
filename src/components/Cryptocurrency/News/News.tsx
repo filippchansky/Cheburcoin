@@ -1,13 +1,12 @@
 'use client';
+import { fetchNews } from '@api/coinstats/News/getAllNews';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { Collapse, Skeleton, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { INews } from '../../../../models/newsData';
-import { Collapse, Pagination, PaginationProps, Skeleton, Spin } from 'antd';
 import NewsDescription from './NewsDescription/NewsDescription';
 import NewsTitle from './NewsTitle/NewsTitle';
 import style from './style.module.scss';
-import { fetchNews } from '@api/coinstats/getAllNews';
 
 interface NewsProps {}
 

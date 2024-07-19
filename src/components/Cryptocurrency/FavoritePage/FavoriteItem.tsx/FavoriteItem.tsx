@@ -2,7 +2,7 @@
 import CoinCard from '@/UI/CoinCard/CoinCard';
 import { CardSkeleton } from '@/UI/Skeletons/CardSkeleton';
 import { useFavoriteCoins } from '@/store/FavoriteCoins';
-import { getCoinById } from '@api/coinstats/getCoinById';
+import { getCoinById } from '@api/coinstats/Coins/getCoinById';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import style from './style.module.scss';

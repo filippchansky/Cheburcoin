@@ -1,16 +1,15 @@
 'use client';
+import CoinCard from '@/UI/CoinCard/CoinCard';
+import { CardSkeleton } from '@/UI/Skeletons/CardSkeleton';
+import { useFavoriteCoins } from '@/store/FavoriteCoins';
+import { fetchChart } from '@api/coinstats/Charts/getChartById';
+import { getCoinById } from '@api/coinstats/Coins/getCoinById';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { Segmented } from 'antd';
 import { useParams } from 'next/navigation';
 import React, { useState } from 'react';
 import Chart from './Chart/Chart';
 import style from './style.module.scss';
-import { Card, Radio, Segmented, Select, Skeleton } from 'antd';
-import { fetchChart } from '@api/coinstats/getChartById';
-import CoinCard from '@/UI/CoinCard/CoinCard';
-import { getCoinById } from '@api/coinstats/getCoinById';
-import { CardSkeleton } from '@/UI/Skeletons/CardSkeleton';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
 
 interface AboutCurrencyProps {}
 

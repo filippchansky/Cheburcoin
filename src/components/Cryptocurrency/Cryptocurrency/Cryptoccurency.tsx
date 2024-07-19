@@ -1,29 +1,12 @@
 'use client';
+import { useFavoriteCoins } from '@/store/FavoriteCoins';
+import CoinCard from '@/UI/CoinCard/CoinCard';
+import { fetchCoin } from '@api/coinstats/Coins/getAllCoins';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { Button, Card, Pagination, PaginationProps, Result, Skeleton } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ICoinData } from '../../../../models/coinData';
-import {
-  Affix,
-  Avatar,
-  Button,
-  Card,
-  Pagination,
-  PaginationProps,
-  Result,
-  Select,
-  Skeleton
-} from 'antd';
 import style from './style.module.scss';
-import CardContent from '../CardContent/CardContent';
-import Meta from 'antd/es/card/Meta';
-import { RedditOutlined, TwitterOutlined } from '@ant-design/icons';
-import Link from 'next/link';
-import { fetchCoin } from '@api/coinstats/getAllCoins';
-import CoinCard from '@/UI/CoinCard/CoinCard';
-import { collection, doc, getDocs, setDoc } from 'firebase/firestore';
-import { app, auth, db } from '../../../../configs/firebase/config';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
 
 interface CryptoccurencyProps {}
 

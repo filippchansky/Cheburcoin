@@ -9,6 +9,8 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../../../../configs/firebase/config';
 import { signOut } from 'firebase/auth';
 import { useFavoriteCoins } from '@/store/FavoriteCoins';
+import defaultAvatar from "@public/Icon/defaultAvatar.jpg"
+import Image from 'next/image';
 
 interface AccountProps {}
 
@@ -50,7 +52,7 @@ const Account: React.FC<AccountProps> = ({}) => {
       )}
       {user && (
         <Popover content={content} title={user.email} trigger='click'>
-          <Avatar className='cursor-pointer' src={'https://via.placeholder.com/50'} size={50} />
+          <Image alt='avatar' className='cursor-pointer rounded-[50px]' src={defaultAvatar} width={50} height={50} />
         </Popover>
       )}
       {!loading && !user && (

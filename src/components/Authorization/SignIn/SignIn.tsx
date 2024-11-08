@@ -3,7 +3,7 @@ import { Button, Checkbox, Flex, Input, Space, notification } from 'antd';
 import React, { useState } from 'react';
 import style from './style.module.scss';
 import { NotificationPlacement } from 'antd/es/notification/interface';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useFavoriteCoins } from '@/store/FavoriteCoins';
 
 interface SignInProps {
@@ -15,6 +15,7 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [error, setError] = useState(false);
   // const [user, loading] = useAuthState(auth);
   const auth = getAuth();
@@ -44,8 +45,21 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
       .catch((error) => {
         const errorCode = error.code;
         openNotification('top', 'err');
+        setIsForgotPassword(true);
         console.log(errorCode);
       });
+  };
+
+  const handleResetPassword = async () => {
+    sendPasswordResetEmail(auth, email).then(() => {
+      setActiveModal(false);
+      setIsForgotPassword(false)
+      api.info({
+        message: `Reset password`,
+        description: `A password reset email has been sent to ${email}`,
+        placement: 'top'
+      });
+    });
   };
 
   return (
@@ -87,6 +101,11 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
               {passwordVisible ? 'Hide' : 'Show'}
             </Button>
           </Flex>
+          {isForgotPassword && (
+            <Button onClick={handleResetPassword} type='link'>
+              I forgot my password
+            </Button>
+          )}
           <Checkbox onChange={() => console.log()}>Remember me</Checkbox>
           <Button type='primary' htmlType='submit'>
             Sign in

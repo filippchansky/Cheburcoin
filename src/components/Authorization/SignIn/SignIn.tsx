@@ -17,6 +17,7 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false)
   // const [user, loading] = useAuthState(auth);
   const auth = getAuth();
   const [api, contextHolder] = notification.useNotification();
@@ -38,14 +39,17 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
   };
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true)
     signInWithEmailAndPassword(auth, email, password)
       .then(() => {
         addCoins();
+        setLoading(false)
       })
       .catch((error) => {
         const errorCode = error.code;
         openNotification('top', 'err');
         setIsForgotPassword(true);
+        setLoading(false)
         console.log(errorCode);
       });
   };
@@ -107,7 +111,7 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
             </Button>
           )}
           <Checkbox onChange={() => console.log()}>Remember me</Checkbox>
-          <Button type='primary' htmlType='submit'>
+          <Button type='primary' htmlType='submit' loading={loading}>
             Sign in
           </Button>
         </Space>

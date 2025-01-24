@@ -17,7 +17,9 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
   const [limit, setLimit] = useState(32);
   const { data, isError, isLoading, isFetching } = useQuery<ICoinData>({
     queryKey: ['coin', page, limit],
-    queryFn: () => fetchCoin(page, limit)
+    queryFn: () => fetchCoin(page, limit),
+    retry: 1,
+    refetchInterval: 10000
   });
 
   useEffect(() => {

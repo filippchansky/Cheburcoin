@@ -1,5 +1,6 @@
 'use client';
 import { useFavoriteCoins } from '@/store/FavoriteCoins';
+import * as motion from 'motion/react-client';
 import CoinCard from '@/UI/CoinCard/CoinCard';
 import { fetchCoin } from '@api/coinstats/Coins/getAllCoins';
 import { useQuery } from '@tanstack/react-query';
@@ -111,7 +112,9 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
               </Card>
             ))
           : data?.result.map((item) => (
-              <CoinCard item={item} key={item.id} favorite={coins?.includes(item.id)} />
+              <motion.div key={item.id} initial={{ opacity: 0, scale: 0 }} whileInView={{ opacity: 1, scale: 1 }} >
+                <CoinCard item={item} key={item.id} favorite={coins?.includes(item.id)} />
+              </motion.div>
             ))}
       </div>
     </div>

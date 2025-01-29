@@ -70,7 +70,7 @@ const CoinCard: React.FC<CoinCardProps> = ({ item, favorite }) => {
       <Card
         key={item.id}
         title={
-          <Link href={`/${item.id}`}>
+          <Link href={`cryptocurrency/${item.id}`}>
             <div className='flex items-center gap-3'>
               <Avatar src={item.icon} />
               <p>{item.name}</p>

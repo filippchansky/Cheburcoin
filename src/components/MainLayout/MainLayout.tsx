@@ -42,7 +42,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   return (
-    <Flex gap='middle' wrap='wrap' className='darkMode'>
+    <Flex gap='middle' wrap='wrap' className='dark-theme'>
       <Layout style={layoutStyle}>
         <HeaderLayout className={style.header}>
           <Header />

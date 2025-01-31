@@ -21,11 +21,23 @@
 
 .content {
   text-align: center;
-  min-height: calc(100vh - 100px) !important;
+  min-height: calc(100vh - 64px) !important;
   line-height: 120px;
   padding: 20px;
 
   @media (max-width: 768px) {
     padding: 20px 0;
   }
+}
+
+.dark-theme ::-webkit-scrollbar {
+  background: #222222;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb {
+  background: #444444;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: #666666;
 }

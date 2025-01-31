@@ -1,0 +1,15 @@
+.col {
+    border-top: 0px !important;
+    line-height: normal !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    &:hover {
+        cursor: pointer;
+    }
+}
+
+.ticker {
+    font-size: 12px;
+    opacity: 0.4;
+}

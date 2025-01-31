@@ -10,7 +10,7 @@ import { useDarkTheme } from '@/store/darkTheme';
 
 export const metadata: Metadata = {
   title: 'CHEBURCOIN',
-  description: 'ZOV'
+  description: ''
 };
 
 export default function RootLayout({

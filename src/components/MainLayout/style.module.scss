@@ -29,3 +29,15 @@
     padding: 20px 0;
   }
 }
+
+.dark-theme ::-webkit-scrollbar {
+  background: #222222;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb {
+  background: #444444;
+}
+
+.dark-theme ::-webkit-scrollbar-thumb:hover {
+  background: #666666;
+}

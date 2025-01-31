@@ -7,9 +7,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'assets.example.com',
-        port: '',
-        pathname: '/account123/**'
+        hostname: 'mybroker.storage.bcs.ru',
       }
     ]
   }

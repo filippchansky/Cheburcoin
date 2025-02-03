@@ -8,20 +8,20 @@ import React from 'react';
 import style from './style.module.scss';
 
 interface FavoriteItemProps {
-  item: string;
+    item: string;
 }
 
 const FavoriteItem: React.FC<FavoriteItemProps> = ({ item }) => {
-  const { coins } = useFavoriteCoins();
-  const { data, isLoading } = useQuery({
-    queryKey: [item],
-    queryFn: () => getCoinById(item)
-  });
+    const { coins } = useFavoriteCoins();
+    const { data, isLoading } = useQuery({
+        queryKey: [item],
+        queryFn: () => getCoinById(item)
+    });
 
-  return (
-    <div className={style.wrapper}>
-      {data ? <CoinCard favorite={coins?.includes(item)} item={data} /> : <CardSkeleton />}
-    </div>
-  );
+    return (
+        <div className={style.wrapper}>
+            {data ? <CoinCard favorite={coins?.includes(item)} item={data} /> : <CardSkeleton />}
+        </div>
+    );
 };
 export default FavoriteItem;

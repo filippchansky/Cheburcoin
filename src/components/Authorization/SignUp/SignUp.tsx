@@ -12,125 +12,125 @@ import { useFavoriteCoins } from '@/store/FavoriteCoins';
 interface SignUpProps {}
 
 const SignUp: React.FC<SignUpProps> = ({}) => {
-  const { addCoins } = useFavoriteCoins();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const [api, contextHolder] = notification.useNotification();
-  const [emailError, setEmailError] = useState(false);
-  const auth = getAuth();
-  const validRegex =
-    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    const { addCoins } = useFavoriteCoins();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+    const [api, contextHolder] = notification.useNotification();
+    const [emailError, setEmailError] = useState(false);
+    const auth = getAuth();
+    const validRegex =
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-  const openNotification = (placement: NotificationPlacement) => {
-    api.error({
-      message: `Error`,
-      description: 'Email is exict!',
-      placement
-    });
-  };
-
-  // const [createUserWithEmailAndPassword] =
-  //   useCreateUserWithEmailAndPassword(auth);
-
-  const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(async (userCredential) => {
-        // Signed up
-        const user = userCredential.user;
-        await setDoc(doc(db, 'users', user.uid), {
-          coinList: []
+    const openNotification = (placement: NotificationPlacement) => {
+        api.error({
+            message: `Error`,
+            description: 'Email is exict!',
+            placement
         });
-        addCoins();
-        // ...
-      })
-      .catch((error) => {
-        const errorCode = error.code;
-        openNotification('top');
-      });
-  };
+    };
 
-  return (
-    <>
-      {contextHolder}
-      <form onSubmit={(e) => handleSignUp(e)}>
-        <Space direction='vertical'>
-          <Tooltip
-            trigger={['focus']}
-            title={emailError ? 'Invalid email' : undefined}
-            placement='topLeft'
-            overlayClassName='numeric-input'
-          >
-            <Input
-              status={emailError ? 'error' : ''}
-              defaultValue={email}
-              placeholder='Basic usage'
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (!e.target.value.toLowerCase().match(validRegex)) {
-                  setEmailError(true);
-                }
-                if (e.target.value.toLowerCase().match(validRegex)) {
-                  setEmailError(false);
-                }
-              }}
-            />
-          </Tooltip>
-          <Flex gap={10}>
-            <Input.Password
-              defaultValue={password}
-              className={style.input_pass}
-              placeholder='input password'
-              visibilityToggle={{
-                visible: passwordVisible,
-                onVisibleChange: setPasswordVisible
-              }}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+    // const [createUserWithEmailAndPassword] =
+    //   useCreateUserWithEmailAndPassword(auth);
 
-            <Button
-              type='default'
-              style={{ width: 80 }}
-              onClick={() => setPasswordVisible((prevState) => !prevState)}
-            >
-              {passwordVisible ? 'Hide' : 'Show'}
-            </Button>
-          </Flex>
-          <Flex gap={10}>
-            <Input.Password
-              status={confirmPassword === password ? '' : 'error'}
-              defaultValue={confirmPassword}
-              className={style.input_pass}
-              placeholder='Confirm password'
-              visibilityToggle={{
-                visible: confirmPasswordVisible,
-                onVisibleChange: setConfirmPasswordVisible
-              }}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+    const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        createUserWithEmailAndPassword(auth, email, password)
+            .then(async (userCredential) => {
+                // Signed up
+                const user = userCredential.user;
+                await setDoc(doc(db, 'users', user.uid), {
+                    coinList: []
+                });
+                addCoins();
+                // ...
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                openNotification('top');
+            });
+    };
 
-            <Button
-              type='default'
-              style={{ width: 80 }}
-              onClick={() => setConfirmPasswordVisible((prevState) => !prevState)}
-            >
-              {confirmPasswordVisible ? 'Hide' : 'Show'}
-            </Button>
-          </Flex>
-          <Checkbox onChange={() => console.log()}>Remember me</Checkbox>
-          <Button
-            type='primary'
-            htmlType='submit'
-            disabled={!(confirmPassword === password && !emailError)}
-          >
-            Sign in
-          </Button>
-        </Space>
-      </form>
-    </>
-  );
+    return (
+        <>
+            {contextHolder}
+            <form onSubmit={(e) => handleSignUp(e)}>
+                <Space direction='vertical'>
+                    <Tooltip
+                        trigger={['focus']}
+                        title={emailError ? 'Invalid email' : undefined}
+                        placement='topLeft'
+                        overlayClassName='numeric-input'
+                    >
+                        <Input
+                            status={emailError ? 'error' : ''}
+                            defaultValue={email}
+                            placeholder='Basic usage'
+                            onChange={(e) => {
+                                setEmail(e.target.value);
+                                if (!e.target.value.toLowerCase().match(validRegex)) {
+                                    setEmailError(true);
+                                }
+                                if (e.target.value.toLowerCase().match(validRegex)) {
+                                    setEmailError(false);
+                                }
+                            }}
+                        />
+                    </Tooltip>
+                    <Flex gap={10}>
+                        <Input.Password
+                            defaultValue={password}
+                            className={style.input_pass}
+                            placeholder='input password'
+                            visibilityToggle={{
+                                visible: passwordVisible,
+                                onVisibleChange: setPasswordVisible
+                            }}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+
+                        <Button
+                            type='default'
+                            style={{ width: 80 }}
+                            onClick={() => setPasswordVisible((prevState) => !prevState)}
+                        >
+                            {passwordVisible ? 'Hide' : 'Show'}
+                        </Button>
+                    </Flex>
+                    <Flex gap={10}>
+                        <Input.Password
+                            status={confirmPassword === password ? '' : 'error'}
+                            defaultValue={confirmPassword}
+                            className={style.input_pass}
+                            placeholder='Confirm password'
+                            visibilityToggle={{
+                                visible: confirmPasswordVisible,
+                                onVisibleChange: setConfirmPasswordVisible
+                            }}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+
+                        <Button
+                            type='default'
+                            style={{ width: 80 }}
+                            onClick={() => setConfirmPasswordVisible((prevState) => !prevState)}
+                        >
+                            {confirmPasswordVisible ? 'Hide' : 'Show'}
+                        </Button>
+                    </Flex>
+                    <Checkbox onChange={() => console.log()}>Remember me</Checkbox>
+                    <Button
+                        type='primary'
+                        htmlType='submit'
+                        disabled={!(confirmPassword === password && !emailError)}
+                    >
+                        Sign in
+                    </Button>
+                </Space>
+            </form>
+        </>
+    );
 };
 export default SignUp;

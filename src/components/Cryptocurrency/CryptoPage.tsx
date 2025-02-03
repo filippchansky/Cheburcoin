@@ -9,43 +9,43 @@ import { DollarOutlined, ReadOutlined } from '@ant-design/icons';
 interface CryptoPageProps {}
 
 const items: MenuProps['items'] = [
-  {
-    label: 'News',
-    key: 'news',
-    icon: <ReadOutlined />
-  },
-  {
-    label: 'Coins',
-    key: 'coins',
-    icon: <DollarOutlined />
-  }
+    {
+        label: 'News',
+        key: 'news',
+        icon: <ReadOutlined />
+    },
+    {
+        label: 'Coins',
+        key: 'coins',
+        icon: <DollarOutlined />
+    }
 ];
 const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
-  const [type, setType] = useState('coins');
+    const [type, setType] = useState('coins');
 
-  const [width, setWidth] = useState(1920); // TODO window is not defined (window.innerWidth)
+    const [width, setWidth] = useState(1920); // TODO window is not defined (window.innerWidth)
 
-  useEffect(() => {
-    setWidth(window.innerWidth);
+    useEffect(() => {
+        setWidth(window.innerWidth);
 
-    const handleResize = () => {
-      setWidth(window.innerWidth);
+        const handleResize = () => {
+            setWidth(window.innerWidth);
+        };
+
+        window.addEventListener('resize', handleResize);
+
+        // Clean up the event listener when the component unmounts
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+    const onClick: MenuProps['onClick'] = (e) => {
+        setType(e.key);
     };
-
-    window.addEventListener('resize', handleResize);
-
-    // Clean up the event listener when the component unmounts
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
-  const onClick: MenuProps['onClick'] = (e) => {
-    setType(e.key);
-  };
-  return (
-    <>
-      <div className={style.wrapper}>
-        {/* <div className="flex justify-center min-[650px]:hidden">
+    return (
+        <>
+            <div className={style.wrapper}>
+                {/* <div className="flex justify-center min-[650px]:hidden">
           <Menu
             onClick={onClick}
             style={{ width: "190px" }}
@@ -55,8 +55,8 @@ const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
             items={items}
           />
         </div> */}
-        <Cryptoccurency />
-        {/* {width > 650 && width > 1520 && (
+                <Cryptoccurency />
+                {/* {width > 650 && width > 1520 && (
           <>
             <News />
             <Affix offsetTop={50}>
@@ -80,8 +80,8 @@ const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
             <News />
           </>
         )} */}
-      </div>
-    </>
-  );
+            </div>
+        </>
+    );
 };
 export default CryptoPage;

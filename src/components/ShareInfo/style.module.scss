@@ -1,0 +1,37 @@
+// .wrapper {
+//     max-width: 700px;
+//     border: 1px solid white;
+//     border-radius: 10px;
+
+//     .container {
+//         width: 100%;
+//         padding: 20px;
+//         display: flex;
+//     }
+// }
+
+.wrapper {
+    display: flex;
+    max-width: 500px;
+    width: 100%;
+    background-color: rgb(43, 42, 42);
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.header {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+
+    .shareInfo {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .shareIcon {
+        display: flex;
+        align-items: center;
+    }
+}

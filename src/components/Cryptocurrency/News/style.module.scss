@@ -1,27 +1,27 @@
 .wrapper {
-  display: grid;
-  grid-template-columns: 1fr;
-  justify-items: center;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
 
-  .container {
-    padding: 0 10px;
-    width: 100%;
-    display: flex;
-    text-align: start;
-    flex-direction: column;
-    gap: 15px;
+    .container {
+        padding: 0 10px;
+        width: 100%;
+        display: flex;
+        text-align: start;
+        flex-direction: column;
+        gap: 15px;
 
-    @media (min-width: 1200px) {
-      width: 50%;
+        @media (min-width: 1200px) {
+            width: 50%;
+        }
+
+        .collapse {
+            width: 100% !important;
+        }
     }
-
-    .collapse {
-      width: 100% !important;
-    }
-  }
 }
 
 .skeleton {
-  height: 70px;
-  width: 100% !important;
+    height: 70px;
+    width: 100% !important;
 }

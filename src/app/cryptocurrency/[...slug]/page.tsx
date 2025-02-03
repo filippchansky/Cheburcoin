@@ -4,6 +4,6 @@ import React from 'react';
 interface PageProps {}
 
 const Page = ({ params }: { params: { slug: string } }) => {
-  return <AboutCurrency />;
+    return <AboutCurrency />;
 };
 export default Page;

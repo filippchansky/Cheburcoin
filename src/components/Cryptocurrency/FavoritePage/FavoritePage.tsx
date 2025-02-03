@@ -12,32 +12,32 @@ import style from './style.module.scss';
 interface FavoritePageProps {}
 
 const FavoritePage: React.FC<FavoritePageProps> = ({}) => {
-  const { coins } = useFavoriteCoins();
-  const [openModal, setModalOpen] = useState(false);
-  const [user, loading] = useAuthState(auth);
+    const { coins } = useFavoriteCoins();
+    const [openModal, setModalOpen] = useState(false);
+    const [user, loading] = useAuthState(auth);
 
-  return (
-    <>
-      {user ? (
-        <div className={style.wrapper}>
-          {coins?.map((item) => <FavoriteItem key={item} item={item} />)}
-        </div>
-      ) : (
-        // coins?.map((item) => <FavoriteItem key={item} item={item} />)
-        <div className=''>
-          <ModalAuth active={openModal} setActive={setModalOpen} />
-          <Result
-            icon={<SmileOutlined />}
-            title='To save and view your favorites, you need to log in!'
-            extra={
-              <Button type='primary' onClick={() => setModalOpen(true)}>
-                Sign in
-              </Button>
-            }
-          />
-        </div>
-      )}
-    </>
-  );
+    return (
+        <>
+            {user ? (
+                <div className={style.wrapper}>
+                    {coins?.map((item) => <FavoriteItem key={item} item={item} />)}
+                </div>
+            ) : (
+                // coins?.map((item) => <FavoriteItem key={item} item={item} />)
+                <div className=''>
+                    <ModalAuth active={openModal} setActive={setModalOpen} />
+                    <Result
+                        icon={<SmileOutlined />}
+                        title='To save and view your favorites, you need to log in!'
+                        extra={
+                            <Button type='primary' onClick={() => setModalOpen(true)}>
+                                Sign in
+                            </Button>
+                        }
+                    />
+                </div>
+            )}
+        </>
+    );
 };
 export default FavoritePage;

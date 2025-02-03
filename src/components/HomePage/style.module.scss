@@ -10,5 +10,10 @@
         justify-content: center;
         gap: 60px;
         height: 100%;
+
+        @media (max-width: 660px) {
+            flex-direction: column;
+            max-height: 500px;
+        }
     }
 }

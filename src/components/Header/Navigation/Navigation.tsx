@@ -8,44 +8,44 @@ import { useRouter, usePathname } from 'next/navigation';
 interface NavigationProps {}
 
 const Navigation: React.FC<NavigationProps> = ({}) => {
-  const { darkTheme } = useDarkTheme();
-  const nav = [
-    {
-      id: 0,
-      key: '/',
-      label: 'Home',
-      path: '#'
-    },
-    {
-      id: 1,
-      key: '/favorite',
-      label: 'Favorite',
-      path: '#'
-    },
-    {
-      id: 2,
-      key: '/news',
-      label: 'News',
-      path: '#'
-    }
-  ];
+    const { darkTheme } = useDarkTheme();
+    const nav = [
+        {
+            id: 0,
+            key: '/',
+            label: 'Home',
+            path: '#'
+        },
+        {
+            id: 1,
+            key: '/favorite',
+            label: 'Favorite',
+            path: '#'
+        },
+        {
+            id: 2,
+            key: '/news',
+            label: 'News',
+            path: '#'
+        }
+    ];
 
-  const { push } = useRouter();
-  const path = usePathname();
-  return (
-    <>
-      <div className='w-full max-w-[500px] max-[420px]:max-w-[200px]'>
-        <Menu
-          // theme={darkTheme ? "dark" : "light"}
-          mode='horizontal'
-          defaultSelectedKeys={['/']}
-          selectedKeys={[`${path}`]}
-          items={nav}
-          style={{ flex: 1, minWidth: 0 }}
-          onClick={(e) => push(e.key)}
-        />
-      </div>
-      {/* <div className={style.btnWrapper}>
+    const { push } = useRouter();
+    const path = usePathname();
+    return (
+        <>
+            <div className='w-full max-w-[500px] max-[420px]:max-w-[200px]'>
+                <Menu
+                    // theme={darkTheme ? "dark" : "light"}
+                    mode='horizontal'
+                    defaultSelectedKeys={['/']}
+                    selectedKeys={[`${path}`]}
+                    items={nav}
+                    style={{ flex: 1, minWidth: 0 }}
+                    onClick={(e) => push(e.key)}
+                />
+            </div>
+            {/* <div className={style.btnWrapper}>
         <Button>Burger</Button>
       </div>
       <nav className={style.navWrapper}>
@@ -55,7 +55,7 @@ const Navigation: React.FC<NavigationProps> = ({}) => {
           ))}
         </ul>
       </nav> */}
-    </>
-  );
+        </>
+    );
 };
 export default Navigation;

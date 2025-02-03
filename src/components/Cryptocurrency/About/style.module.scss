@@ -1,34 +1,34 @@
 .wrapper {
-  max-width: 1500px;
-  margin: 0 auto;
+    max-width: 1500px;
+    margin: 0 auto;
 }
 
 .chartContainer {
-  display: flex;
-  flex-direction: column;
-  // height: 700px;
-  color: white !important;
-
-  @media (max-width: 1024px) {
-    width: 100%;
-  }
-
-  .coinInfo {
     display: flex;
-    justify-content: space-around;
-    align-items: flex-end;
+    flex-direction: column;
+    // height: 700px;
+    color: white !important;
 
-    @media (max-width: 786px) {
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
+    @media (max-width: 1024px) {
+        width: 100%;
     }
-  }
 
-  .periodBtn {
-    @media (max-width: 450px) {
-      font-size: 11px !important;
-      padding-inline: 11px !important;
+    .coinInfo {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-end;
+
+        @media (max-width: 786px) {
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
     }
-  }
+
+    .periodBtn {
+        @media (max-width: 450px) {
+            font-size: 11px !important;
+            padding-inline: 11px !important;
+        }
+    }
 }

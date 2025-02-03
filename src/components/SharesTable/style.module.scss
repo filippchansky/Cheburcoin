@@ -1,12 +1,65 @@
+.wrapper {
+    display: flex;
+    justify-content: center;
+    max-width: 1120px;
+    margin: 0 auto;
+
+    @media (max-width: 1120px) {
+        max-width: 700px;
+    }
+
+    @media (max-width: 700px) {
+        width: 100%;
+    }
+}
+
 .col {
+    display: flex !important;
     border-top: 0px !important;
     line-height: normal !important;
     text-align: left !important;
-    display: flex !important;
     align-items: center !important;
     &:hover {
         cursor: pointer;
     }
+}
+
+.name {
+    width: 350px !important;
+
+    @media (max-width: 1120px) {
+        width: 200px !important;
+    }
+}
+
+.price {
+    width: 100px !important;
+
+    @media (max-width: 1120px) {
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    @media (max-width: 700px) {
+        display: flex !important;
+        width: calc(100vw - 200px) !important;
+        justify-content: flex-end !important;
+        text-align: right !important;
+
+        div:nth-of-type(3) {
+            color: blue;
+        }
+    }
+}
+
+.none {
+    @media (max-width: 1120px) {
+        display: none !important;
+    }
+}
+
+.headerName {
+    display: none !important;
 }
 
 .ticker {

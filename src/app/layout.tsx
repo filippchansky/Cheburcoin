@@ -9,25 +9,25 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { useDarkTheme } from '@/store/darkTheme';
 
 export const metadata: Metadata = {
-  title: 'CHEBURCOIN',
-  description: ''
+    title: 'CHEBURCOIN',
+    description: ''
 };
 
 export default function RootLayout({
-  children
+    children
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang='ru'>
-      <body className=''>
-        <Providers>
-          <MainLayout>
-            {children}
-            <Analytics />
-          </MainLayout>
-        </Providers>
-      </body>
-    </html>
-  );
+    return (
+        <html lang='ru'>
+            <body className=''>
+                <Providers>
+                    <MainLayout>
+                        {children}
+                        <Analytics />
+                    </MainLayout>
+                </Providers>
+            </body>
+        </html>
+    );
 }

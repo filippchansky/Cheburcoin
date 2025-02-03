@@ -1,59 +1,59 @@
 .modal_content {
-  display: flex;
-  gap: 40px;
-
-  @media (max-width: 450px) {
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .input_pass {
-    width: 100% !important;
-  }
-
-  .signIn_with {
     display: flex;
-    gap: 10px;
-    max-width: 120px;
-    flex-wrap: wrap;
+    gap: 40px;
 
     @media (max-width: 450px) {
-      flex-wrap: nowrap;
-      max-width: 100%;
+        flex-direction: column;
+        gap: 20px;
     }
-  }
 
-  &.darkMode {
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    textarea:-webkit-autofill,
-    textarea:-webkit-autofill:hover,
-    textarea:-webkit-autofill:focus,
-    select:-webkit-autofill,
-    select:-webkit-autofill:hover,
-    select:-webkit-autofill:focus {
-      /* border: 1px solid green; */
-      -webkit-text-fill-color: white;
-      -webkit-box-shadow: 0 0 0px 1000px #141414 inset !important;
-      /* transition: background-color 5000s ease-in-out 0s; */
+    .input_pass {
+        width: 100% !important;
     }
-  }
 
-  &.lightMode {
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover,
-    input:-webkit-autofill:focus,
-    textarea:-webkit-autofill,
-    textarea:-webkit-autofill:hover,
-    textarea:-webkit-autofill:focus,
-    select:-webkit-autofill,
-    select:-webkit-autofill:hover,
-    select:-webkit-autofill:focus {
-      /* border: 1px solid green; */
-      -webkit-text-fill-color: black;
-      -webkit-box-shadow: 0 0 0px 1000px white inset !important;
-      /* transition: background-color 5000s ease-in-out 0s; */
+    .signIn_with {
+        display: flex;
+        gap: 10px;
+        max-width: 120px;
+        flex-wrap: wrap;
+
+        @media (max-width: 450px) {
+            flex-wrap: nowrap;
+            max-width: 100%;
+        }
     }
-  }
+
+    &.darkMode {
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            /* border: 1px solid green; */
+            -webkit-text-fill-color: white;
+            -webkit-box-shadow: 0 0 0px 1000px #141414 inset !important;
+            /* transition: background-color 5000s ease-in-out 0s; */
+        }
+    }
+
+    &.lightMode {
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        textarea:-webkit-autofill,
+        textarea:-webkit-autofill:hover,
+        textarea:-webkit-autofill:focus,
+        select:-webkit-autofill,
+        select:-webkit-autofill:hover,
+        select:-webkit-autofill:focus {
+            /* border: 1px solid green; */
+            -webkit-text-fill-color: black;
+            -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+            /* transition: background-color 5000s ease-in-out 0s; */
+        }
+    }
 }

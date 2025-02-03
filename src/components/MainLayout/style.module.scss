@@ -1,43 +1,43 @@
 .header {
-  // text-align: center;
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px !important;
-  padding-inline: 48px;
-  line-height: 64px;
-  transition:
-    background ease-out 0.2s,
-    color ease-out 0.2s;
+    // text-align: center;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px !important;
+    padding-inline: 48px;
+    line-height: 64px;
+    transition:
+        background ease-out 0.2s,
+        color ease-out 0.2s;
 
-  @media (max-width: 1024px) {
-    padding: 10px !important;
-  }
-  @media (max-width: 599px) {
-    height: 50px !important;
-  }
+    @media (max-width: 1024px) {
+        padding: 10px !important;
+    }
+    @media (max-width: 599px) {
+        height: 50px !important;
+    }
 }
 
 .content {
-  text-align: center;
-  min-height: calc(100vh - 64px) !important;
-  line-height: 120px;
-  padding: 20px;
+    text-align: center;
+    min-height: calc(100vh - 64px) !important;
+    // line-height: 120px;
+    padding: 20px;
 
-  @media (max-width: 768px) {
-    padding: 20px 0;
-  }
+    @media (max-width: 768px) {
+        padding: 20px 0;
+    }
 }
 
 .dark-theme ::-webkit-scrollbar {
-  background: #222222;
+    background: #222222;
 }
 
 .dark-theme ::-webkit-scrollbar-thumb {
-  background: #444444;
+    background: #444444;
 }
 
 .dark-theme ::-webkit-scrollbar-thumb:hover {
-  background: #666666;
+    background: #666666;
 }

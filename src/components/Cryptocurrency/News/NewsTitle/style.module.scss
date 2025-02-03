@@ -1,20 +1,20 @@
 .title {
-  // white-space: nowrap;
-  // overflow-x: hidden;
-  // text-overflow: ellipsis;
-  // font-weight: bold;
+    // white-space: nowrap;
+    // overflow-x: hidden;
+    // text-overflow: ellipsis;
+    // font-weight: bold;
 
-  @media (max-width: 1660px) {
-    white-space: normal;
-  }
+    @media (max-width: 1660px) {
+        white-space: normal;
+    }
 }
 
 .avatar {
-  @media (max-width: 1360px) {
-    display: none !important;
-  }
+    @media (max-width: 1360px) {
+        display: none !important;
+    }
 }
 
 .source {
-  opacity: 0.7;
+    opacity: 0.7;
 }

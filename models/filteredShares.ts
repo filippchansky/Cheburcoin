@@ -1,5 +1,5 @@
 export interface IFilteredShares {
-    id: string
+    id: string;
     ticker: string;
     capitalization: number;
     price: number;
@@ -7,5 +7,5 @@ export interface IFilteredShares {
     lowPrice: number;
     openPrice: number;
     highPrice: number;
-    icon: string
+    icon: string;
 }

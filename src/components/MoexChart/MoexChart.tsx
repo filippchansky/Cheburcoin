@@ -2,13 +2,14 @@
 import {
     getFiveDayAgo,
     getFiveYearsAgo,
+    getNormalDate,
     getTwoMonthsAgo,
     getWeekAgo,
     getYearAgo
 } from '@/utils/dateUtils';
 import { getChart } from '@api/moex/shares/getChart';
 import { ISharesChart } from '@models/SharesCharts';
-import { Button, ButtonGroup, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Button, ButtonGroup, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
@@ -55,17 +56,19 @@ const MoexChart: React.FC<MoexChartProps> = ({ ticker }) => {
     useEffect(() => {
         if (data) {
             const transformedData = data?.candles.data.map((item) => ({
-                date: item[6].slice(0, -3), // Дата (ось X)
+                date: getNormalDate(item[6].slice(0, -3)), // Дата (ось X)
                 close: item[1] // Цена закрытия (ось Y)
             }));
             setChartData(transformedData);
         }
     }, [data]);
 
+    console.log(chartData)
+
     const getWindowWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 0);
 
     return (
-        <div className='flex flex-col'>
+        <div className='flex flex-col gap-3 max-w-[1000px] w-full max-h-[700px] h-full items-start'>
             <ToggleButtonGroup
                 value={interval}
                 exclusive
@@ -87,7 +90,9 @@ const MoexChart: React.FC<MoexChartProps> = ({ ticker }) => {
                 </ToggleButton>
             </ToggleButtonGroup>
             {!chartData ? (
-                <p>загрузка</p>
+                <div className={style.chartSkeleton}>
+                    <Skeleton variant='rounded' height='100%' width={'100%'}/>
+                </div>
             ) : (
                 <LineChart
                     xAxis={[
@@ -103,7 +108,7 @@ const MoexChart: React.FC<MoexChartProps> = ({ ticker }) => {
                             data: chartData?.map((d) => d.close as number),
                             showMark: false,
                             curve: 'linear',
-                            color: 'rgba(0, 4, 255, 1)' // Цвет линии
+                            color: 'rgba(0, 4, 255, 1)' ,// Цвет линии
                             // area: true, // Включаем заливку
                         }
                     ]}

@@ -104,10 +104,10 @@ const SharesTable: React.FC<SharesTableProps> = ({ data }) => {
                     row.dayDiff > 0 ? '+' + intToRub(row.dayDiff) : intToRub(row.dayDiff);
                 return (
                     <div className='flex flex-col gap-2'>
-                        <h3 style={{ color: `${row.dayDiff > 0 ? 'green' : 'red'}` }}>{formate}</h3>
+                        <h3 style={{ color: `${row.dayDiff > 0 ? '#96ff7f' : 'red'}` }}>{formate}</h3>
                         <p
                             style={{
-                                color: `${row.dayDiff > 0 ? 'green' : 'red'}`,
+                                color: `${row.dayDiff > 0 ? '#96ff7f' : 'red'}`,
                                 fontSize: '12px',
                                 opacity: '1'
                             }}

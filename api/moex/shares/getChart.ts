@@ -1,6 +1,7 @@
+import { ISharesChart } from '@models/SharesCharts';
 import { apiMoex } from '../instance';
 
-export const getChart = async (ticker: string, from: string | null, interval: string) => {
+export const getChart = async (ticker: string, from: string | null, interval: string): Promise<ISharesChart> => {
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Месяцы начинаются с 0

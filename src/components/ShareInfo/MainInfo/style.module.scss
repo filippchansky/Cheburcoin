@@ -1,0 +1,12 @@
+.title {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.price {
+    color: #96ff7f;
+
+    &.red {
+        color: red;
+    }
+}

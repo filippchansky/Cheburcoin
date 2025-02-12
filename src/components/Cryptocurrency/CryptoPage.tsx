@@ -45,41 +45,7 @@ const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
     return (
         <>
             <div className={style.wrapper}>
-                {/* <div className="flex justify-center min-[650px]:hidden">
-          <Menu
-            onClick={onClick}
-            style={{ width: "190px" }}
-            defaultSelectedKeys={["coins"]}
-            defaultOpenKeys={["sub1"]}
-            mode="horizontal"
-            items={items}
-          />
-        </div> */}
                 <Cryptoccurency />
-                {/* {width > 650 && width > 1520 && (
-          <>
-            <News />
-            <Affix offsetTop={50}>
-              <Cryptoccurency />
-            </Affix>
-          </>
-        )}
-        {width >= 650 && width <= 1520 && (
-          <>
-            <News />
-            <Cryptoccurency />
-          </>
-        )}
-        {width <= 650 && type === "coins" && (
-          <>
-            <Cryptoccurency />
-          </>
-        )}
-        {width <= 650 && type === "news" && (
-          <>
-            <News />
-          </>
-        )} */}
             </div>
         </>
     );

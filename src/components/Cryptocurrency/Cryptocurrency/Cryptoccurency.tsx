@@ -118,17 +118,7 @@ const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
                           </Card>
                       ))
                     : data?.result.map((item) => (
-                          <motion.div
-                              key={item.id}
-                              initial={{ opacity: 0, scale: 0 }}
-                              whileInView={{ opacity: 1, scale: 1 }}
-                          >
-                              <CoinCard
-                                  item={item}
-                                  key={item.id}
-                                  favorite={coins?.includes(item.id)}
-                              />
-                          </motion.div>
+                          <CoinCard item={item} key={item.id} favorite={coins?.includes(item.id)} />
                       ))}
             </div>
         </div>

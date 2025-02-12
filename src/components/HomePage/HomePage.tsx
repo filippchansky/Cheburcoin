@@ -1,7 +1,7 @@
 'use client';
 import { Card, CardActionArea, CardContent, CardMedia, Typography } from '@mui/material';
 import * as motion from 'motion/react-client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import style from './style.module.scss';
 import Link from 'next/link';
 
@@ -16,6 +16,9 @@ const ball = {
 const HomePage: React.FC<HomePageProps> = ({}) => {
     return (
         <section className={style.wrapper}>
+            <div>
+                <p className='font-bold text-[22px]'>Выберите вариант</p>
+            </div>
             <div className={style.container}>
                 <motion.div
                     initial={{ opacity: 0, scale: 0 }}

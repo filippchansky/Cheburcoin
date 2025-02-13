@@ -1,3 +1,5 @@
+@import '../../app/variables';
+
 .wrapper {
     display: flex;
     justify-content: center;
@@ -21,6 +23,24 @@
     align-items: center !important;
     &:hover {
         cursor: pointer;
+    }
+}
+
+.title {
+    color: $green;
+
+    &.red {
+        color: red;
+    }
+}
+
+.percent {
+    color: $green;
+    font-size: 12px;
+    opacity: 1;
+
+    &.red {
+        color: red;
     }
 }
 

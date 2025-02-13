@@ -22,6 +22,7 @@ import { getShareIcon } from '@api/moex/shares/getShareIcon';
 import defIcon from '@public/Icon/russian.jpg';
 import { intToRub } from '@/utils/formatCurrency';
 import MainInfo from './MainInfo/MainInfo';
+import { useDarkTheme } from '@/store/darkTheme';
 
 interface ShareInfoProps {
     ticker: string;
@@ -40,6 +41,7 @@ const ShareInfo: React.FC<ShareInfoProps> = ({ ticker }) => {
         queryKey: ['share', ticker],
         queryFn: () => getShare(ticker)
     });
+    const { darkTheme } = useDarkTheme();
 
     useEffect(() => {
         if (data?.marketdata) {
@@ -88,7 +90,7 @@ const ShareInfo: React.FC<ShareInfoProps> = ({ ticker }) => {
     return (
         <>
             {shareInfo ? (
-                <div className={style.wrapper}>
+                <div className={darkTheme ? style.wrapper : [style.wrapper, style.white].join(' ')}>
                     <div className={style.header}>
                         <div className={style.shareInfo}>
                             <div className='relative flex gap-3'>
@@ -122,11 +124,9 @@ const ShareInfo: React.FC<ShareInfoProps> = ({ ticker }) => {
                             </Tabs>
                         </Box>
                         <CustomTabPanel value={tabValue} index={0}>
-                            <MainInfo ticker={ticker}/>
+                            <MainInfo ticker={ticker} />
                         </CustomTabPanel>
-                        <CustomTabPanel value={tabValue} index={1}>
-
-                        </CustomTabPanel>
+                        <CustomTabPanel value={tabValue} index={1}></CustomTabPanel>
                         <CustomTabPanel value={tabValue} index={2}>
                             Item Three
                         </CustomTabPanel>

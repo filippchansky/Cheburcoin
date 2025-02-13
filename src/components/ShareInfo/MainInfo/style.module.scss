@@ -1,10 +1,12 @@
+@import '../../../app//variables';
+
 .title {
     font-weight: bold;
     font-size: 18px;
 }
 
 .price {
-    color: #96ff7f;
+    color: $green;
 
     &.red {
         color: red;

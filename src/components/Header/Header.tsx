@@ -23,11 +23,13 @@ import {
 } from '@mui/material';
 import Link from 'next/link';
 import cheburIcon from '@public/Icon/defaultAvatar.jpg';
+import { useDarkTheme } from '@/store/darkTheme';
 
 interface HeaderProps {}
 
 const Header = ({}) => {
     const [mobileOpen, setMobileOpen] = React.useState(false);
+    const { darkTheme } = useDarkTheme();
 
     const handleDrawerToggle = () => {
         setMobileOpen((prevState) => !prevState);
@@ -78,7 +80,10 @@ const Header = ({}) => {
         <>
             {/* <Navigation />
       <Account /> */}
-            <AppBar component='nav'>
+            <AppBar
+                component='nav'
+                style={{ background: darkTheme ? '#212327' : 'rgb(25, 118, 210)' }}
+            >
                 <Toolbar className='justify-between'>
                     <IconButton
                         color='inherit'

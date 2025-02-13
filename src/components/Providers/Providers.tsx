@@ -38,9 +38,9 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
                             algorithm: darkTheme ? theme.darkAlgorithm : theme.defaultAlgorithm,
                             components: {
                                 Layout: {
-                                    headerBg: `${darkTheme ? 'rgb(27 28 30)' : '#e0e0e0'}`,
-                                    bodyBg: `${darkTheme ? 'rgb(51,51,51)' : 'rgb(254,248,239)'}`,
-                                    colorFillContent: `${darkTheme ? 'rgb(51,51,51)' : '#e0e0e0'}`
+                                    headerBg: `${darkTheme ? '#0055ff' : '#e0e0e0'}`,
+                                    bodyBg: `${darkTheme ? '#292a2d' : 'rgb(254,248,239)'}`,
+                                    colorFillContent: `${darkTheme ? '#292a2d' : '#e0e0e0'}`
                                 },
                                 Menu: {
                                     itemBg: ''

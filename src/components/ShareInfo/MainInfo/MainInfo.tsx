@@ -88,10 +88,10 @@ const MainInfo: React.FC<MainInfoProps> = ({ ticker }) => {
 
     return (
         <div className='flex justify-around'>
-            <PrecentValue average={average.day} title='День'/>
-            <PrecentValue average={average.month} title='Месяц'/>
-            <PrecentValue average={average.sixMonth} title='Полгода'/>
-            <PrecentValue average={average.year} title='Год'/>
+            <PrecentValue average={average.day} title='День' />
+            <PrecentValue average={average.month} title='Месяц' />
+            <PrecentValue average={average.sixMonth} title='Полгода' />
+            <PrecentValue average={average.year} title='Год' />
         </div>
     );
 };

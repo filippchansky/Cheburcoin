@@ -17,7 +17,7 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
     return (
         <section className={style.wrapper}>
             <div>
-                <p className='font-bold text-[22px]'>Выберите вариант</p>
+                <p className='text-[22px] font-bold'>Выберите вариант</p>
             </div>
             <div className={style.container}>
                 <motion.div

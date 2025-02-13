@@ -63,12 +63,12 @@ const MoexChart: React.FC<MoexChartProps> = ({ ticker }) => {
         }
     }, [data]);
 
-    console.log(chartData)
+    console.log(chartData);
 
     const getWindowWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 0);
 
     return (
-        <div className='flex flex-col gap-3 max-w-[1000px] w-full max-h-[700px] h-full items-start'>
+        <div className='flex h-full max-h-[700px] w-full max-w-[1000px] flex-col items-start gap-3'>
             <ToggleButtonGroup
                 value={interval}
                 exclusive
@@ -91,7 +91,7 @@ const MoexChart: React.FC<MoexChartProps> = ({ ticker }) => {
             </ToggleButtonGroup>
             {!chartData ? (
                 <div className={style.chartSkeleton}>
-                    <Skeleton variant='rounded' height='100%' width={'100%'}/>
+                    <Skeleton variant='rounded' height='100%' width={'100%'} />
                 </div>
             ) : (
                 <LineChart
@@ -108,7 +108,7 @@ const MoexChart: React.FC<MoexChartProps> = ({ ticker }) => {
                             data: chartData?.map((d) => d.close as number),
                             showMark: false,
                             curve: 'linear',
-                            color: 'rgba(0, 4, 255, 1)' ,// Цвет линии
+                            color: 'rgba(0, 4, 255, 1)' // Цвет линии
                             // area: true, // Включаем заливку
                         }
                     ]}

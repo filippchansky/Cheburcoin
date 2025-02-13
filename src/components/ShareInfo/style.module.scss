@@ -15,9 +15,13 @@
     flex-direction: column;
     max-width: 500px;
     width: 100%;
-    background-color: rgb(43, 42, 42);
+    background-color: #212327;
     border-radius: 10px;
     padding: 10px;
+
+    &.white {
+        background-color: rgb(157, 204, 250);
+    }
 }
 
 .header {

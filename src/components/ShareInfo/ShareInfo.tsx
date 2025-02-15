@@ -49,7 +49,7 @@ const ShareInfo: React.FC<ShareInfoProps> = ({ ticker }) => {
                 id: row[0],
                 ticker: row[0],
                 capitalization: row[50],
-                price: row[2],
+                price: row[12],
                 title: data.securities.data.find((item) => item[0] === row[0])?.at(2),
                 icon: data.securities.data.find((item) => item[0] === row[0])?.at(19),
                 lowPrice: row[10],

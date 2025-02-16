@@ -1,5 +1,5 @@
 'use client';
-import { fetchNews } from '@api/coinstats/News/getAllNews';
+import { fetchNews } from '../../../../apiFn/coinstats/News/getAllNews';
 import { useQuery } from '@tanstack/react-query';
 import { Collapse, Skeleton, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';

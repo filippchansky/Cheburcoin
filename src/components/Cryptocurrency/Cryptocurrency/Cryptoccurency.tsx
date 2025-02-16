@@ -2,7 +2,7 @@
 import { useFavoriteCoins } from '@/store/FavoriteCoins';
 import * as motion from 'motion/react-client';
 import CoinCard from '@/UI/CoinCard/CoinCard';
-import { fetchCoin } from '@api/coinstats/Coins/getAllCoins';
+import { fetchCoin } from '../../../../apiFn/coinstats/Coins/getAllCoins';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Card, Pagination, PaginationProps, Result, Skeleton } from 'antd';
 import React, { useEffect, useState } from 'react';

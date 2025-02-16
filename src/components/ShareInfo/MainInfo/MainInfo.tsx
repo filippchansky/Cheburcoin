@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import style from './style.module.scss';
 import { useQueries, useQuery } from '@tanstack/react-query';
-import { getChart } from '@api/moex/shares/getChart';
+import { getChart } from '../../../../apiFn/moex/shares/getChart';
 import { getMonthAgo, getSixMonthAgo, getYearAgo } from '@/utils/dateUtils';
 import { ISharesChart } from '@models/SharesCharts';
 import { calculatePriceChangePercentage } from '@/utils/getPercentage';

@@ -7,7 +7,7 @@ import {
     getWeekAgo,
     getYearAgo
 } from '@/utils/dateUtils';
-import { getChart } from '@api/moex/shares/getChart';
+import { getChart } from '../../../apiFn/moex/shares/getChart';
 import { ISharesChart } from '@models/SharesCharts';
 import { Button, ButtonGroup, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';

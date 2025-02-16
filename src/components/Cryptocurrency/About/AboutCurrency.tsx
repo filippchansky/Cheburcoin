@@ -2,8 +2,8 @@
 import CoinCard from '@/UI/CoinCard/CoinCard';
 import { CardSkeleton } from '@/UI/Skeletons/CardSkeleton';
 import { useFavoriteCoins } from '@/store/FavoriteCoins';
-import { fetchChart } from '@api/coinstats/Charts/getChartById';
-import { getCoinById } from '@api/coinstats/Coins/getCoinById';
+import { fetchChart } from '../../../../apiFn/coinstats/Charts/getChartById';
+import { getCoinById } from '../../../../apiFn/coinstats/Coins/getCoinById';
 import { useQuery } from '@tanstack/react-query';
 import { Segmented } from 'antd';
 import { useParams } from 'next/navigation';

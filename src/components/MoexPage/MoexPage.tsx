@@ -1,5 +1,5 @@
 'use client';
-import { getAllShares } from '@api/moex/shares/getAllShares';
+import { getAllShares } from '../../../apiFn/moex/shares/getAllShares';
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { IShares } from '@models/allSharesData';

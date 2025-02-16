@@ -15,10 +15,10 @@ import {
 } from '@mui/material';
 import { red } from '@mui/material/colors';
 import { useQuery } from '@tanstack/react-query';
-import { getShare } from '@api/moex/shares/getShares';
+import { getShare } from '../../../apiFn/moex/shares/getShares';
 import { IFilteredShares } from '@models/filteredShares';
 import Image from 'next/image';
-import { getShareIcon } from '@api/moex/shares/getShareIcon';
+import { getShareIcon } from '../../../apiFn/moex/shares/getShareIcon';
 import defIcon from '@public/Icon/russian.jpg';
 import { intToRub } from '@/utils/formatCurrency';
 import MainInfo from './MainInfo/MainInfo';

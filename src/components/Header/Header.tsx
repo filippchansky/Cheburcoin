@@ -2,11 +2,8 @@ import { Avatar, Popover, Skeleton, Switch } from 'antd';
 import SkeletonAvatar from 'antd/es/skeleton/Avatar';
 import Image from 'next/image';
 import React, { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { BarsOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
-import SwitchTeme from './SwitchTeme/SwitchTeme';
+import style from './style.module.scss';
 import Account from './Account/Account';
-import Navigation from './Navigation/Navigation';
 import {
     AppBar,
     Box,
@@ -22,57 +19,121 @@ import {
     Typography
 } from '@mui/material';
 import Link from 'next/link';
-import cheburIcon from '@public/Icon/defaultAvatar.jpg';
 import { useDarkTheme } from '@/store/darkTheme';
+import { useParams, usePathname, useRouter } from 'next/navigation';
+import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
+import { TreeItem } from '@mui/x-tree-view/TreeItem';
+import { BarsOutlined, MenuOutlined } from '@ant-design/icons';
 
 interface HeaderProps {}
 
 const Header = ({}) => {
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const { darkTheme } = useDarkTheme();
+    const pathname = usePathname();
+    const params = useParams();
+    const router = useRouter();
+
+    const pathnameArr = pathname.split('/');
+    console.log(params, 'params');
 
     const handleDrawerToggle = () => {
         setMobileOpen((prevState) => !prevState);
     };
 
-    const pages = [
-        {
-            id: 0,
-            key: '/',
-            label: 'Home',
-            path: '#'
-        },
-        {
-            id: 1,
-            key: '/favorite',
-            label: 'Favorite',
-            path: '#'
-        },
-        {
-            id: 2,
-            key: '/news',
-            label: 'News',
-            path: '#'
+    const handleRoute = (value: string) => {
+        router.push(value);
+        handleDrawerToggle();
+    };
+
+    const pathnameValue = (pathname: string) => {
+        const [, firstSegment] = pathname.split('/');
+
+        switch (firstSegment) {
+            case 'moex':
+                return { label: 'Portfolio', key: '/moex/portfolio' };
+            case 'cryptocurrency':
+                return { label: 'Favorite', key: '/favorite' };
+            default:
+                return { label: '', key: '' };
         }
-    ];
+    };
+
+    const pages = (pathname: string) => {
+        const { label, key } = pathnameValue(pathname);
+
+        return [
+            {
+                id: 0,
+                path: '#',
+                key: 'home',
+                label: 'Home',
+                children: [
+                    {
+                        id: 3,
+                        key: '/moex',
+                        label: 'Moex',
+                        path: '#'
+                    },
+                    {
+                        id: 4,
+                        key: '/cryptocurrency',
+                        label: 'Cryptocurrency',
+                        path: '#'
+                    }
+                ]
+            },
+            {
+                id: 1,
+                key,
+                label,
+                path: '#'
+            },
+            {
+                id: 2,
+                key: '/news',
+                label: 'News',
+                path: '#'
+            }
+        ];
+    };
 
     const drawer = (
-        <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
-            <Typography variant='h6' sx={{ my: 2 }}>
-                CHEBURCOIN
-            </Typography>
+        <Box onClick={() => console.log('click')} sx={{ textAlign: 'center' }}>
+            <Link href={'/'} onClick={handleDrawerToggle}>
+                <Typography variant='h6' sx={{ my: 2 }}>
+                    CHEBURCOIN
+                </Typography>
+            </Link>
             <Divider />
-            <List>
-                {pages.map((item) => (
-                    <Link href={item.key} key={item.label}>
-                        <ListItem key={item.label} disablePadding>
-                            <ListItemButton sx={{ textAlign: 'center' }}>
-                                <ListItemText primary={item.label} />
-                            </ListItemButton>
-                        </ListItem>
-                    </Link>
-                ))}
-            </List>
+            <Box sx={{ minHeight: 352, minWidth: 230 }}>
+                <SimpleTreeView>
+                    {pages(pathname)
+                        .filter((item) => item.key.length > 0)
+                        .map((item) => (
+                            <TreeItem
+                                key={item.id}
+                                itemId={item.id.toString()}
+                                label={item.label}
+                                onClick={!item.children ? () => handleRoute(item.key) : undefined}
+                            >
+                                {item.children && (
+                                    <div className={style.childrenWrapper}>
+                                        {item.children?.map((child) => (
+                                            <div key={`${item.id}-${child.id}`}>
+                                                <TreeItem
+                                                    itemId={child.id.toString()}
+                                                    label={child.label}
+                                                    onClick={() => handleRoute(child.key)}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </TreeItem>
+                        ))}
+                </SimpleTreeView>
+            </Box>
         </Box>
     );
 
@@ -90,27 +151,10 @@ const Header = ({}) => {
                         aria-label='open drawer'
                         edge='start'
                         onClick={handleDrawerToggle}
-                        sx={{ mr: 2, display: { sm: 'none' } }}
+                        sx={{ ml: 2, display: { sm: 'flex' } }}
                     >
-                        <BarsOutlined />
+                        <MenuOutlined width={40} height={40} />
                     </IconButton>
-                    <Typography
-                        className='max-w-28'
-                        variant='h6'
-                        component='div'
-                        sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
-                    >
-                        CHEBURCOIN
-                    </Typography>
-                    <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                        {pages.map((item) => (
-                            <Link href={item.key} key={item.label}>
-                                <Button key={item.label} sx={{ color: '#fff' }}>
-                                    {item.label}
-                                </Button>
-                            </Link>
-                        ))}
-                    </Box>
                     <Account />
                 </Toolbar>
             </AppBar>
@@ -123,7 +167,7 @@ const Header = ({}) => {
                     keepMounted: true // Better open performance on mobile.
                 }}
                 sx={{
-                    display: { xs: 'block', sm: 'none' },
+                    display: { xs: 'block', sm: 'block' },
                     '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240 }
                 }}
             >

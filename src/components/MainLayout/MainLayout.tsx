@@ -4,6 +4,7 @@ import { Layout, Flex } from 'antd';
 import Header from '../Header/Header';
 import { useDarkTheme } from '@/store/darkTheme';
 import style from './style.module.scss';
+import NavStepper from '../NavStepper/NavStepper';
 
 const { Header: HeaderLayout, Footer, Sider, Content } = Layout;
 
@@ -47,7 +48,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <HeaderLayout className={style.header}>
                     <Header />
                 </HeaderLayout>
-                <Content className={style.content}>{children}</Content>
+                <Content className={style.content}>
+                    <NavStepper />
+                    {children}
+                </Content>
             </Layout>
         </Flex>
     );

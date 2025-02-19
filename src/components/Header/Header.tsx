@@ -31,10 +31,8 @@ const Header = ({}) => {
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const { darkTheme } = useDarkTheme();
     const pathname = usePathname();
-    const params = useParams();
     const router = useRouter();
     
-    console.log(params, 'params');
 
     const handleDrawerToggle = () => {
         setMobileOpen((prevState) => !prevState);

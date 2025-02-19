@@ -33,8 +33,7 @@ const Header = ({}) => {
     const pathname = usePathname();
     const params = useParams();
     const router = useRouter();
-
-    const pathnameArr = pathname.split('/');
+    
     console.log(params, 'params');
 
     const handleDrawerToggle = () => {

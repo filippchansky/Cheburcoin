@@ -7,8 +7,6 @@ import React, { useEffect, useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useFavoriteCoins } from '@/store/FavoriteCoins';
-import { auth, db } from '../../../configs/firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
 
 interface ProvidersProps {
     children: React.ReactNode;

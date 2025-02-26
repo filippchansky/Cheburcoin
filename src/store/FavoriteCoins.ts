@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { auth, db } from '../../configs/firebase/config';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 
 interface State {
     coins: string[] | null;

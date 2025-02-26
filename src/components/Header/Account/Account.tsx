@@ -1,7 +1,7 @@
 import { Avatar, Button, Popover } from 'antd';
 import style from './style.module.scss';
 import SkeletonAvatar from 'antd/es/skeleton/Avatar';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import React, { Suspense, useState } from 'react';
 import SwitchTeme from '../SwitchTeme/SwitchTeme';
 import ModalAuth from '@/components/Authorization/ModalAuth';
@@ -17,6 +17,7 @@ interface AccountProps {}
 const Account: React.FC<AccountProps> = ({}) => {
     const { addCoins } = useFavoriteCoins();
     const [user, loading] = useAuthState(auth);
+    const router = useRouter()
     // console.log({ user });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,6 +29,7 @@ const Account: React.FC<AccountProps> = ({}) => {
     const handlerSignOut = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
         signOut(auth);
+        router.push('/')
         addCoins();
     };
 

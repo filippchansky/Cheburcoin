@@ -29,6 +29,7 @@ const Account: React.FC<AccountProps> = ({}) => {
     const handlerSignOut = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
         signOut(auth);
+        localStorage.removeItem('firebaseUid')
         router.push('/')
         addCoins();
     };

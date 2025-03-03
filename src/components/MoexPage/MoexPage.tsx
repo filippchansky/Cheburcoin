@@ -6,6 +6,7 @@ import { IShares } from '@models/allSharesData';
 import SharesTable from '../SharesTable/SharesTable';
 import { IFilteredShares } from '@models/filteredShares';
 import Item from 'antd/es/list/Item';
+import SharesTableAntd from '../SharesTableAntd/SharesTableAntd';
 
 interface MoexPageProps {}
 
@@ -39,7 +40,8 @@ const MoexPage: React.FC<MoexPageProps> = ({}) => {
     return (
         <>
             <div>
-                <SharesTable data={shares ?? []} />
+                {/* <SharesTable data={shares ?? []} /> */}
+                <SharesTableAntd data={shares ?? []}/>
             </div>
         </>
     );

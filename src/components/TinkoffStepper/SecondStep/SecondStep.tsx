@@ -11,7 +11,7 @@ interface SecondStepProps {
     handleNext: () => void;
     checkedList: string[];
     setCheckedList: React.Dispatch<React.SetStateAction<string[]>>;
-    plainOptions:IPlainOptions[] ;
+    plainOptions: IPlainOptions[];
 }
 
 const SecondStep: React.FC<SecondStepProps> = ({

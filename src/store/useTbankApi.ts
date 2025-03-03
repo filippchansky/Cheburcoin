@@ -2,14 +2,16 @@ import { collection, doc, getDoc, getDocs, updateDoc } from 'firebase/firestore'
 import { create } from 'zustand';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from '../../configs/firebase/config';
+import { IAccount } from '@models/tinkoffData';
+
 
 interface IState {
     token: string | null;
-    activeAccounts: string[];
+    activeAccounts: IAccount[];
     isLoadingToken: boolean;
     isLoadingAccounts: boolean;
     addToken: (value: string) => Promise<void>;
-    addAccounts: (value: string[]) => Promise<void>;
+    addAccounts: (value: IAccount[]) => Promise<void>;
     getToken: () => Promise<void>;
     getActiveAccount: () => Promise<void>;
     initializeAuthListener: () => void;
@@ -71,7 +73,7 @@ export const useTbankApi = create<IState>((set, get) => ({
         try {
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (userDoc.exists()) {
-                const activeAccounts: string[] = userDoc.data().activeAccounts || [];
+                const activeAccounts: IAccount[] = userDoc.data().activeAccounts || [];
                 set({ activeAccounts, isLoadingAccounts: false });
             } else {
                 set({ isLoadingAccounts: false });

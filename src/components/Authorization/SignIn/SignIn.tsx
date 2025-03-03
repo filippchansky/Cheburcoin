@@ -41,7 +41,9 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
         e.preventDefault();
         setLoading(true);
         signInWithEmailAndPassword(auth, email, password)
-            .then(() => {
+            .then((res) => {
+                console.log(res)
+                localStorage.setItem('firebaseUid', res.user.uid)
                 addCoins();
                 setLoading(false);
             })

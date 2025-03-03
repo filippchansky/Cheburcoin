@@ -15,7 +15,11 @@ const PortfolioPage: React.FC<PortfolioPageProps> = ({}) => {
     }, [initializeAuth]);
 
     if (isLoading) {
-        return <CircularProgress />;
+        return (
+            <div className='text-center'>
+                <CircularProgress />
+            </div>
+        )
     }
 
     return <>{user ? <Portfolio /> : <p>Авторизируйтесь</p>}</>;

@@ -57,9 +57,9 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({}) => {
         setSkipped(newSkipped);
 
         if (activeStep === 0) {
-            addToken(token);
-            const data = await getAccounts(token);
-            console.log(data, 'тут');
+            await addToken(token);
+            localStorage.setItem('tinkoffToken', token);
+            const data = await getAccounts();
             if (data === null) {
                 openNotificationWithIcon();
                 return;
@@ -69,10 +69,16 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({}) => {
                 label: item.name
             }));
             setPlainOptions(options);
-            console.log('send token');
         }
         if (activeStep === 1) {
-            addAccounts(checkedList);
+            const qwe = plainOptions
+                .filter((item) => checkedList.includes(item.value))
+                .map((item) => ({
+                    id: item.value,
+                    name: item.label
+                }));
+            console.log(qwe);
+            addAccounts(qwe);
         }
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
     };

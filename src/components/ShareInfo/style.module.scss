@@ -1,3 +1,4 @@
+@import "../../app//variables";
 // .wrapper {
 //     max-width: 700px;
 //     border: 1px solid white;
@@ -15,12 +16,14 @@
     flex-direction: column;
     max-width: 500px;
     width: 100%;
-    background-color: #212327;
+    // background-color: #212327;
+    border: 1px solid white;
     border-radius: 10px;
     padding: 10px;
 
     &.white {
-        background-color: rgb(157, 204, 250);
+        // background-color: rgb(157, 204, 250);
+        border: 1px solid $body-color;
     }
 }
 

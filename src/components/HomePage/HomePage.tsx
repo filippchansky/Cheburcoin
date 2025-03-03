@@ -4,6 +4,7 @@ import * as motion from 'motion/react-client';
 import React, { useEffect, useState } from 'react';
 import style from './style.module.scss';
 import Link from 'next/link';
+import { useTbankApi } from '@/store/useTbankApi';
 
 interface HomePageProps {}
 

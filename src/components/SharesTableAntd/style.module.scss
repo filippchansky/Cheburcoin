@@ -1,0 +1,29 @@
+@import '../../app/variables';
+
+.wrapper {
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
+.title {
+    color: $green;
+
+    &.red {
+        color: red;
+    }
+}
+
+.percent {
+    color: $green;
+    font-size: 12px;
+    opacity: 1;
+
+    &.red {
+        color: red;
+    }
+}
+
+.ticker {
+    font-size: 12px;
+    opacity: 0.4;
+}

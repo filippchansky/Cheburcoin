@@ -7,8 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useFavoriteCoins } from '@/store/FavoriteCoins';
-import { auth, db } from '../../../configs/firebase/config';
-import { doc, getDoc } from 'firebase/firestore';
+import { useTbankApi } from '@/store/useTbankApi';
 
 interface ProvidersProps {
     children: React.ReactNode;
@@ -16,6 +15,7 @@ interface ProvidersProps {
 
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
     const { addCoins } = useFavoriteCoins();
+    const {initializeAuthListener, token} = useTbankApi()
     const { darkTheme } = useDarkTheme();
     const darkThemeMui = createTheme({
         palette: {
@@ -23,9 +23,9 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
         }
     });
     const [queryClient] = useState(() => new QueryClient());
-
     useEffect(() => {
         addCoins();
+        initializeAuthListener()
     }, []);
 
     return (

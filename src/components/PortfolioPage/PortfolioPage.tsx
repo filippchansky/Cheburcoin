@@ -1,19 +1,27 @@
 'use client';
 import React, { useEffect } from 'react';
+import { useAuthStore } from '@/store/useAuth';
+import Portfolio from '../Portfolio/Portfolio';
+import { CircularProgress } from '@mui/material';
 
 interface PortfolioPageProps {}
 
 const PortfolioPage: React.FC<PortfolioPageProps> = ({}) => {
-    useEffect(() => {
-        const fetchAccounts = async () => {
-            const res = await fetch('/api/getPortfolio');
-            const data = await res.json();
-            console.log(data);
-          };
-          
-          fetchAccounts();
-    }, []);
+    const { user, isLoading, initializeAuth } = useAuthStore();
 
-    return <>tinkofff</>;
+    useEffect(() => {
+        const unsubscribe = initializeAuth();
+        return () => unsubscribe(); // Отписываемся при размонтировании
+    }, [initializeAuth]);
+
+    if (isLoading) {
+        return (
+            <div className='text-center'>
+                <CircularProgress />
+            </div>
+        )
+    }
+
+    return <>{user ? <Portfolio /> : <p>Авторизируйтесь</p>}</>;
 };
 export default PortfolioPage;

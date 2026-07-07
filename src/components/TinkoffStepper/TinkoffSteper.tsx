@@ -2,7 +2,7 @@ import * as React from 'react';
 import FirstStep from './FirstStep/FirstStep';
 import SecondStep from './SecondStep/SecondStep';
 import ThirdStep from './ThirdStep/ThirdStep';
-import { useTbankApi } from '@/store/useTbankApi';
+import { useTbank, useSetTbankToken, useSetTbankAccounts } from '@/hooks/useTbank';
 import { getAccounts } from '@api/tinkoff/getAccounts/getAccounts';
 import { Button, notification, Steps } from 'antd';
 
@@ -20,8 +20,10 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({}) => {
     const [activeStep, setActiveStep] = React.useState(0);
     const [checkedList, setCheckedList] = React.useState<string[]>([]);
     const [skipped, setSkipped] = React.useState(new Set<number>());
-    const { addToken, token: tbankToken, addAccounts } = useTbankApi();
-    const [token, setToken] = React.useState<string>(tbankToken ?? '');
+    const { data: tbank } = useTbank();
+    const setTbankToken = useSetTbankToken();
+    const setTbankAccounts = useSetTbankAccounts();
+    const [token, setToken] = React.useState<string>(tbank?.token ?? '');
     const [api, contextHolder] = notification.useNotification();
 
     const openNotificationWithIcon = () => {
@@ -46,9 +48,9 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({}) => {
         setSkipped(newSkipped);
 
         if (activeStep === 0) {
-            await addToken(token);
+            await setTbankToken.mutateAsync(token);
             localStorage.setItem('tinkoffToken', token);
-            const data = await getAccounts();
+            const data = await getAccounts(token);
             if (data === null) {
                 openNotificationWithIcon();
                 return;
@@ -66,8 +68,7 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({}) => {
                     id: item.value,
                     name: item.label
                 }));
-            console.log(qwe);
-            addAccounts(qwe);
+            setTbankAccounts.mutate(qwe);
         }
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
     };

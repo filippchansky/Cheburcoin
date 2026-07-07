@@ -1,4 +1,4 @@
-import { useTbankApi } from '@/store/useTbankApi';
+import { useTbank } from '@/hooks/useTbank';
 import { Spin } from 'antd';
 import React from 'react';
 import TinkoffSteper from '../TinkoffStepper/TinkoffSteper';
@@ -7,9 +7,9 @@ import PortfolioList from '../PortfolioList/PortfolioList';
 interface PortfolioProps {}
 
 const Portfolio: React.FC<PortfolioProps> = ({}) => {
-    const { token, isLoadingToken, activeAccounts, isLoadingAccounts } = useTbankApi();
+    const { data, isLoading } = useTbank();
 
-    if (isLoadingToken || isLoadingAccounts) {
+    if (isLoading) {
         return (
             <div className='text-center'>
                 <Spin />
@@ -17,7 +17,7 @@ const Portfolio: React.FC<PortfolioProps> = ({}) => {
         );
     }
 
-    if (token && activeAccounts.length) {
+    if (data?.token && data.accounts.length) {
         return (
             <div className='max-w-[1400px] my-0 mx-[auto]'>
                 <PortfolioList />

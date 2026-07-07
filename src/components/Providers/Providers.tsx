@@ -3,21 +3,15 @@ import { useDarkTheme } from '@/store/darkTheme';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, theme } from 'antd';
-import React, { useEffect, useState } from 'react';
-import { useTbankApi } from '@/store/useTbankApi';
+import React, { useState } from 'react';
 
 interface ProvidersProps {
     children: React.ReactNode;
 }
 
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
-    const { initializeAuthListener } = useTbankApi();
     const { darkTheme } = useDarkTheme();
     const [queryClient] = useState(() => new QueryClient());
-
-    useEffect(() => {
-        initializeAuthListener();
-    }, [initializeAuthListener]);
 
     return (
         <QueryClientProvider client={queryClient}>

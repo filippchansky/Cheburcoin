@@ -1,7 +1,7 @@
 'use client';
 import CoinCard from '@/UI/CoinCard/CoinCard';
 import { CardSkeleton } from '@/UI/Skeletons/CardSkeleton';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
+import { useFavorites } from '@/hooks/useFavorites';
 import { fetchChart } from '../../../../apiFn/coinstats/Charts/getChartById';
 import { getCoinById } from '../../../../apiFn/coinstats/Coins/getCoinById';
 import { useQuery } from '@tanstack/react-query';
@@ -15,7 +15,7 @@ interface AboutCurrencyProps {}
 
 const AboutCurrency: React.FC<AboutCurrencyProps> = ({}) => {
     const { slug } = useParams();
-    const { coins } = useFavoriteCoins();
+    const { data: coins } = useFavorites();
     const coinId = slug[0];
     const [period, setPeriod] = useState('1w');
     const { data, isError, isLoading } = useQuery({

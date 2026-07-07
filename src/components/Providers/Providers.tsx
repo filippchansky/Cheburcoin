@@ -4,7 +4,6 @@ import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, theme } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
 import { useTbankApi } from '@/store/useTbankApi';
 
 interface ProvidersProps {
@@ -12,15 +11,13 @@ interface ProvidersProps {
 }
 
 const Providers: React.FC<ProvidersProps> = ({ children }) => {
-    const { addCoins } = useFavoriteCoins();
     const { initializeAuthListener } = useTbankApi();
     const { darkTheme } = useDarkTheme();
     const [queryClient] = useState(() => new QueryClient());
 
     useEffect(() => {
-        addCoins();
         initializeAuthListener();
-    }, [addCoins, initializeAuthListener]);
+    }, [initializeAuthListener]);
 
     return (
         <QueryClientProvider client={queryClient}>

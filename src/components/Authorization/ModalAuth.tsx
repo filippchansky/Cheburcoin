@@ -13,7 +13,6 @@ import SignIn from './SignIn/SignIn';
 import SignUp from './SignUp/SignUp';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
 
 interface ModalAuthProps {
     active: boolean;
@@ -22,7 +21,6 @@ interface ModalAuthProps {
 
 const ModalAuth: React.FC<ModalAuthProps> = ({ active, setActive }) => {
     const { darkTheme } = useDarkTheme();
-    const { addCoins } = useFavoriteCoins();
     const onChange = (key: string) => {};
 
     const items: TabsProps['items'] = [
@@ -50,9 +48,7 @@ const ModalAuth: React.FC<ModalAuthProps> = ({ active, setActive }) => {
         const user = googleUser.user;
         const docRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            addCoins();
-        } else {
+        if (!docSnap.exists()) {
             await setDoc(doc(db, 'users', user.uid), {
                 coinList: []
             });

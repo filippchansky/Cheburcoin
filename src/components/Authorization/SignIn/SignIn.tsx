@@ -4,14 +4,12 @@ import React, { useState } from 'react';
 import style from './style.module.scss';
 import { NotificationPlacement } from 'antd/es/notification/interface';
 import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
 
 interface SignInProps {
     setActiveModal: Function;
 }
 
 const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
-    const { addCoins } = useFavoriteCoins();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -42,9 +40,7 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
         setLoading(true);
         signInWithEmailAndPassword(auth, email, password)
             .then((res) => {
-                console.log(res)
-                localStorage.setItem('firebaseUid', res.user.uid)
-                addCoins();
+                localStorage.setItem('firebaseUid', res.user.uid);
                 setLoading(false);
             })
             .catch((error) => {

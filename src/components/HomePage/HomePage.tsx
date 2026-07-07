@@ -1,10 +1,9 @@
 'use client';
-import { Card, CardActionArea, CardContent, CardMedia, Typography } from '@mui/material';
+import { Card } from 'antd';
 import * as motion from 'motion/react-client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import style from './style.module.scss';
 import Link from 'next/link';
-import { useTbankApi } from '@/store/useTbankApi';
 
 interface HomePageProps {}
 
@@ -33,21 +32,18 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                     style={ball}
                 >
                     <Link href='/moex'>
-                        <Card sx={{ maxWidth: 345 }} style={{ borderRadius: 20 }}>
-                            <CardActionArea>
-                                <CardMedia
-                                    component='img'
-                                    height='100'
-                                    image='Icon/moex.gif'
-                                    alt='green iguana'
-                                    style={{ height: 140 }}
+                        <Card
+                            hoverable
+                            style={{ maxWidth: 345, borderRadius: 20 }}
+                            cover={
+                                <img
+                                    src='Icon/moex.gif'
+                                    alt='moex'
+                                    style={{ height: 140, objectFit: 'cover' }}
                                 />
-                                <CardContent>
-                                    <Typography gutterBottom variant='h5' component='div'>
-                                        MOEX
-                                    </Typography>
-                                </CardContent>
-                            </CardActionArea>
+                            }
+                        >
+                            <div className='text-xl font-semibold'>MOEX</div>
                         </Card>
                     </Link>
                 </motion.div>
@@ -63,21 +59,18 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                     style={ball}
                 >
                     <Link href='/cryptocurrency'>
-                        <Card sx={{ maxWidth: 345 }} style={{ borderRadius: 20 }}>
-                            <CardActionArea>
-                                <CardMedia
-                                    component='img'
-                                    height='140'
-                                    image='Icon/crypto_icon.png'
+                        <Card
+                            hoverable
+                            style={{ maxWidth: 345, borderRadius: 20 }}
+                            cover={
+                                <img
+                                    src='Icon/crypto_icon.png'
                                     alt='crypto_icon'
-                                    style={{ height: 140 }}
+                                    style={{ height: 140, objectFit: 'cover' }}
                                 />
-                                <CardContent>
-                                    <Typography gutterBottom variant='h5' component='div'>
-                                        Crypto
-                                    </Typography>
-                                </CardContent>
-                            </CardActionArea>
+                            }
+                        >
+                            <div className='text-xl font-semibold'>Crypto</div>
                         </Card>
                     </Link>
                 </motion.div>

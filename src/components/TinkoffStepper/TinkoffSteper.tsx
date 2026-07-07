@@ -1,17 +1,10 @@
 import * as React from 'react';
-import Box from '@mui/material/Box';
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepLabel from '@mui/material/StepLabel';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import style from './style.module.scss';
 import FirstStep from './FirstStep/FirstStep';
 import SecondStep from './SecondStep/SecondStep';
 import ThirdStep from './ThirdStep/ThirdStep';
 import { useTbankApi } from '@/store/useTbankApi';
 import { getAccounts } from '@api/tinkoff/getAccounts/getAccounts';
-import { notification } from 'antd';
+import { Button, notification, Steps } from 'antd';
 
 interface TinkoffSteperProps {}
 
@@ -37,10 +30,6 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({}) => {
             message: 'Неверный токен',
             description: 'Токен не валиден, попробуйте заново!'
         });
-    };
-
-    const isStepOptional = (step: number) => {
-        return step === 1;
     };
 
     const isStepSkipped = (step: number) => {
@@ -94,37 +83,15 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({}) => {
     return (
         <div className='max-w-[1000px] my-0 mx-[auto]'>
             {contextHolder}
-            <Box sx={{ width: '100%' }}>
-                <Stepper activeStep={activeStep}>
-                    {steps.map((label, index) => {
-                        const stepProps: { completed?: boolean } = {};
-                        const labelProps: {
-                            optional?: React.ReactNode;
-                        } = {};
-                        labelProps.optional = (
-                            <Typography variant='caption'>Обязательно</Typography>
-                        );
-                        if (isStepOptional(index)) {
-                        }
-                        if (isStepSkipped(index)) {
-                            stepProps.completed = false;
-                        }
-                        return (
-                            <Step key={label} {...stepProps}>
-                                <StepLabel {...labelProps}>{label}</StepLabel>
-                            </Step>
-                        );
-                    })}
-                </Stepper>
+            <div className='w-full'>
+                <Steps current={activeStep} items={steps.map((label) => ({ title: label }))} />
                 {activeStep === steps.length ? (
                     <React.Fragment>
-                        <Typography sx={{ mt: 2, mb: 1 }}>
-                            All steps completed - you&apos;re finished
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                            <Box sx={{ flex: '1 1 auto' }} />
+                        <p className='mb-1 mt-4'>All steps completed - you&apos;re finished</p>
+                        <div className='flex flex-row pt-4'>
+                            <div className='flex-auto' />
                             <Button onClick={handleReset}>Reset</Button>
-                        </Box>
+                        </div>
                     </React.Fragment>
                 ) : (
                     <>
@@ -156,7 +123,7 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({}) => {
                         )}
                     </>
                 )}
-            </Box>
+            </div>
         </div>
     );
 };

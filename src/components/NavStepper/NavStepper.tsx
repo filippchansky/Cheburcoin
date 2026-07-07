@@ -1,41 +1,41 @@
-// 'use client'
-import { Breadcrumbs, Typography } from '@mui/material';
+'use client';
+import { Breadcrumb } from 'antd';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
-import style from "./style.module.scss"
+import style from './style.module.scss';
 
 interface NavStepperProps {}
 
 const NavStepper: React.FC<NavStepperProps> = ({}) => {
-    function handleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-        event.preventDefault();
-        console.info('You clicked a breadcrumb.');
-    }
-
     const pathname = usePathname();
     const pathArr = pathname.split('/').slice(1);
 
-    return (
-        <div role='presentation' onClick={handleClick} className='p-10'>
-            <Breadcrumbs aria-label='breadcrumb'>
-                <Link color='inherit' href='/'>
-                    <p className={style.link}>Home</p>
+    const items = [
+        {
+            title: (
+                <Link href='/'>
+                    <span className={style.link}>Home</span>
                 </Link>
-                {pathArr.map((item, index) => {
-                    const href = `/${pathArr.slice(0, index + 1).join('/')}`;
-                    return (
-                        <Link key={item} color='inherit' href={href}>
-                            <p className={style.link}>{item}</p>
+            )
+        },
+        ...pathArr
+            .filter((item) => item.length > 0)
+            .map((item, index) => {
+                const href = `/${pathArr.slice(0, index + 1).join('/')}`;
+                return {
+                    title: (
+                        <Link href={href}>
+                            <span className={style.link}>{item}</span>
                         </Link>
-                    );
-                })}
-                {/* {pathArr.map(item => (
-                    <Link key={item} color='inherit' href={item}>
-                        {item}
-                    </Link>
-                    ))} */}
-            </Breadcrumbs>
+                    )
+                };
+            })
+    ];
+
+    return (
+        <div className='p-10'>
+            <Breadcrumb items={items} />
         </div>
     );
 };

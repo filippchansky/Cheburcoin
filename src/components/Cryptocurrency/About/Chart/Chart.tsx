@@ -1,6 +1,5 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { LineChart } from '@mui/x-charts/LineChart';
 import { graphData } from '../../../../../configs/graph';
 import style from './style.module.scss';
 import ReactECharts from 'echarts-for-react';
@@ -130,22 +129,6 @@ const Chart: React.FC<ChartProps> = ({ charts }) => {
     };
 
     return (
-        // <LineChart
-        //   xAxis={[
-        //     {
-        //       labelStyle: { color: "red" },
-        //       data: dataChart.date,
-        //       valueFormatter: (value) =>
-        //         new Date(value * 1000).toLocaleDateString(),
-        //     },
-        //   ]}
-        //   series={[
-        //     {
-        //       data: dataChart.value,
-        //       showMark: false,
-        //     },
-        //   ]}
-        // />
         <ReactECharts
             className={style.chart}
             lazyUpdate={true}

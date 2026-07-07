@@ -1,6 +1,6 @@
 import React from 'react';
 import style from '../style.module.scss';
-import { Skeleton } from '@mui/material';
+import { Skeleton } from 'antd';
 
 interface PrecentValueProps {
     title: string;
@@ -23,7 +23,7 @@ const PrecentValue: React.FC<PrecentValueProps> = ({ average, title }) => {
                     {average?.toFixed(2)}%
                 </p>
             ) : (
-                <Skeleton variant='text' width={50} height={20} />
+                <Skeleton.Button active size='small' />
             )}
         </div>
     );

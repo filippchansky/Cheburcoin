@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useAuthStore } from '@/store/useAuth';
 import Portfolio from '../Portfolio/Portfolio';
-import { CircularProgress } from '@mui/material';
+import { Spin } from 'antd';
 
 interface PortfolioPageProps {}
 
@@ -17,7 +17,7 @@ const PortfolioPage: React.FC<PortfolioPageProps> = ({}) => {
     if (isLoading) {
         return (
             <div className='text-center'>
-                <CircularProgress />
+                <Spin />
             </div>
         )
     }

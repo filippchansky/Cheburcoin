@@ -1,5 +1,5 @@
 import { useTbankApi } from '@/store/useTbankApi';
-import { CircularProgress } from '@mui/material';
+import { Spin } from 'antd';
 import React, { useEffect } from 'react';
 import TinkoffSteper from '../TinkoffStepper/TinkoffSteper';
 import PortfolioList from '../PortfolioList/PortfolioList';
@@ -17,7 +17,7 @@ const Portfolio: React.FC<PortfolioProps> = ({}) => {
     if (isLoadingToken || isLoadingAccounts) {
         return (
             <div className='text-center'>
-                <CircularProgress />
+                <Spin />
             </div>
         );
     }

@@ -4,6 +4,7 @@ import * as motion from 'motion/react-client';
 import React from 'react';
 import style from './style.module.scss';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface HomePageProps {}
 
@@ -36,10 +37,13 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                             hoverable
                             style={{ maxWidth: 345, borderRadius: 20 }}
                             cover={
-                                <img
-                                    src='Icon/moex.gif'
+                                <Image
+                                    src='/Icon/moex.gif'
                                     alt='moex'
-                                    style={{ height: 140, objectFit: 'cover' }}
+                                    width={345}
+                                    height={140}
+                                    unoptimized
+                                    style={{ width: '100%', height: 140, objectFit: 'cover' }}
                                 />
                             }
                         >
@@ -63,10 +67,12 @@ const HomePage: React.FC<HomePageProps> = ({}) => {
                             hoverable
                             style={{ maxWidth: 345, borderRadius: 20 }}
                             cover={
-                                <img
-                                    src='Icon/crypto_icon.png'
+                                <Image
+                                    src='/Icon/crypto_icon.png'
                                     alt='crypto_icon'
-                                    style={{ height: 140, objectFit: 'cover' }}
+                                    width={345}
+                                    height={140}
+                                    style={{ width: '100%', height: 140, objectFit: 'cover' }}
                                 />
                             }
                         >

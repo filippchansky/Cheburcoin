@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import style from './style.module.scss';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import React, { useMemo } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { getChart } from '../../../../apiFn/moex/shares/getChart';
 import { getMonthAgo, getSixMonthAgo, getYearAgo } from '@/utils/dateUtils';
 import { ISharesChart } from '@models/SharesCharts';
@@ -11,28 +10,22 @@ interface MainInfoProps {
     ticker: string;
 }
 
-interface IAverage {
-    day: number | null;
-    month: number | null;
-    sixMonth: number | null;
-    year: number | null;
-}
+const getClose = (item: ISharesChart | undefined) => {
+    if (item && item.candles.data.length > 0) {
+        const previousClose = item.candles.data.at(0)?.[1] || 0;
+        const currentClose = item.candles.data.at(-1)?.[1] || 0;
+        return { previousClose, currentClose };
+    }
+    return { previousClose: 0, currentClose: 0 };
+};
 
 const MainInfo: React.FC<MainInfoProps> = ({ ticker }) => {
-    const [average, setAverage] = useState<IAverage>({
-        day: null,
-        month: null,
-        sixMonth: null,
-        year: null
-    });
-
     const queries = useQueries({
         queries: [
             {
                 queryKey: ['day', ticker],
                 queryFn: () => {
-                    const currentDate = new Date();
-                    const today = currentDate.toISOString().split('T')[0];
+                    const today = new Date().toISOString().split('T')[0];
                     return getChart(ticker, today, '60');
                 }
             },
@@ -51,40 +44,23 @@ const MainInfo: React.FC<MainInfoProps> = ({ ticker }) => {
         ]
     });
 
-    const isAllSuccess = useMemo(() => queries.every((query) => query.isSuccess), [queries]);
+    const isAllSuccess = queries.every((query) => query.isSuccess);
 
-    const getClose = (item: ISharesChart | undefined) => {
-        if (item && item.candles.data.length > 0) {
-            const previousClose = item.candles.data.at(0)?.[1] || 0;
-            const currentClose = item.candles.data.at(-1)?.[1] || 0;
-            return { previousClose, currentClose };
+    const average = useMemo(() => {
+        if (!isAllSuccess) {
+            return { day: null, month: null, sixMonth: null, year: null };
         }
-        return { previousClose: 0, currentClose: 0 };
-    };
-    useEffect(() => {
-        // Проверяем, все ли запросы завершены
-
-        if (isAllSuccess) {
-            setAverage({
-                day: calculatePriceChangePercentage(
-                    getClose(queries[0]?.data)?.previousClose,
-                    getClose(queries[0]?.data)?.currentClose
-                ),
-                month: calculatePriceChangePercentage(
-                    getClose(queries[1]?.data)?.previousClose,
-                    getClose(queries[1]?.data)?.currentClose
-                ),
-                sixMonth: calculatePriceChangePercentage(
-                    getClose(queries[2]?.data)?.previousClose,
-                    getClose(queries[2]?.data)?.currentClose
-                ),
-                year: calculatePriceChangePercentage(
-                    getClose(queries[3]?.data)?.previousClose,
-                    getClose(queries[3]?.data)?.currentClose
-                )
-            });
-        }
-    }, [isAllSuccess]);
+        const change = (item: ISharesChart | undefined) => {
+            const { previousClose, currentClose } = getClose(item);
+            return calculatePriceChangePercentage(previousClose, currentClose);
+        };
+        return {
+            day: change(queries[0]?.data),
+            month: change(queries[1]?.data),
+            sixMonth: change(queries[2]?.data),
+            year: change(queries[3]?.data)
+        };
+    }, [isAllSuccess, queries]);
 
     return (
         <div className='flex justify-around'>

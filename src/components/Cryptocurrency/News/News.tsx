@@ -23,7 +23,7 @@ const News: React.FC<NewsProps> = ({}) => {
     });
     useEffect(() => {
         if (fetching) {
-            setLimit(limit + 20);
+            setLimit((prev) => prev + 20);
         }
     }, [fetching]);
 
@@ -32,7 +32,7 @@ const News: React.FC<NewsProps> = ({}) => {
             setFetching(false);
             setNews(data);
         }
-    }, [isSuccess]);
+    }, [isSuccess, data]);
 
     useEffect(() => {
         document.addEventListener('scroll', scrollHandler);

@@ -20,7 +20,7 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
     useEffect(() => {
         addCoins();
         initializeAuthListener();
-    }, []);
+    }, [addCoins, initializeAuthListener]);
 
     return (
         <QueryClientProvider client={queryClient}>

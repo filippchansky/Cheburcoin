@@ -1,18 +1,13 @@
 import { useTbankApi } from '@/store/useTbankApi';
 import { Spin } from 'antd';
-import React, { useEffect } from 'react';
+import React from 'react';
 import TinkoffSteper from '../TinkoffStepper/TinkoffSteper';
 import PortfolioList from '../PortfolioList/PortfolioList';
 
 interface PortfolioProps {}
 
 const Portfolio: React.FC<PortfolioProps> = ({}) => {
-    const { token, isLoadingToken, initializeAuthListener, activeAccounts, isLoadingAccounts } =
-        useTbankApi();
-
-    useEffect(() => {
-        initializeAuthListener();
-    }, []);
+    const { token, isLoadingToken, activeAccounts, isLoadingAccounts } = useTbankApi();
 
     if (isLoadingToken || isLoadingAccounts) {
         return (

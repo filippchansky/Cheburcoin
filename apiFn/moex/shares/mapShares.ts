@@ -1,23 +1,6 @@
 import { IShares } from '@models/allSharesData';
 import { IFilteredShares } from '@models/filteredShares';
-
-/**
- * Строит функцию доступа к ячейке строки по имени колонки MOEX.
- * MOEX отдаёт данные в «колоночном» формате (массив массивов + список columns),
- * поэтому обращаемся по имени, а не по хрупкому числовому индексу.
- */
-const columnGetter = (columns: string[]) => {
-    const index = new Map(columns.map((name, i) => [name, i]));
-    return <T = number>(row: unknown[], name: string): T => {
-        const i = index.get(name);
-        return (i === undefined ? undefined : row[i]) as T;
-    };
-};
-
-const toNumber = (value: unknown): number => {
-    const n = typeof value === 'string' ? Number(value) : (value as number);
-    return Number.isFinite(n) ? n : 0;
-};
+import { columnGetter, toNumber } from '../columnUtils';
 
 /**
  * Преобразует сырой ответ MOEX в плоский типизированный список бумаг.

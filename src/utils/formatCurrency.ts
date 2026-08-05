@@ -28,6 +28,17 @@ export const formatPercent = (value: number) => {
     return `${sign}${value.toFixed(2)}%`;
 };
 
+/** MOEX использует код «SUR» для рубля — Intl понимает только «RUB». */
+const CURRENCY_CODE: Record<string, string> = { SUR: 'RUB' };
+
+/** Формат суммы в валюте бумаги (SUR/USD/EUR/CNY). */
+export const formatMoney = (value: number, currency = 'SUR') =>
+    new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: CURRENCY_CODE[currency] ?? currency,
+        minimumFractionDigits: 2
+    }).format(value);
+
 /** Компактный формат валюты для больших чисел: 6.17e12 → «6,2 трлн ₽». */
 export const intToRubCompact = (value: number) =>
     new Intl.NumberFormat('ru-RU', {

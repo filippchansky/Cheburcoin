@@ -1,13 +1,14 @@
 import { IFilteredShares } from '@models/filteredShares';
-import { Space, Table, TableProps, Tag } from 'antd';
+import { Table, TableProps } from 'antd';
 import style from './style.module.scss';
 import React from 'react';
 import { getPercentageChange, intToRub } from '@/utils/formatCurrency';
-import Image from 'next/image';
 import TableName from '../TableName/TableName';
 
 interface SharesTableAntdProps {
     data: IFilteredShares[];
+    loading?: boolean;
+    error?: boolean;
 }
 
 interface IRowsData extends Omit<IFilteredShares, 'lowPrice' | 'highPrice'> {
@@ -17,7 +18,7 @@ interface IRowsData extends Omit<IFilteredShares, 'lowPrice' | 'highPrice'> {
     dayDiff: number;
 }
 
-const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data }) => {
+const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error }) => {
     const columns: TableProps<IRowsData>['columns'] = [
         {
             title: 'Наименование',
@@ -102,12 +103,23 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data }) => {
         lowPrice: intToRub(item.lowPrice),
         highPrice: intToRub(item.highPrice),
         dayDiff: item.price - item.openPrice,
-        icon: item.icon
+        icon: item.icon,
+        prevPrice: item.prevPrice,
+        dayChange: item.dayChange,
+        dayChangePercent: item.dayChangePercent
     }));
+
+    if (error) {
+        return (
+            <div className={style.wrapper}>
+                <p>Не удалось загрузить список акций. Попробуйте обновить страницу.</p>
+            </div>
+        );
+    }
 
     return (
         <div className={style.wrapper}>
-            <Table<IRowsData> columns={columns} dataSource={rows} rowKey={'id'} />
+            <Table<IRowsData> columns={columns} dataSource={rows} rowKey={'id'} loading={loading} />
         </div>
     );
 };

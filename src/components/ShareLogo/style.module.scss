@@ -1,0 +1,17 @@
+.logo {
+    border-radius: 50%;
+    object-fit: contain;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(128, 128, 128, 0.18);
+    font-weight: 700;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}

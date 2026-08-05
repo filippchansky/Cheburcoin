@@ -1,9 +1,11 @@
+'use client';
 import { IFilteredShares } from '@models/filteredShares';
-import { Table, TableProps } from 'antd';
-import style from './style.module.scss';
+import { Empty, Table, TableProps } from 'antd';
+import { useRouter } from 'next/navigation';
 import React from 'react';
-import { getPercentageChange, intToRub } from '@/utils/formatCurrency';
+import { formatPercent, intToRub } from '@/utils/formatCurrency';
 import TableName from '../TableName/TableName';
+import style from './style.module.scss';
 
 interface SharesTableAntdProps {
     data: IFilteredShares[];
@@ -11,19 +13,21 @@ interface SharesTableAntdProps {
     error?: boolean;
 }
 
-interface IRowsData extends Omit<IFilteredShares, 'lowPrice' | 'highPrice'> {
-    lowPrice: string;
-    highPrice: string;
-    icon: string;
-    dayDiff: number;
-}
+const dayChangeClass = (percent: number) => {
+    if (percent > 0) return style.up;
+    if (percent < 0) return style.down;
+    return style.flat;
+};
 
 const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error }) => {
-    const columns: TableProps<IRowsData>['columns'] = [
+    const router = useRouter();
+
+    const columns: TableProps<IFilteredShares>['columns'] = [
         {
             title: 'Наименование',
-            dataIndex: 'name',
-            key: 'name',
+            dataIndex: 'title',
+            key: 'title',
+            fixed: 'left',
             render: (_, { title, ticker, icon }) => (
                 <TableName icon={icon} ticker={ticker} title={title} />
             )
@@ -32,94 +36,77 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             title: 'Цена',
             dataIndex: 'price',
             key: 'price',
-            render: (_, { price }) => (
-                <>
-                    <p>{intToRub(price)}</p>
-                </>
-            ),
+            align: 'right',
+            render: (_, { price }) => <span className={style.mono}>{intToRub(price)}</span>,
             sorter: (a, b) => a.price - b.price
         },
         {
-            title: 'Цена открытия',
-            dataIndex: 'openPrice',
-            key: 'openPrice',
-            render: (_, { openPrice }) => <p>{intToRub(openPrice)}</p>
+            title: 'За день',
+            dataIndex: 'dayChangePercent',
+            key: 'dayChangePercent',
+            align: 'right',
+            render: (_, { dayChange, dayChangePercent }) => (
+                <div className={`${style.dayChange} ${dayChangeClass(dayChangePercent)}`}>
+                    <span className={style.dayChangeRub}>
+                        {dayChange > 0 ? '+' : ''}
+                        {intToRub(dayChange)}
+                    </span>
+                    <span className={style.dayChangePct}>{formatPercent(dayChangePercent)}</span>
+                </div>
+            ),
+            sorter: (a, b) => a.dayChangePercent - b.dayChangePercent
         },
         {
             title: 'Минимум',
+            dataIndex: 'lowPrice',
             key: 'lowPrice',
-            dataIndex: 'lowPrice'
-            // render: (_, { tags }) => <></>
+            align: 'right',
+            render: (_, { lowPrice }) => <span className={style.mono}>{intToRub(lowPrice)}</span>
         },
         {
             title: 'Максимум',
+            dataIndex: 'highPrice',
             key: 'highPrice',
-            dataIndex: 'highPrice'
-        },
-        {
-            title: 'За день',
-            key: 'dayDiff',
-            dataIndex: 'dayDiff',
-            render: (_, { dayDiff, price, openPrice }) => {
-                const formate = dayDiff > 0 ? '+' + intToRub(dayDiff) : intToRub(dayDiff);
-                return (
-                    <div className='flex flex-col gap-2'>
-                        <h3
-                            className={
-                                dayDiff > 0 ? style.title : [style.title, style.red].join(' ')
-                            }
-                            // style={{ color: `${dayDiff > 0 ? '#96ff7f' : 'red'}` }}
-                        >
-                            {formate}
-                        </h3>
-                        <p
-                            className={
-                                dayDiff > 0 ? style.percent : [style.percent, style.red].join(' ')
-                            }
-                        >
-                            {getPercentageChange(price, openPrice)}
-                        </p>
-                    </div>
-                );
-            }
+            align: 'right',
+            render: (_, { highPrice }) => <span className={style.mono}>{intToRub(highPrice)}</span>
         },
         {
             title: 'Капитализация',
-            key: 'capitalization',
             dataIndex: 'capitalization',
-            render: (_, { capitalization }) => <p>{intToRub(capitalization)}</p>,
+            key: 'capitalization',
+            align: 'right',
+            render: (_, { capitalization }) => (
+                <span className={style.mono}>{intToRub(capitalization)}</span>
+            ),
             defaultSortOrder: 'descend',
             sorter: (a, b) => a.capitalization - b.capitalization
         }
     ];
 
-    const rows: IRowsData[] = data?.map((item) => ({
-        id: item.id,
-        ticker: item.ticker,
-        title: item.title,
-        price: item.price,
-        capitalization: item.capitalization,
-        openPrice: item.openPrice,
-        lowPrice: intToRub(item.lowPrice),
-        highPrice: intToRub(item.highPrice),
-        dayDiff: item.price - item.openPrice,
-        icon: item.icon,
-        prevPrice: item.prevPrice,
-        dayChange: item.dayChange,
-        dayChangePercent: item.dayChangePercent
-    }));
-
     if (error) {
         return (
             <div className={style.wrapper}>
-                <p>Не удалось загрузить список акций. Попробуйте обновить страницу.</p>
+                <Empty description='Не удалось загрузить список акций. Попробуйте обновить страницу.' />
             </div>
         );
     }
 
     return (
         <div className={style.wrapper}>
-            <Table<IRowsData> columns={columns} dataSource={rows} rowKey={'id'} loading={loading} />
+            <Table<IFilteredShares>
+                className={style.table}
+                columns={columns}
+                dataSource={data}
+                rowKey='id'
+                loading={loading}
+                sticky
+                scroll={{ x: 'max-content' }}
+                pagination={{ pageSize: 25, showSizeChanger: false, hideOnSinglePage: true }}
+                onRow={(record) => ({
+                    onClick: () => router.push(`/moex/${record.ticker}`)
+                })}
+                rowClassName={style.row}
+            />
         </div>
     );
 };

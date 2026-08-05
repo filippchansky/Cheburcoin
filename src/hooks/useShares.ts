@@ -1,4 +1,5 @@
 import { getAllShares } from '@api/moex/shares/getAllShares';
+import { getSectors } from '@api/moex/shares/getSectors';
 import { mapShares } from '@api/moex/shares/mapShares';
 import { IFilteredShares } from '@models/filteredShares';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +10,14 @@ export const useShares = () =>
         queryKey: ['shares'],
         queryFn: getAllShares,
         select: mapShares
+    });
+
+/** Карта «тикер → сектор» из отраслевых индексов MOEX (меняется редко). */
+export const useSectors = () =>
+    useQuery({
+        queryKey: ['sectors'],
+        queryFn: getSectors,
+        staleTime: 1000 * 60 * 60
     });
 
 /** Крупнейшие по капитализации. */

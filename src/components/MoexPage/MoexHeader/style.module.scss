@@ -1,0 +1,40 @@
+.header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.titleBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.subtitle {
+    font-size: 15px;
+    opacity: 0.5;
+}
+
+.search {
+    width: 320px;
+    max-width: 100%;
+}
+
+@media (max-width: 640px) {
+    .title {
+        font-size: 26px;
+    }
+    .search {
+        width: 100%;
+    }
+}

@@ -1,46 +1,97 @@
 'use client';
-import { getAllShares } from '../../../apiFn/moex/shares/getAllShares';
-import { useQuery } from '@tanstack/react-query';
-import React, { useEffect, useState } from 'react';
-import { IShares } from '@models/allSharesData';
-import { IFilteredShares } from '@models/filteredShares';
+import React, { useMemo, useState } from 'react';
+import { Alert, Segmented, Select } from 'antd';
+import { SECTOR_INDICES } from '@api/moex/shares/getSectors';
+import {
+    getTopByCap,
+    getTopGainers,
+    getTopLosers,
+    useSectors,
+    useShares
+} from '@/hooks/useShares';
 import SharesTableAntd from '../SharesTableAntd/SharesTableAntd';
+import MoexHeader from './MoexHeader/MoexHeader';
+import TopMovers from './TopMovers/TopMovers';
+import style from './style.module.scss';
 
-interface MoexPageProps {}
+type Filter = 'all' | 'gainers' | 'losers';
 
-const MoexPage: React.FC<MoexPageProps> = ({}) => {
-    const [shares, setShares] = useState<IFilteredShares[]>();
-    const { data } = useQuery<IShares>({
-        queryKey: ['shares'],
-        queryFn: () => getAllShares()
-    });
+const filterOptions = [
+    { label: 'Все', value: 'all' },
+    { label: 'Растущие', value: 'gainers' },
+    { label: 'Падающие', value: 'losers' }
+];
 
-    useEffect(() => {
-        if (data) {
-            const filter = data.marketdata.data
-                .map((row) => ({
-                    id: row[0],
-                    ticker: row[0],
-                    capitalization: row[50],
-                    price: row[12],
-                    title: data.securities.data.find((item) => item[0] === row[0])?.at(2),
-                    icon: data.securities.data.find((item) => item[0] === row[0])?.at(19),
-                    lowPrice: row[10],
-                    openPrice: row[9],
-                    highPrice: row[11]
-                }))
-                .filter((stock) => stock.capitalization > 0)
-                .sort((a, b) => b.capitalization - a.capitalization);
-            setShares(filter as IFilteredShares[]);
-        }
-    }, [data]);
+const ALL_SECTORS = 'all';
+const sectorOptions = [
+    { label: 'Все секторы', value: ALL_SECTORS },
+    ...Object.values(SECTOR_INDICES).map((label) => ({ label, value: label }))
+];
+
+const MoexPage: React.FC = () => {
+    const { data: shares = [], isLoading, isError } = useShares();
+    const { data: sectorByTicker = {} } = useSectors();
+    const [search, setSearch] = useState('');
+    const [filter, setFilter] = useState<Filter>('all');
+    const [sector, setSector] = useState<string>(ALL_SECTORS);
+
+    const gainers = useMemo(() => getTopGainers(shares), [shares]);
+    const losers = useMemo(() => getTopLosers(shares), [shares]);
+    const topCap = useMemo(() => getTopByCap(shares), [shares]);
+
+    const filtered = useMemo(() => {
+        const query = search.trim().toLowerCase();
+        return shares.filter((share) => {
+            if (filter === 'gainers' && share.dayChangePercent <= 0) return false;
+            if (filter === 'losers' && share.dayChangePercent >= 0) return false;
+            if (sector !== ALL_SECTORS && sectorByTicker[share.ticker] !== sector) return false;
+            if (!query) return true;
+            return (
+                share.ticker.toLowerCase().includes(query) ||
+                share.title.toLowerCase().includes(query)
+            );
+        });
+    }, [shares, filter, sector, sectorByTicker, search]);
 
     return (
-        <>
-            <div>
-                <SharesTableAntd data={shares ?? []} />
-            </div>
-        </>
+        <div className={style.page}>
+            <MoexHeader count={shares.length} search={search} onSearch={setSearch} />
+
+            {isError ? (
+                <Alert
+                    type='error'
+                    showIcon
+                    message='Не удалось загрузить список акций'
+                    description='Проверьте соединение и попробуйте обновить страницу.'
+                />
+            ) : (
+                <>
+                    <TopMovers
+                        gainers={gainers}
+                        losers={losers}
+                        topCap={topCap}
+                        loading={isLoading}
+                    />
+
+                    <div className={style.controls}>
+                        <Segmented
+                            options={filterOptions}
+                            value={filter}
+                            onChange={(value) => setFilter(value as Filter)}
+                        />
+                        <Select
+                            className={style.sectorSelect}
+                            options={sectorOptions}
+                            value={sector}
+                            onChange={setSector}
+                            popupMatchSelectWidth={false}
+                        />
+                    </div>
+
+                    <SharesTableAntd data={filtered} loading={isLoading} />
+                </>
+            )}
+        </div>
     );
 };
 export default MoexPage;

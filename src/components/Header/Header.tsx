@@ -11,6 +11,7 @@ import style from './style.module.scss';
 
 const navItems = [
     { key: '/moex', label: 'MOEX' },
+    { key: '/bonds', label: 'Облигации' },
     { key: '/cryptocurrency', label: 'Крипта' },
     { key: '/news', label: 'Новости' }
 ];

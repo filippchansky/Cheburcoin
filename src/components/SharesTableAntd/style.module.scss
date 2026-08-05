@@ -1,29 +1,42 @@
 @import '../../app/variables';
 
 .wrapper {
-    max-width: 1120px;
-    margin: 0 auto;
+    width: 100%;
 }
 
-.title {
-    color: $green;
+.row {
+    cursor: pointer;
+}
 
-    &.red {
-        color: red;
+.mono {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.dayChange {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-variant-numeric: tabular-nums;
+
+    &.up {
+        color: $green;
+    }
+    &.down {
+        color: $red;
+    }
+    &.flat {
+        opacity: 0.5;
     }
 }
 
-.percent {
-    color: $green;
-    font-size: 12px;
-    opacity: 1;
-
-    &.red {
-        color: red;
-    }
+.dayChangeRub {
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
-.ticker {
+.dayChangePct {
     font-size: 12px;
-    opacity: 0.4;
 }

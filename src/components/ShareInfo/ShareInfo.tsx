@@ -4,6 +4,7 @@ import style from './style.module.scss';
 import { Skeleton, Tabs } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getShare } from '../../../apiFn/moex/shares/getShares';
+import { mapShares } from '@api/moex/shares/mapShares';
 import { IFilteredShares } from '@models/filteredShares';
 import Image from 'next/image';
 import { getShareIcon } from '../../../apiFn/moex/shares/getShareIcon';
@@ -25,18 +26,7 @@ const ShareInfo: React.FC<ShareInfoProps> = ({ ticker }) => {
 
     useEffect(() => {
         if (data?.marketdata) {
-            const filtered = data.marketdata.data.map<IFilteredShares>((row) => ({
-                id: row[0],
-                ticker: row[0],
-                capitalization: row[50],
-                price: row[12],
-                title: data.securities.data.find((item) => item[0] === row[0])?.at(2),
-                icon: data.securities.data.find((item) => item[0] === row[0])?.at(19),
-                lowPrice: row[10],
-                openPrice: row[9],
-                highPrice: row[11]
-            }));
-            setShareInfo(filtered.at(0));
+            setShareInfo(mapShares(data).at(0));
         }
     }, [data]);
 

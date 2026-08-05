@@ -1,0 +1,51 @@
+@import '../../../app/variables';
+
+.bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+    padding: 18px 20px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.04);
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.label {
+    font-size: 13px;
+    opacity: 0.55;
+}
+
+.info {
+    font-size: 12px;
+    cursor: help;
+}
+
+.value {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+
+    &.up {
+        color: $green;
+    }
+    &.down {
+        color: $red;
+    }
+    &.flat {
+        opacity: 0.6;
+    }
+}
+
+@media (max-width: 640px) {
+    .bar {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+}

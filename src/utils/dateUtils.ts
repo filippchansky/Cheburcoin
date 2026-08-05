@@ -81,6 +81,21 @@ export const formatDateToDayMonth = (dateString: string) => {
     return `${day}-${month}`;
 };
 
+/** «2027-02-03» → «03.02.2027». Пустая/битая дата → «—». */
+export const formatDate = (dateString: string) => {
+    if (!dateString || dateString === '0000-00-00') return '—';
+    const [year, month, day] = dateString.split('-');
+    return `${day}.${month}.${year}`;
+};
+
+/** Число полных лет от сегодня до указанной даты (для срока до погашения). */
+export const yearsUntil = (dateString: string): number | null => {
+    if (!dateString || dateString === '0000-00-00') return null;
+    const target = new Date(dateString).getTime();
+    if (Number.isNaN(target)) return null;
+    return (target - Date.now()) / (365.25 * 24 * 60 * 60 * 1000);
+};
+
 export const getNormalDate = (date: string) => {
     const dateObj = new Date(date);
 

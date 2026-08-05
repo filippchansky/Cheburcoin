@@ -3,9 +3,7 @@ import { getAllShares } from '../../../apiFn/moex/shares/getAllShares';
 import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { IShares } from '@models/allSharesData';
-import SharesTable from '../SharesTable/SharesTable';
 import { IFilteredShares } from '@models/filteredShares';
-import Item from 'antd/es/list/Item';
 import SharesTableAntd from '../SharesTableAntd/SharesTableAntd';
 
 interface MoexPageProps {}
@@ -40,8 +38,7 @@ const MoexPage: React.FC<MoexPageProps> = ({}) => {
     return (
         <>
             <div>
-                {/* <SharesTable data={shares ?? []} /> */}
-                <SharesTableAntd data={shares ?? []}/>
+                <SharesTableAntd data={shares ?? []} />
             </div>
         </>
     );

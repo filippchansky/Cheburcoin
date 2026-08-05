@@ -2,6 +2,7 @@ import React from 'react';
 import style from './style.module.scss';
 import { useQuery } from '@tanstack/react-query';
 import { getPortfolio } from '@api/tinkoff/getPortfolio/getPortfolio';
+import { useTbank } from '@/hooks/useTbank';
 import { IPosition } from '@models/tinkoffData';
 import { Table, TableProps } from 'antd';
 import TableName from '@/components/TableName/TableName';
@@ -14,9 +15,12 @@ interface PortfolioItemProps {
 
 const PortfolioItem: React.FC<PortfolioItemProps> = ({ account }) => {
     const router = useRouter();
+    const { data: tbank } = useTbank();
+    const token = tbank?.token;
     const { data, isLoading } = useQuery({
-        queryKey: ['account', account],
-        queryFn: () => getPortfolio(account)
+        queryKey: ['account', account, token],
+        queryFn: () => getPortfolio(account, token as string),
+        enabled: !!token
     });
 
     const columns: TableProps<IPosition>['columns'] = [
@@ -69,12 +73,6 @@ const PortfolioItem: React.FC<PortfolioItemProps> = ({ account }) => {
             render: (_, { currentPrice }) => <p>{intToRub(currentPrice)}</p>
         }
     ];
-
-    console.log(data);
-
-    // if (isLoading) {
-    //     return <>загрузка...</>;
-    // }
 
     const rowData = data?.positions?.filter((item) => item.ticker);
 

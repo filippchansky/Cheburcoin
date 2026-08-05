@@ -1,5 +1,4 @@
-import { Box, Button, Typography } from '@mui/material';
-import { Input } from 'antd';
+import { Button } from 'antd';
 import React from 'react';
 
 interface ThirdStepProps {
@@ -11,21 +10,16 @@ interface ThirdStepProps {
 const ThirdStep: React.FC<ThirdStepProps> = ({ activeStep, handleBack, handleNext }) => {
     return (
         <>
-            <Typography sx={{ mt: 2, mb: 1 }}>Введите токен</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                <Button
-                    color='inherit'
-                    disabled={activeStep === 0}
-                    onClick={handleBack}
-                    sx={{ mr: 1 }}
-                >
+            <p className='mb-1 mt-4'>Готово</p>
+            <div className='flex flex-row pt-4'>
+                <Button disabled={activeStep === 0} onClick={handleBack} className='mr-2'>
                     Back
                 </Button>
-                <Box sx={{ flex: '1 1 auto' }} />
-                <Button onClick={handleNext}>
+                <div className='flex-auto' />
+                <Button type='primary' onClick={handleNext}>
                     Далее
                 </Button>
-            </Box>
+            </div>
         </>
     );
 };

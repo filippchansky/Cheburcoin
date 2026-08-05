@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# CHEBURCOIN
 
-## Getting Started
+Веб-приложение для отслеживания финансовых рынков: криптовалюты, акции Московской биржи (MOEX) и личный инвестиционный портфель Т-Банк (Tinkoff Invest). Реализованы авторизация, избранное, интерактивные графики и новости рынка.
 
-First, run the development server:
+> 🚧 Проект в процессе рефакторинга. Изначально написан в период, когда я был джуном; сейчас привожу код, структуру и зависимости к продакшн-уровню.
+
+<!-- TODO: добавить ссылку на живой деплой и скриншоты -->
+**Демо:** _скоро_ · **Скриншоты:** _скоро_
+
+## Возможности
+
+- 📈 **Крипта** — список монет, детальная страница с графиком цены, лента новостей (CoinStats API)
+- 🏛️ **Акции MOEX** — таблица бумаг с торгов TQBR, страница инструмента с графиком и дивидендами (MOEX ISS API)
+- 💼 **Портфель Т-Банк** — подключение своего токена Tinkoff Invest, просмотр счетов и портфеля
+- ⭐ **Избранное** — сохранение монет для быстрого доступа
+- 🔐 **Авторизация** — регистрация и вход через Firebase Auth
+- 🌗 **Тёмная/светлая тема**
+
+## Стек
+
+| Слой              | Технологии                                        |
+| ----------------- | ------------------------------------------------- |
+| Фреймворк         | Next.js 14 (App Router), React 18, TypeScript      |
+| UI                | Ant Design, SCSS-модули, Tailwind CSS              |
+| Данные / стейт    | TanStack Query, Zustand                            |
+| Графики           | ECharts                                            |
+| Бэкенд / auth     | Firebase (Auth + Firestore)                        |
+| Внешние API       | CoinStats, MOEX ISS, Tinkoff Invest (через прокси) |
+
+> Примечание: в ходе рефакторинга стек унифицируется — из проекта убираются дублирующие UI-киты и библиотеки графиков.
+
+## Быстрый старт
 
 ```bash
+# 1. Установить зависимости
+npm install
+
+# 2. Настроить переменные окружения
+cp .env.example .env.local
+# затем заполнить .env.local своими ключами
+
+# 3. Запустить дев-сервер
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открыть [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Переменные окружения
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Все переменные описаны в [`.env.example`](.env.example). Нужны ключи для CoinStats и конфиг Firebase; MOEX ISS API публичный и ключа не требует. Реальные значения храните только в `.env.local` (файл в `.gitignore`).
 
-## Learn More
+## Скрипты
 
-To learn more about Next.js, take a look at the following resources:
+| Команда            | Действие                          |
+| ------------------ | --------------------------------- |
+| `npm run dev`      | Дев-сервер                        |
+| `npm run build`    | Продакшн-сборка                   |
+| `npm run start`    | Запуск собранного приложения      |
+| `npm run lint`     | Проверка ESLint                   |
+| `npm run prettier` | Форматирование кода               |
 
--   [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
--   [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Структура проекта
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```
+src/
+├── app/          # роуты App Router (страницы)
+├── components/   # компоненты по фичам
+├── store/        # Zustand-сторы (auth, тема, избранное)
+└── utils/        # форматирование, хелперы
+apiFn/            # клиенты внешних API (coinstats, moex, tinkoff)
+models/           # TypeScript-типы ответов API
+configs/          # конфиг Firebase
+```

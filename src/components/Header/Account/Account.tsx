@@ -8,14 +8,12 @@ import ModalAuth from '@/components/Authorization/ModalAuth';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../../../../configs/firebase/config';
 import { signOut } from 'firebase/auth';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
 import defaultAvatar from '@public/Icon/defaultAvatar.jpg';
 import Image from 'next/image';
 
 interface AccountProps {}
 
 const Account: React.FC<AccountProps> = ({}) => {
-    const { addCoins } = useFavoriteCoins();
     const [user, loading] = useAuthState(auth);
     const router = useRouter()
     // console.log({ user });
@@ -29,9 +27,8 @@ const Account: React.FC<AccountProps> = ({}) => {
     const handlerSignOut = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
         e.preventDefault();
         signOut(auth);
-        localStorage.removeItem('firebaseUid')
-        router.push('/')
-        addCoins();
+        localStorage.removeItem('firebaseUid');
+        router.push('/');
     };
 
     const content = (

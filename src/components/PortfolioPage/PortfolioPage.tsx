@@ -1,25 +1,21 @@
 'use client';
-import React, { useEffect } from 'react';
-import { useAuthStore } from '@/store/useAuth';
+import React from 'react';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '../../../configs/firebase/config';
 import Portfolio from '../Portfolio/Portfolio';
-import { CircularProgress } from '@mui/material';
+import { Spin } from 'antd';
 
 interface PortfolioPageProps {}
 
 const PortfolioPage: React.FC<PortfolioPageProps> = ({}) => {
-    const { user, isLoading, initializeAuth } = useAuthStore();
+    const [user, loading] = useAuthState(auth);
 
-    useEffect(() => {
-        const unsubscribe = initializeAuth();
-        return () => unsubscribe(); // Отписываемся при размонтировании
-    }, [initializeAuth]);
-
-    if (isLoading) {
+    if (loading) {
         return (
             <div className='text-center'>
-                <CircularProgress />
+                <Spin />
             </div>
-        )
+        );
     }
 
     return <>{user ? <Portfolio /> : <p>Авторизируйтесь</p>}</>;

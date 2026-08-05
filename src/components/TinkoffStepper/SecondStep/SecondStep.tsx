@@ -1,5 +1,4 @@
-import { Box, Button, Typography } from '@mui/material';
-import { Checkbox, CheckboxProps, Divider, Input } from 'antd';
+import { Button, Checkbox, CheckboxProps, Divider } from 'antd';
 import React from 'react';
 import { IPlainOptions } from '../TinkoffSteper';
 
@@ -35,26 +34,21 @@ const SecondStep: React.FC<SecondStepProps> = ({
 
     return (
         <>
-            <Typography sx={{ mt: 2, mb: 1 }}>Выберите аккаунт(ы)</Typography>
+            <p className='mb-1 mt-4'>Выберите аккаунт(ы)</p>
             <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>
                 Check all
             </Checkbox>
             <Divider />
             <CheckboxGroup options={plainOptions} value={checkedList} onChange={onChange} />
-            <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
-                <Button
-                    color='inherit'
-                    disabled={activeStep === 0}
-                    onClick={handleBack}
-                    sx={{ mr: 1 }}
-                >
+            <div className='flex flex-row pt-4'>
+                <Button disabled={activeStep === 0} onClick={handleBack} className='mr-2'>
                     Back
                 </Button>
-                <Box sx={{ flex: '1 1 auto' }} />
-                <Button onClick={handleNext} disabled={!checkedList.length}>
+                <div className='flex-auto' />
+                <Button type='primary' onClick={handleNext} disabled={!checkedList.length}>
                     Далее
                 </Button>
-            </Box>
+            </div>
         </>
     );
 };

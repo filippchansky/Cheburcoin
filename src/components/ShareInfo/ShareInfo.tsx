@@ -1,25 +1,12 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import style from './style.module.scss';
-import {
-    Avatar,
-    Box,
-    Card,
-    CardContent,
-    CardHeader,
-    Paper,
-    Skeleton,
-    Tab,
-    Tabs,
-    Typography
-} from '@mui/material';
-import { red } from '@mui/material/colors';
+import { Skeleton, Tabs } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { getShare } from '../../../apiFn/moex/shares/getShares';
 import { IFilteredShares } from '@models/filteredShares';
 import Image from 'next/image';
 import { getShareIcon } from '../../../apiFn/moex/shares/getShareIcon';
-import defIcon from '@public/Icon/russian.jpg';
 import { intToRub } from '@/utils/formatCurrency';
 import MainInfo from './MainInfo/MainInfo';
 import { useDarkTheme } from '@/store/darkTheme';
@@ -28,16 +15,9 @@ interface ShareInfoProps {
     ticker: string;
 }
 
-interface TabPanelProps {
-    children?: React.ReactNode;
-    index: number;
-    value: number;
-}
-
 const ShareInfo: React.FC<ShareInfoProps> = ({ ticker }) => {
-    const [tabValue, setTabValue] = useState(0);
     const [shareInfo, setShareInfo] = useState<IFilteredShares>();
-    const { data, isLoading, isError } = useQuery({
+    const { data } = useQuery({
         queryKey: ['share', ticker],
         queryFn: () => getShare(ticker)
     });
@@ -59,33 +39,6 @@ const ShareInfo: React.FC<ShareInfoProps> = ({ ticker }) => {
             setShareInfo(filtered.at(0));
         }
     }, [data]);
-
-    function CustomTabPanel(props: TabPanelProps) {
-        const { children, value, index, ...other } = props;
-
-        return (
-            <div
-                role='tabpanel'
-                hidden={value !== index}
-                id={`simple-tabpanel-${index}`}
-                aria-labelledby={`simple-tab-${index}`}
-                {...other}
-            >
-                {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-            </div>
-        );
-    }
-
-    function a11yProps(index: number) {
-        return {
-            id: `simple-tab-${index}`,
-            'aria-controls': `simple-tabpanel-${index}`
-        };
-    }
-
-    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-        setTabValue(newValue);
-    };
 
     return (
         <>
@@ -112,28 +65,21 @@ const ShareInfo: React.FC<ShareInfoProps> = ({ ticker }) => {
                             />
                         </div>
                     </div>
-                    <Box sx={{ width: '100%' }}>
-                        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                            <Tabs
-                                value={tabValue}
-                                onChange={handleChange}
-                                aria-label='basic tabs example'
-                            >
-                                <Tab label='Обзор' {...a11yProps(0)} />
-                                {/* <Tab label='Дивиденды' {...a11yProps(1)} /> */}
-                            </Tabs>
-                        </Box>
-                        <CustomTabPanel value={tabValue} index={0}>
-                            <MainInfo ticker={ticker} />
-                        </CustomTabPanel>
-                        <CustomTabPanel value={tabValue} index={1}></CustomTabPanel>
-                        <CustomTabPanel value={tabValue} index={2}>
-                            Item Three
-                        </CustomTabPanel>
-                    </Box>
+                    <div className='w-full'>
+                        <Tabs
+                            defaultActiveKey='0'
+                            items={[
+                                {
+                                    key: '0',
+                                    label: 'Обзор',
+                                    children: <MainInfo ticker={ticker} />
+                                }
+                            ]}
+                        />
+                    </div>
                 </div>
             ) : (
-                <Skeleton variant='rounded' width={500} height={300} />
+                <Skeleton active paragraph={{ rows: 6 }} />
             )}
         </>
     );

@@ -1,7 +1,7 @@
 'use client';
 import CoinCard from '@/UI/CoinCard/CoinCard';
 import { CardSkeleton } from '@/UI/Skeletons/CardSkeleton';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
+import { useFavorites } from '@/hooks/useFavorites';
 import { getCoinById } from '../../../../../apiFn/coinstats/Coins/getCoinById';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
@@ -12,7 +12,7 @@ interface FavoriteItemProps {
 }
 
 const FavoriteItem: React.FC<FavoriteItemProps> = ({ item }) => {
-    const { coins } = useFavoriteCoins();
+    const { data: coins } = useFavorites();
     const { data, isLoading } = useQuery({
         queryKey: [item],
         queryFn: () => getCoinById(item)

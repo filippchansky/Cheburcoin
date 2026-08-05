@@ -1,6 +1,6 @@
 'use client';
 import ModalAuth from '@/components/Authorization/ModalAuth';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
+import { useFavorites } from '@/hooks/useFavorites';
 import { SmileOutlined } from '@ant-design/icons';
 import { Button, Result } from 'antd';
 import React, { useState } from 'react';
@@ -12,7 +12,7 @@ import style from './style.module.scss';
 interface FavoritePageProps {}
 
 const FavoritePage: React.FC<FavoritePageProps> = ({}) => {
-    const { coins } = useFavoriteCoins();
+    const { data: coins } = useFavorites();
     const [openModal, setModalOpen] = useState(false);
     const [user, loading] = useAuthState(auth);
 

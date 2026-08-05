@@ -1,5 +1,5 @@
 'use client';
-import { useFavoriteCoins } from '@/store/FavoriteCoins';
+import { useFavorites } from '@/hooks/useFavorites';
 import * as motion from 'motion/react-client';
 import CoinCard from '@/UI/CoinCard/CoinCard';
 import { fetchCoin } from '../../../../apiFn/coinstats/Coins/getAllCoins';
@@ -12,7 +12,7 @@ import style from './style.module.scss';
 interface CryptoccurencyProps {}
 
 const Cryptoccurency: React.FC<CryptoccurencyProps> = ({}) => {
-    const { addCoins, coins } = useFavoriteCoins();
+    const { data: coins } = useFavorites();
     const [page, setPage] = useState(1);
     const [totalPage, setTotalPage] = useState(0);
     const [limit, setLimit] = useState(32);

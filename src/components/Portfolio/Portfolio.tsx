@@ -1,28 +1,23 @@
-import { useTbankApi } from '@/store/useTbankApi';
-import { CircularProgress } from '@mui/material';
-import React, { useEffect } from 'react';
+import { useTbank } from '@/hooks/useTbank';
+import { Spin } from 'antd';
+import React from 'react';
 import TinkoffSteper from '../TinkoffStepper/TinkoffSteper';
 import PortfolioList from '../PortfolioList/PortfolioList';
 
 interface PortfolioProps {}
 
 const Portfolio: React.FC<PortfolioProps> = ({}) => {
-    const { token, isLoadingToken, initializeAuthListener, activeAccounts, isLoadingAccounts } =
-        useTbankApi();
+    const { data, isLoading } = useTbank();
 
-    useEffect(() => {
-        initializeAuthListener();
-    }, []);
-
-    if (isLoadingToken || isLoadingAccounts) {
+    if (isLoading) {
         return (
             <div className='text-center'>
-                <CircularProgress />
+                <Spin />
             </div>
         );
     }
 
-    if (token && activeAccounts.length) {
+    if (data?.token && data.accounts.length) {
         return (
             <div className='max-w-[1400px] my-0 mx-[auto]'>
                 <PortfolioList />

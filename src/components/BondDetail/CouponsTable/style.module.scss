@@ -1,0 +1,29 @@
+.wrapper {
+    margin-top: 32px;
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.next {
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+.highlight {
+    td {
+        background: rgba(99, 91, 255, 0.08) !important;
+        font-weight: 600;
+    }
+}

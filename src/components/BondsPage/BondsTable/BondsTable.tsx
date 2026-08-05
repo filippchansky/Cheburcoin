@@ -1,9 +1,11 @@
 'use client';
 import React from 'react';
 import { Empty, Table, TableProps, Tag } from 'antd';
-import { CouponType, IBond } from '@models/bond';
+import { useRouter } from 'next/navigation';
+import { IBond } from '@models/bond';
 import { formatMoney } from '@/utils/formatCurrency';
 import { formatDate, yearsUntil } from '@/utils/dateUtils';
+import { couponTag } from '@/utils/bondLabels';
 import style from './style.module.scss';
 
 interface BondsTableProps {
@@ -11,12 +13,6 @@ interface BondsTableProps {
     loading?: boolean;
     error?: boolean;
 }
-
-const couponTag: Record<CouponType, { label: string; color: string }> = {
-    fixed: { label: 'Фикс', color: 'blue' },
-    floating: { label: 'Плавающий', color: 'gold' },
-    inflation: { label: 'Инфляционный', color: 'green' }
-};
 
 const num = (value: number | null, digits = 2) => (value === null ? '—' : value.toFixed(digits));
 
@@ -123,6 +119,8 @@ const columns: TableProps<IBond>['columns'] = [
 ];
 
 const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
+    const router = useRouter();
+
     if (error) {
         return <Empty description='Не удалось загрузить облигации. Попробуйте обновить страницу.' />;
     }
@@ -136,6 +134,8 @@ const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
             sticky
             scroll={{ x: 'max-content' }}
             pagination={{ pageSize: 25, showSizeChanger: false, hideOnSinglePage: true }}
+            onRow={(bond) => ({ onClick: () => router.push(`/bonds/${bond.secid}`) })}
+            rowClassName={style.row}
         />
     );
 };

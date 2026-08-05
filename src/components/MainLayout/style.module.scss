@@ -13,7 +13,7 @@
         color ease-out 0.2s;
 
     @media (max-width: 1024px) {
-        padding-inline: 16px;
+        padding-inline: 16px !important;
     }
     @media (max-width: 599px) {
         height: 56px !important;

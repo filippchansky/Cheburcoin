@@ -34,7 +34,7 @@ const NavStepper: React.FC<NavStepperProps> = ({}) => {
     ];
 
     return (
-        <div className='p-10'>
+        <div className='py-4'>
             <Breadcrumb items={items} />
         </div>
     );

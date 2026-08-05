@@ -1,4 +1,15 @@
-.childrenWrapper {
-    background: rgba(144, 202, 249, 0.04) !important;
-    // border-bottom: 2px solid rgba(144, 202, 249, 0.24);
+.desktopNav {
+    display: block;
+
+    @media (max-width: 767px) {
+        display: none;
+    }
+}
+
+.mobileBtn {
+    display: none;
+
+    @media (max-width: 767px) {
+        display: inline-flex;
+    }
 }

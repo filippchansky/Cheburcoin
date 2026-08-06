@@ -1,3 +1,19 @@
+.wrapper {
+    width: 100%;
+}
+
+/* Заголовки — одной строкой, чтобы шапка не разъезжалась на узких экранах. */
+.wrapper :global(.ant-table-thead .ant-table-cell) {
+    white-space: nowrap;
+}
+
+/* На мобильных ужимаем паддинги ячеек — меньше горизонтальной прокрутки. */
+@media (max-width: 640px) {
+    .wrapper :global(.ant-table-cell) {
+        padding: 10px 8px !important;
+    }
+}
+
 .row {
     cursor: pointer;
 }

@@ -28,6 +28,7 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             dataIndex: 'title',
             key: 'title',
             fixed: 'left',
+            width: 180,
             render: (_, { title, ticker, icon }) => (
                 <TableName icon={icon} ticker={ticker} title={title} />
             )
@@ -37,6 +38,7 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             dataIndex: 'price',
             key: 'price',
             align: 'right',
+            width: 110,
             render: (_, { price }) => <span className={style.mono}>{intToRub(price)}</span>,
             sorter: (a, b) => a.price - b.price
         },
@@ -45,6 +47,7 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             dataIndex: 'dayChangePercent',
             key: 'dayChangePercent',
             align: 'right',
+            width: 120,
             render: (_, { dayChange, dayChangePercent }) => (
                 <div className={`${style.dayChange} ${dayChangeClass(dayChangePercent)}`}>
                     <span className={style.dayChangeRub}>
@@ -61,6 +64,7 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             dataIndex: 'lowPrice',
             key: 'lowPrice',
             align: 'right',
+            width: 110,
             render: (_, { lowPrice }) => <span className={style.mono}>{intToRub(lowPrice)}</span>
         },
         {
@@ -68,6 +72,7 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             dataIndex: 'highPrice',
             key: 'highPrice',
             align: 'right',
+            width: 110,
             render: (_, { highPrice }) => <span className={style.mono}>{intToRub(highPrice)}</span>
         },
         {
@@ -75,6 +80,7 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             dataIndex: 'capitalization',
             key: 'capitalization',
             align: 'right',
+            width: 160,
             render: (_, { capitalization }) => (
                 <span className={style.mono}>{intToRub(capitalization)}</span>
             ),

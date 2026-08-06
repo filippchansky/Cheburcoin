@@ -1,5 +1,15 @@
-import { CouponType, IBond, IBondsRaw } from '@models/bond';
+import { CouponType, IBond, IBondsRaw, IssuerType } from '@models/bond';
 import { columnGetter, toNumber, toNumberOrNull } from '../columnUtils';
+
+/**
+ * Класс эмитента по коду SECTYPE MOEX: «3» — федеральные гособлигации (ОФЗ),
+ * «4» — субфедеральные/муниципальные, прочее («6»/«8»/«C»…) — корпоративные.
+ */
+const issuerTypeBySecType = (code: string): IssuerType => {
+    if (code === '3') return 'government';
+    if (code === '4') return 'municipal';
+    return 'corporate';
+};
 
 /** Код типа ОФЗ из SECNAME («ОФЗ-ПД …» → «ПД»). */
 const parseTypeCode = (secName: string): string => secName.match(/ОФЗ-([А-Я]+)/)?.[1] ?? '';
@@ -33,6 +43,7 @@ export const mapBonds = (raw: IBondsRaw): IBond[] => {
 
         const name = sec<string>(row, 'SECNAME') ?? '';
         const code = parseTypeCode(name);
+        const secType = sec<string>(row, 'SECTYPE') ?? '';
 
         const faceValue = toNumber(sec(row, 'FACEVALUE'));
         const pricePercent = toNumberOrNull(mkt(market, 'LAST'));
@@ -85,6 +96,12 @@ export const mapBonds = (raw: IBondsRaw): IBond[] => {
 
             maturityDate: sec<string>(row, 'MATDATE') ?? '',
             listLevel: toNumber(sec(row, 'LISTLEVEL')),
+
+            secType,
+            issuerType: issuerTypeBySecType(secType),
+            // MOEX ISS не отдаёт кредитный рейтинг — подключим внешний источник для корпоратов.
+            creditRating: null,
+
             isin: sec<string>(row, 'ISIN') ?? ''
         };
     });

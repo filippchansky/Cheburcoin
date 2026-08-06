@@ -1,0 +1,131 @@
+@import '../../../app/_variables';
+
+.calc {
+    margin-top: 20px;
+    padding: 20px 22px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.04);
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.empty {
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+.controls {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.slider {
+    margin: 4px 4px 24px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 220px;
+}
+
+.fieldLabel {
+    font-size: 13px;
+    opacity: 0.55;
+}
+
+.input {
+    width: 220px;
+    font-variant-numeric: tabular-nums;
+}
+
+.presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.preset {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid rgba(128, 128, 128, 0.25);
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s;
+
+    &:hover {
+        border-color: $accent;
+        color: $accent;
+    }
+}
+
+.results {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.tile {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 10px;
+    background: rgba(128, 128, 128, 0.06);
+}
+
+.tileLabel {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+.hint {
+    margin-left: 5px;
+    cursor: help;
+}
+
+.tileValue {
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+
+    &.accent {
+        color: $green;
+    }
+}
+
+.note {
+    margin-top: 14px;
+    font-size: 12px;
+    opacity: 0.45;
+    line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+    .results {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .results {
+        grid-template-columns: 1fr;
+    }
+    .field,
+    .input {
+        width: 100%;
+    }
+}

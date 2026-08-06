@@ -1,5 +1,15 @@
-import { CouponType, IBond, IBondsRaw } from '@models/bond';
+import { CouponType, IBond, IBondsRaw, IssuerType } from '@models/bond';
 import { columnGetter, toNumber, toNumberOrNull } from '../columnUtils';
+
+/**
+ * Класс эмитента по коду SECTYPE MOEX: «3» — федеральные гособлигации (ОФЗ),
+ * «4» — субфедеральные/муниципальные, прочее («6»/«8»/«C»…) — корпоративные.
+ */
+const issuerTypeBySecType = (code: string): IssuerType => {
+    if (code === '3') return 'government';
+    if (code === '4') return 'municipal';
+    return 'corporate';
+};
 
 /** Код типа ОФЗ из SECNAME («ОФЗ-ПД …» → «ПД»). */
 const parseTypeCode = (secName: string): string => secName.match(/ОФЗ-([А-Я]+)/)?.[1] ?? '';
@@ -33,10 +43,24 @@ export const mapBonds = (raw: IBondsRaw): IBond[] => {
 
         const name = sec<string>(row, 'SECNAME') ?? '';
         const code = parseTypeCode(name);
+        const secType = sec<string>(row, 'SECTYPE') ?? '';
 
         const faceValue = toNumber(sec(row, 'FACEVALUE'));
         const pricePercent = toNumberOrNull(mkt(market, 'LAST'));
         const priceValue = pricePercent === null ? null : (pricePercent / 100) * faceValue;
+
+        const couponValue = toNumber(sec(row, 'COUPONVALUE'));
+        const couponPeriod = toNumber(sec(row, 'COUPONPERIOD'));
+        // Для флоатеров (ПК) купон будущих периодов не зафиксирован → COUPONVALUE=0:
+        // в этом случае доходность не считаем (null → «—»), а не показываем 0%.
+        const annualCoupon =
+            couponPeriod > 0 && couponValue > 0 ? (couponValue * 365) / couponPeriod : null;
+        const couponYieldToNominal =
+            annualCoupon !== null && faceValue > 0 ? (annualCoupon / faceValue) * 100 : null;
+        const couponYieldToPrice =
+            annualCoupon !== null && priceValue !== null && priceValue > 0
+                ? (annualCoupon / priceValue) * 100
+                : null;
 
         const hasOffer =
             hasValue(sec(row, 'OFFERDATE')) ||
@@ -54,8 +78,11 @@ export const mapBonds = (raw: IBondsRaw): IBond[] => {
             hasOffer,
 
             couponPercent: toNumberOrNull(sec(row, 'COUPONPERCENT')),
-            couponValue: toNumber(sec(row, 'COUPONVALUE')),
-            couponPeriod: toNumber(sec(row, 'COUPONPERIOD')),
+            couponValue,
+            couponPeriod,
+            annualCoupon,
+            couponYieldToNominal,
+            couponYieldToPrice,
             nextCoupon: sec<string>(row, 'NEXTCOUPON') ?? '',
             accruedInt: toNumber(sec(row, 'ACCRUEDINT')),
 
@@ -69,6 +96,12 @@ export const mapBonds = (raw: IBondsRaw): IBond[] => {
 
             maturityDate: sec<string>(row, 'MATDATE') ?? '',
             listLevel: toNumber(sec(row, 'LISTLEVEL')),
+
+            secType,
+            issuerType: issuerTypeBySecType(secType),
+            // MOEX ISS не отдаёт кредитный рейтинг — подключим внешний источник для корпоратов.
+            creditRating: null,
+
             isin: sec<string>(row, 'ISIN') ?? ''
         };
     });

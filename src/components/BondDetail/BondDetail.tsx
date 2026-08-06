@@ -1,13 +1,14 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
-import { Skeleton, Tag } from 'antd';
-import { LeftOutlined } from '@ant-design/icons';
+import { Skeleton, Tag, Tooltip } from 'antd';
+import { InfoCircleOutlined, LeftOutlined } from '@ant-design/icons';
 import { useBond } from '@/hooks/useBonds';
 import { formatMoney } from '@/utils/formatCurrency';
 import { formatDate, yearsUntil } from '@/utils/dateUtils';
-import { couponPeriodLabel, couponTag } from '@/utils/bondLabels';
+import { couponPeriodLabel, couponTag, reliabilityInfo } from '@/utils/bondLabels';
 import KeyRateCompare from './KeyRateCompare/KeyRateCompare';
+import BondCalculator from './BondCalculator/BondCalculator';
 import BondChart from './BondChart/BondChart';
 import CouponsTable from './CouponsTable/CouponsTable';
 import style from './style.module.scss';
@@ -40,15 +41,27 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
 
     const years = yearsUntil(bond.maturityDate);
     const tag = couponTag[bond.couponType];
+    const reliability = reliabilityInfo(bond);
 
-    const metrics: { label: string; value: React.ReactNode }[] = [
-        { label: 'Доходность', value: bond.yield === null ? '—' : `${bond.yield.toFixed(2)}%` },
+    const metrics: { label: string; value: React.ReactNode; hint?: string }[] = [
+        {
+            label: 'Доходность',
+            value: bond.yield === null ? '—' : `${bond.yield.toFixed(2)}%`,
+            hint: 'Эффективная доходность к погашению по данным MOEX: предполагает реинвестирование купонов под ту же ставку.'
+        },
         {
             label: 'Купон',
             value:
                 bond.couponPercent === null
                     ? 'плавающий'
                     : `${bond.couponPercent.toFixed(2)}% · ${formatMoney(bond.couponValue, bond.currency)}`
+        },
+        {
+            label: 'Текущая купонная доходность',
+            value:
+                bond.couponYieldToNominal === null
+                    ? '—'
+                    : `${bond.couponYieldToPrice !== null ? `${bond.couponYieldToPrice.toFixed(2)}%` : ''}`
         },
         {
             label: 'Погашение',
@@ -61,7 +74,15 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
         { label: 'НКД', value: formatMoney(bond.accruedInt, bond.currency) },
         { label: 'Номинал', value: formatMoney(bond.faceValue, bond.currency) },
         { label: 'Периодичность купона', value: couponPeriodLabel(bond.couponPeriod) },
-        { label: 'Уровень листинга', value: `${bond.listLevel} уровень` }
+        {
+            label: 'Надёжность',
+            value: (
+                <Tag color={reliability.color} bordered={false}>
+                    {reliability.label}
+                </Tag>
+            ),
+            hint: reliability.tooltip
+        }
     ];
 
     return (
@@ -106,13 +127,21 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
             <div className={style.metrics}>
                 {metrics.map((metric) => (
                     <div key={metric.label} className={style.tile}>
-                        <span className={style.tileLabel}>{metric.label}</span>
+                        <span className={style.tileLabel}>
+                            {metric.label}
+                            {metric.hint && (
+                                <Tooltip title={metric.hint}>
+                                    <InfoCircleOutlined className={style.hint} />
+                                </Tooltip>
+                            )}
+                        </span>
                         <span className={style.tileValue}>{metric.value}</span>
                     </div>
                 ))}
             </div>
 
             <KeyRateCompare bondYield={bond.yield} />
+            <BondCalculator bond={bond} />
             <BondChart secid={bond.secid} />
             <CouponsTable secid={bond.secid} currency={bond.currency} />
         </div>

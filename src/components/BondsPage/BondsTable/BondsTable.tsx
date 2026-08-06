@@ -22,6 +22,7 @@ const columns: TableProps<IBond>['columns'] = [
         dataIndex: 'shortName',
         key: 'shortName',
         fixed: 'left',
+        width: 120,
         render: (_, bond) => (
             <div className={style.name}>
                 <span className={style.nameTitle}>{bond.shortName}</span>
@@ -48,6 +49,7 @@ const columns: TableProps<IBond>['columns'] = [
         dataIndex: 'pricePercent',
         key: 'pricePercent',
         align: 'right',
+        width: 90,
         render: (_, bond) => (
             <div className={style.cell}>
                 <span className={style.strong}>{num(bond.pricePercent)}%</span>
@@ -63,15 +65,17 @@ const columns: TableProps<IBond>['columns'] = [
         dataIndex: 'yield',
         key: 'yield',
         align: 'right',
+        width: 130,
         render: (_, bond) => <span className={style.strong}>{num(bond.yield)}%</span>,
         defaultSortOrder: 'descend',
         sorter: (a, b) => (a.yield ?? 0) - (b.yield ?? 0)
     },
     {
-        title: 'Текущая доходность',
+        title: 'Тек. доходность',
         dataIndex: 'couponYieldToPrice',
         key: 'couponYieldToPrice',
         align: 'right',
+        width: 190,
         render: (_, bond) => (
             <div className={style.cell}>
                 <span className={style.strong}>{num(bond.couponYieldToPrice)}%</span>
@@ -89,6 +93,7 @@ const columns: TableProps<IBond>['columns'] = [
         dataIndex: 'couponPercent',
         key: 'couponPercent',
         align: 'right',
+        width: 95,
         render: (_, bond) =>
             bond.couponPercent === null ? (
                 <span className={style.muted}>плавающий</span>
@@ -102,6 +107,7 @@ const columns: TableProps<IBond>['columns'] = [
         dataIndex: 'maturityDate',
         key: 'maturityDate',
         align: 'right',
+        width: 128,
         render: (_, bond) => {
             const years = yearsUntil(bond.maturityDate);
             return (
@@ -120,6 +126,7 @@ const columns: TableProps<IBond>['columns'] = [
         dataIndex: 'duration',
         key: 'duration',
         align: 'right',
+        width: 113,
         render: (_, bond) =>
             bond.duration === null ? '—' : <span>{(bond.duration / 365).toFixed(1)} г.</span>,
         sorter: (a, b) => (a.duration ?? 0) - (b.duration ?? 0)
@@ -129,6 +136,7 @@ const columns: TableProps<IBond>['columns'] = [
         dataIndex: 'accruedInt',
         key: 'accruedInt',
         align: 'right',
+        width: 82,
         render: (_, bond) => (
             <span className={style.muted}>{formatMoney(bond.accruedInt, bond.currency)}</span>
         )
@@ -143,17 +151,19 @@ const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
     }
 
     return (
-        <Table<IBond>
-            columns={columns}
-            dataSource={data}
-            rowKey='id'
-            loading={loading}
-            sticky
-            scroll={{ x: 'max-content' }}
-            pagination={{ pageSize: 25, showSizeChanger: false, hideOnSinglePage: true }}
-            onRow={(bond) => ({ onClick: () => router.push(`/bonds/${bond.secid}`) })}
-            rowClassName={style.row}
-        />
+        <div className={style.wrapper}>
+            <Table<IBond>
+                columns={columns}
+                dataSource={data}
+                rowKey='id'
+                loading={loading}
+                sticky
+                scroll={{ x: 'max-content' }}
+                pagination={{ pageSize: 25, showSizeChanger: false, hideOnSinglePage: true }}
+                onRow={(bond) => ({ onClick: () => router.push(`/bonds/${bond.secid}`) })}
+                rowClassName={style.row}
+            />
+        </div>
     );
 };
 export default BondsTable;

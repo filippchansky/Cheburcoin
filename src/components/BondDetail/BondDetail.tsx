@@ -51,6 +51,13 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
                     : `${bond.couponPercent.toFixed(2)}% · ${formatMoney(bond.couponValue, bond.currency)}`
         },
         {
+            label: 'Текущая купонная доходность',
+            value:
+                bond.couponYieldToNominal === null
+                    ? '—'
+                    : `${bond.couponYieldToPrice !== null ? `${bond.couponYieldToPrice.toFixed(2)}%` : ''}`
+        },
+        {
             label: 'Погашение',
             value: `${formatDate(bond.maturityDate)}${years !== null ? ` · через ${years.toFixed(1)} г.` : ''}`
         },

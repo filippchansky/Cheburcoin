@@ -68,6 +68,23 @@ const columns: TableProps<IBond>['columns'] = [
         sorter: (a, b) => (a.yield ?? 0) - (b.yield ?? 0)
     },
     {
+        title: 'Текущая доходность',
+        dataIndex: 'couponYieldToPrice',
+        key: 'couponYieldToPrice',
+        align: 'right',
+        render: (_, bond) => (
+            <div className={style.cell}>
+                <span className={style.strong}>{num(bond.couponYieldToPrice)}%</span>
+                {bond.couponYieldToNominal !== null && (
+                    <span className={style.muted}>
+                        {bond.couponYieldToNominal.toFixed(2)}% к номин.
+                    </span>
+                )}
+            </div>
+        ),
+        sorter: (a, b) => (a.couponYieldToPrice ?? 0) - (b.couponYieldToPrice ?? 0)
+    },
+    {
         title: 'Купон',
         dataIndex: 'couponPercent',
         key: 'couponPercent',

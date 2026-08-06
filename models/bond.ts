@@ -28,6 +28,22 @@ export interface IBond {
     couponValue: number;
     /** Периодичность купона в днях. */
     couponPeriod: number;
+
+    /**
+     * Годовой купон в валюте (couponValue × 365 / couponPeriod).
+     * null, если период неизвестен. Работает и для фиксированных, и для флоатеров.
+     */
+    annualCoupon: number | null;
+    /**
+     * Купонная доходность к номиналу, % годовых (annualCoupon / faceValue).
+     * Для фикс. купона равна couponPercent. null, если купон не рассчитать.
+     */
+    couponYieldToNominal: number | null;
+    /**
+     * Текущая доходность — купон к текущей цене, % годовых (annualCoupon / priceValue).
+     * null, если облигация сегодня не торговалась (нет цены).
+     */
+    couponYieldToPrice: number | null;
     /** Дата следующего купона. */
     nextCoupon: string;
     /** Накопленный купонный доход (НКД), ₽. */

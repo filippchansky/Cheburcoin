@@ -38,6 +38,19 @@ export const mapBonds = (raw: IBondsRaw): IBond[] => {
         const pricePercent = toNumberOrNull(mkt(market, 'LAST'));
         const priceValue = pricePercent === null ? null : (pricePercent / 100) * faceValue;
 
+        const couponValue = toNumber(sec(row, 'COUPONVALUE'));
+        const couponPeriod = toNumber(sec(row, 'COUPONPERIOD'));
+        // Для флоатеров (ПК) купон будущих периодов не зафиксирован → COUPONVALUE=0:
+        // в этом случае доходность не считаем (null → «—»), а не показываем 0%.
+        const annualCoupon =
+            couponPeriod > 0 && couponValue > 0 ? (couponValue * 365) / couponPeriod : null;
+        const couponYieldToNominal =
+            annualCoupon !== null && faceValue > 0 ? (annualCoupon / faceValue) * 100 : null;
+        const couponYieldToPrice =
+            annualCoupon !== null && priceValue !== null && priceValue > 0
+                ? (annualCoupon / priceValue) * 100
+                : null;
+
         const hasOffer =
             hasValue(sec(row, 'OFFERDATE')) ||
             hasValue(sec(row, 'PUTOPTIONDATE')) ||
@@ -54,8 +67,11 @@ export const mapBonds = (raw: IBondsRaw): IBond[] => {
             hasOffer,
 
             couponPercent: toNumberOrNull(sec(row, 'COUPONPERCENT')),
-            couponValue: toNumber(sec(row, 'COUPONVALUE')),
-            couponPeriod: toNumber(sec(row, 'COUPONPERIOD')),
+            couponValue,
+            couponPeriod,
+            annualCoupon,
+            couponYieldToNominal,
+            couponYieldToPrice,
             nextCoupon: sec<string>(row, 'NEXTCOUPON') ?? '',
             accruedInt: toNumber(sec(row, 'ACCRUEDINT')),
 

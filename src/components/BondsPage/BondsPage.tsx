@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, Input, Select } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
-import { useBonds } from '@/hooks/useBonds';
+import { useBonds, useBondFlags } from '@/hooks/useBonds';
 import { defaultBondOrder } from '@/utils/bondLabels';
 import { ALL, bondFilters, defaultFilterValues, FilterValue } from './bondFilters';
 import BondsTable from './BondsTable/BondsTable';
@@ -10,11 +10,23 @@ import style from './style.module.scss';
 
 const BondsPage: React.FC = () => {
     const { data: bonds = [], isLoading, isError } = useBonds();
+    const { data: flags } = useBondFlags();
     const [search, setSearch] = useState('');
     const [filters, setFilters] = useState<Record<string, FilterValue>>(defaultFilterValues);
 
     const setFilter = (key: string, value: FilterValue) =>
         setFilters((prev) => ({ ...prev, [key]: value }));
+
+    /** Список, обогащённый признаками надёжности из статической карты по secid. */
+    const bondsWithFlags = useMemo(() => {
+        if (!flags) return bonds;
+        return bonds.map((bond) => {
+            const flag = flags[bond.secid];
+            return flag
+                ? { ...bond, forQualified: flag.qualified, hasDefault: flag.hasDefault }
+                : bond;
+        });
+    }, [bonds, flags]);
 
     /** Видимые при текущих значениях фильтры (скрытые не влияют на отбор). */
     const visibleFilters = useMemo(
@@ -24,7 +36,7 @@ const BondsPage: React.FC = () => {
 
     const filtered = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return bonds
+        return bondsWithFlags
             .filter((bond) => {
                 for (const filter of visibleFilters) {
                     const value = filters[filter.key];
@@ -46,7 +58,7 @@ const BondsPage: React.FC = () => {
             // Порядок по умолчанию: надёжность → доходность, без мусорных ВДО наверху.
             // Клик по заголовку колонки перекрывает этот порядок сортировкой antd.
             .sort(defaultBondOrder);
-    }, [bonds, visibleFilters, filters, search]);
+    }, [bondsWithFlags, visibleFilters, filters, search]);
 
     return (
         <div className={style.page}>

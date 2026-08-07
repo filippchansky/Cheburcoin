@@ -94,4 +94,31 @@ export interface IBond {
     creditRating: string | null;
 
     isin: string;
+
+    /**
+     * Бумага только для квалифицированных инвесторов (ISQUALIFIEDINVESTORS).
+     * Заполняется джойном с картой флагов; undefined — карта ещё не загрузилась.
+     * MOEX отдаёт этот флаг только в карточке бумаги, не в списочном эндпоинте.
+     */
+    forQualified?: boolean;
+    /**
+     * По бумаге допущен дефолт или технический дефолт (HASDEFAULT/HASTECHNICALDEFAULT).
+     * Заполняется джойном с картой флагов; undefined — карта ещё не загрузилась.
+     */
+    hasDefault?: boolean;
 }
+
+/**
+ * Признаки надёжности бумаги, доступные только в карточке /iss/securities/{secid}
+ * (в списочном эндпоинте их нет). Собираются на этапе сборки скриптом
+ * scripts/generateBondFlags.mjs в статический public/bonds-flags.json.
+ */
+export interface IBondFlags {
+    /** Бумага только для квалифицированных инвесторов. */
+    qualified: boolean;
+    /** Допущен дефолт или технический дефолт. */
+    hasDefault: boolean;
+}
+
+/** Статическая карта признаков надёжности по secid (public/bonds-flags.json). */
+export type BondFlagsMap = Record<string, IBondFlags>;

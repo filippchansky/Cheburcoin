@@ -109,6 +109,30 @@ export const bondFilters: BondFilter[] = [
             { label: 'Без оферты', value: 'no' }
         ],
         match: (bond, value) => (value === 'yes' ? bond.hasOffer : !bond.hasOffer)
+    },
+    {
+        key: 'qualified',
+        label: 'Для квалов',
+        // Признак приходит из /api/bonds/flags (undefined = ещё не загружен).
+        // «Без квальских» скрывает только достоверно квальские; неизвестные — оставляем.
+        options: [
+            { label: 'Квал: любой', value: ALL },
+            { label: 'Без квальских', value: 'no' },
+            { label: 'Только для квалов', value: 'yes' }
+        ],
+        match: (bond, value) =>
+            value === 'yes' ? bond.forQualified === true : bond.forQualified !== true
+    },
+    {
+        key: 'default',
+        label: 'Дефолт',
+        options: [
+            { label: 'Дефолт: любой', value: ALL },
+            { label: 'Без дефолтных', value: 'no' },
+            { label: 'Только дефолтные', value: 'yes' }
+        ],
+        match: (bond, value) =>
+            value === 'yes' ? bond.hasDefault === true : bond.hasDefault !== true
     }
 ];
 

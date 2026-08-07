@@ -4,7 +4,7 @@ import { getBondCandles } from '@api/moex/bonds/getBondCandles';
 import { getBondCoupons } from '@api/moex/bonds/getBondCoupons';
 import { getAllBonds } from '@api/moex/bonds/getBonds';
 import { mapBonds } from '@api/moex/bonds/mapBonds';
-import { IBond, IBondsRaw } from '@models/bond';
+import { BondFlagsMap, IBond, IBondsRaw } from '@models/bond';
 import { IKeyRate } from '@models/bondDetail';
 import { useQuery } from '@tanstack/react-query';
 
@@ -54,6 +54,23 @@ export const useBondAmortizations = (secid: string) =>
         queryKey: ['bond-amortizations', secid],
         queryFn: () => getBondAmortizations(secid),
         enabled: !!secid
+    });
+
+/**
+ * Признаки надёжности (квал/дефолт) по всем облигациям — статическая карта
+ * public/bonds-flags.json, собираемая на этапе сборки (scripts/generateBondFlags.mjs).
+ * Файла может не быть в dev/CI (генерится в vercel-build) — тогда возвращаем пустую
+ * карту, и фильтры «квал/дефолт» просто ничего не отсекают.
+ */
+export const useBondFlags = () =>
+    useQuery({
+        queryKey: ['bond-flags'],
+        queryFn: async (): Promise<BondFlagsMap> => {
+            const res = await fetch('/bonds-flags.json');
+            if (!res.ok) return {};
+            return res.json();
+        },
+        staleTime: Infinity
     });
 
 /** Ключевая ставка ЦБ РФ (через наш серверный route /api/key-rate). */

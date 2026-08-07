@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Skeleton, Tag, Tooltip } from 'antd';
 import { InfoCircleOutlined, LeftOutlined } from '@ant-design/icons';
-import { useBond } from '@/hooks/useBonds';
+import { useBond, useBondAmortizations } from '@/hooks/useBonds';
 import { formatMoney } from '@/utils/formatCurrency';
 import { formatDate, yearsUntil } from '@/utils/dateUtils';
 import { couponPeriodLabel, couponTag, reliabilityInfo } from '@/utils/bondLabels';
@@ -11,6 +11,7 @@ import KeyRateCompare from './KeyRateCompare/KeyRateCompare';
 import BondCalculator from './BondCalculator/BondCalculator';
 import BondChart from './BondChart/BondChart';
 import CouponsTable from './CouponsTable/CouponsTable';
+import AmortizationTable from './AmortizationTable/AmortizationTable';
 import style from './style.module.scss';
 
 interface BondDetailProps {
@@ -19,6 +20,8 @@ interface BondDetailProps {
 
 const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
     const { data: bond, isLoading, isError } = useBond(secid);
+    const { data: amortizations = [] } = useBondAmortizations(secid);
+    const amortizes = amortizations.length > 0;
 
     if (isLoading) {
         return (
@@ -98,7 +101,7 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
                         <Tag color={tag.color} bordered={false}>
                             {tag.label}
                         </Tag>
-                        {bond.hasAmortization && (
+                        {amortizes && (
                             <Tag color='purple' bordered={false}>
                                 Амортизация
                             </Tag>
@@ -144,6 +147,7 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
             <BondCalculator bond={bond} />
             <BondChart secid={bond.secid} />
             <CouponsTable secid={bond.secid} currency={bond.currency} />
+            <AmortizationTable amortizations={amortizations} currency={bond.currency} />
         </div>
     );
 };

@@ -54,10 +54,12 @@ const columns: TableProps<IBond>['columns'] = [
         width: 90,
         render: (_, bond) => (
             <div className={style.cell}>
-                <span className={style.strong}>{num(bond.pricePercent)}%</span>
                 {bond.priceValue !== null && (
-                    <span className={style.muted}>{formatMoney(bond.priceValue, bond.currency)}</span>
+                    <span className={style.strong}>
+                        {formatMoney(bond.priceValue, bond.currency)}
+                    </span>
                 )}
+                <span className={style.muted}>{num(bond.pricePercent)}%</span>
             </div>
         ),
         sorter: (a, b) => (a.pricePercent ?? 0) - (b.pricePercent ?? 0)
@@ -157,7 +159,9 @@ const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
     const router = useRouter();
 
     if (error) {
-        return <Empty description='Не удалось загрузить облигации. Попробуйте обновить страницу.' />;
+        return (
+            <Empty description='Не удалось загрузить облигации. Попробуйте обновить страницу.' />
+        );
     }
 
     return (

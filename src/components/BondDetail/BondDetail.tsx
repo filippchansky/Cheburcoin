@@ -116,14 +116,14 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
                 </div>
 
                 <div className={style.priceBlock}>
-                    <span className={style.price}>
-                        {bond.pricePercent === null ? '—' : `${bond.pricePercent.toFixed(2)}%`}
-                    </span>
                     {bond.priceValue !== null && (
-                        <span className={style.priceRub}>
+                        <span className={style.price}>
                             {formatMoney(bond.priceValue, bond.currency)}
                         </span>
                     )}
+                    <span className={style.priceRub}>
+                        {bond.pricePercent === null ? '—' : `${bond.pricePercent.toFixed(2)}%`}
+                    </span>
                 </div>
             </header>
 

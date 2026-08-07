@@ -1,17 +1,27 @@
 import { getBond } from '@api/moex/bonds/getBond';
+import { getBondAmortizations } from '@api/moex/bonds/getBondAmortizations';
 import { getBondCandles } from '@api/moex/bonds/getBondCandles';
 import { getBondCoupons } from '@api/moex/bonds/getBondCoupons';
-import { getOfzBonds } from '@api/moex/bonds/getOfzBonds';
+import { getAllBonds } from '@api/moex/bonds/getBonds';
 import { mapBonds } from '@api/moex/bonds/mapBonds';
+import { BondFlagsMap, IBond, IBondsRaw } from '@models/bond';
 import { IKeyRate } from '@models/bondDetail';
 import { useQuery } from '@tanstack/react-query';
 
-/** Список ОФЗ (борд TQOB), типизированный и обогащённый производными атрибутами. */
-export const useOfzBonds = () =>
+/**
+ * Все облигации рынка (ОФЗ + корпоративные + муниципальные) одним списком.
+ * Каждый борд маппится отдельно и объединяется; неликвид (без цены LAST) отсекаем,
+ * т.к. по нему нельзя показать ни цену, ни доходность.
+ */
+const mapAllBonds = (raws: IBondsRaw[]): IBond[] =>
+    raws.flatMap(mapBonds).filter((bond) => bond.pricePercent !== null);
+
+/** Список всех облигаций, типизированный и обогащённый производными атрибутами. */
+export const useBonds = () =>
     useQuery({
-        queryKey: ['bonds', 'ofz'],
-        queryFn: getOfzBonds,
-        select: mapBonds
+        queryKey: ['bonds', 'all'],
+        queryFn: getAllBonds,
+        select: mapAllBonds
     });
 
 /** Данные одной облигации по secid. */
@@ -36,6 +46,31 @@ export const useBondCoupons = (secid: string) =>
         queryKey: ['bond-coupons', secid],
         queryFn: () => getBondCoupons(secid),
         enabled: !!secid
+    });
+
+/** График амортизации номинала (пустой массив ⇒ бумага без амортизации). */
+export const useBondAmortizations = (secid: string) =>
+    useQuery({
+        queryKey: ['bond-amortizations', secid],
+        queryFn: () => getBondAmortizations(secid),
+        enabled: !!secid
+    });
+
+/**
+ * Признаки надёжности (квал/дефолт) по всем облигациям — статическая карта
+ * public/bonds-flags.json, собираемая на этапе сборки (scripts/generateBondFlags.mjs).
+ * Файла может не быть в dev/CI (генерится в vercel-build) — тогда возвращаем пустую
+ * карту, и фильтры «квал/дефолт» просто ничего не отсекают.
+ */
+export const useBondFlags = () =>
+    useQuery({
+        queryKey: ['bond-flags'],
+        queryFn: async (): Promise<BondFlagsMap> => {
+            const res = await fetch('/bonds-flags.json');
+            if (!res.ok) return {};
+            return res.json();
+        },
+        staleTime: Infinity
     });
 
 /** Ключевая ставка ЦБ РФ (через наш серверный route /api/key-rate). */

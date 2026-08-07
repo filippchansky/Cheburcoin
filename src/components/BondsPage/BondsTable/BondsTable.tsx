@@ -1,11 +1,12 @@
 'use client';
 import React from 'react';
-import { Empty, Table, TableProps, Tag } from 'antd';
+import { Empty, Table, TableProps, Tag, Tooltip } from 'antd';
+import { WarningOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { IBond } from '@models/bond';
 import { formatMoney } from '@/utils/formatCurrency';
 import { formatDate, yearsUntil } from '@/utils/dateUtils';
-import { couponTag } from '@/utils/bondLabels';
+import { couponTag, isYieldOutlier } from '@/utils/bondLabels';
 import style from './style.module.scss';
 
 interface BondsTableProps {
@@ -22,10 +23,11 @@ const columns: TableProps<IBond>['columns'] = [
         dataIndex: 'shortName',
         key: 'shortName',
         fixed: 'left',
-        width: 120,
+        width: 150,
         render: (_, bond) => (
             <div className={style.name}>
                 <span className={style.nameTitle}>{bond.shortName}</span>
+                {bond.sector && <span className={style.sector}>{bond.sector}</span>}
                 <span className={style.tags}>
                     <Tag color={couponTag[bond.couponType].color} bordered={false}>
                         {couponTag[bond.couponType].label}
@@ -66,8 +68,16 @@ const columns: TableProps<IBond>['columns'] = [
         key: 'yield',
         align: 'right',
         width: 130,
-        render: (_, bond) => <span className={style.strong}>{num(bond.yield)}%</span>,
-        defaultSortOrder: 'descend',
+        render: (_, bond) =>
+            isYieldOutlier(bond) ? (
+                <Tooltip title='Аномальная доходность: вероятен дефолт эмитента или ошибка данных биржи у бумаги близко к погашению. Проверяйте выпуск вручную.'>
+                    <span className={style.outlierYield}>
+                        {num(bond.yield)}% <WarningOutlined />
+                    </span>
+                </Tooltip>
+            ) : (
+                <span className={style.strong}>{num(bond.yield)}%</span>
+            ),
         sorter: (a, b) => (a.yield ?? 0) - (b.yield ?? 0)
     },
     {

@@ -19,6 +19,18 @@ export interface IBondCoupon {
     isPaid: boolean;
 }
 
+/** Одно частичное погашение номинала (амортизация, из bondization). */
+export interface IBondAmortization {
+    /** Дата погашения части номинала. */
+    date: string;
+    /** Доля номинала, погашаемая в эту дату, %. */
+    percent: number;
+    /** Сумма погашения на одну облигацию (в валюте номинала). */
+    value: number;
+    /** Уже выплачено (дата в прошлом). */
+    isPaid: boolean;
+}
+
 /** Ключевая ставка ЦБ РФ. */
 export interface IKeyRate {
     /** Ставка, % годовых. */

@@ -29,6 +29,12 @@
     font-weight: 600;
 }
 
+.sector {
+    font-size: 12px;
+    opacity: 0.55;
+    line-height: 1.2;
+}
+
 .tags {
     display: flex;
     flex-wrap: wrap;
@@ -52,4 +58,12 @@
     font-size: 12px;
     opacity: 0.5;
     white-space: nowrap;
+}
+
+/* Аномальная (артефактная/предбанкротная) доходность — заметно, но не «сочно». */
+.outlierYield {
+    font-weight: 600;
+    white-space: nowrap;
+    color: #d46b08;
+    cursor: help;
 }

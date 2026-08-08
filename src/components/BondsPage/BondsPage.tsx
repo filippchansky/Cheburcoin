@@ -1,7 +1,12 @@
 'use client';
 import React, { useMemo, useState } from 'react';
 import { Alert, Badge, Button, Checkbox, Input, InputNumber, Select, Tag } from 'antd';
-import { DownOutlined, FilterOutlined, SearchOutlined, UpOutlined } from '@ant-design/icons';
+import {
+    ArrowDownOutlined,
+    ArrowUpOutlined,
+    FilterOutlined,
+    SearchOutlined
+} from '@ant-design/icons';
 import { useBonds, useBondFlags } from '@/hooks/useBonds';
 import { defaultBondOrder } from '@/utils/bondLabels';
 import {
@@ -85,7 +90,8 @@ const BondsPage: React.FC = () => {
 
     /** Сколько расширенных (скрытых) фильтров сейчас активно — для бейджа на кнопке. */
     const hiddenActiveCount = useMemo(
-        () => secondaryFilters.filter((filter) => isFilterActive(filter, filters[filter.key])).length,
+        () =>
+            secondaryFilters.filter((filter) => isFilterActive(filter, filters[filter.key])).length,
         [secondaryFilters, filters]
     );
 
@@ -103,43 +109,48 @@ const BondsPage: React.FC = () => {
 
     const filtered = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return bondsWithFlags
-            .filter((bond) => {
-                for (const filter of visibleFilters) {
-                    const value = filters[filter.key];
-                    if (filter.type === 'range') {
-                        // Диапазон [от, до]: пустые границы не ограничивают; бумага без
-                        // значения (getValue=null) отсекается, как только задана граница.
-                        const [min, max] = value as RangeValue;
-                        if (min !== null || max !== null) {
-                            const v = filter.getValue?.(bond) ?? null;
-                            if (v === null) return false;
-                            if (min !== null && v < min) return false;
-                            if (max !== null && v > max) return false;
-                        }
-                    } else if (typeof value === 'boolean') {
-                        // Чекбокс: снят = без ограничения; отмечен = только подходящие.
-                        if (value && !filter.match?.(bond, '')) return false;
-                    } else if (Array.isArray(value)) {
-                        // Мультивыбор (range уже обработан выше): пусто = без ограничения;
-                        // иначе — бумага подходит под любое из выбранных значений.
-                        const selected = value as string[];
-                        if (selected.length > 0 && !selected.some((v) => filter.match?.(bond, v)))
+        return (
+            bondsWithFlags
+                .filter((bond) => {
+                    for (const filter of visibleFilters) {
+                        const value = filters[filter.key];
+                        if (filter.type === 'range') {
+                            // Диапазон [от, до]: пустые границы не ограничивают; бумага без
+                            // значения (getValue=null) отсекается, как только задана граница.
+                            const [min, max] = value as RangeValue;
+                            if (min !== null || max !== null) {
+                                const v = filter.getValue?.(bond) ?? null;
+                                if (v === null) return false;
+                                if (min !== null && v < min) return false;
+                                if (max !== null && v > max) return false;
+                            }
+                        } else if (typeof value === 'boolean') {
+                            // Чекбокс: снят = без ограничения; отмечен = только подходящие.
+                            if (value && !filter.match?.(bond, '')) return false;
+                        } else if (Array.isArray(value)) {
+                            // Мультивыбор (range уже обработан выше): пусто = без ограничения;
+                            // иначе — бумага подходит под любое из выбранных значений.
+                            const selected = value as string[];
+                            if (
+                                selected.length > 0 &&
+                                !selected.some((v) => filter.match?.(bond, v))
+                            )
+                                return false;
+                        } else if (value !== ALL && !filter.match?.(bond, value)) {
                             return false;
-                    } else if (value !== ALL && !filter.match?.(bond, value)) {
-                        return false;
+                        }
                     }
-                }
-                if (!query) return true;
-                return (
-                    bond.shortName.toLowerCase().includes(query) ||
-                    bond.isin.toLowerCase().includes(query) ||
-                    bond.secid.toLowerCase().includes(query)
-                );
-            })
-            // Порядок по умолчанию: надёжность → доходность, без мусорных ВДО наверху.
-            // Клик по заголовку колонки перекрывает этот порядок сортировкой antd.
-            .sort(defaultBondOrder);
+                    if (!query) return true;
+                    return (
+                        bond.shortName.toLowerCase().includes(query) ||
+                        bond.isin.toLowerCase().includes(query) ||
+                        bond.secid.toLowerCase().includes(query)
+                    );
+                })
+                // Порядок по умолчанию: надёжность → доходность, без мусорных ВДО наверху.
+                // Клик по заголовку колонки перекрывает этот порядок сортировкой antd.
+                .sort(defaultBondOrder)
+        );
     }, [bondsWithFlags, visibleFilters, filters, search]);
 
     /** Рендер одного контрола фильтра по его типу (общий для основного ряда и панели). */
@@ -237,16 +248,14 @@ const BondsPage: React.FC = () => {
                         {primaryFilters.map(renderControl)}
                         <Badge count={hiddenActiveCount} size='small'>
                             <Button
+                                className={style.buttonAllFilters}
                                 size='large'
-                                // Акцентная гамма (индиго-токен темы) выделяет кнопку среди
-                                // нейтральных селектов: контур — когда панель свёрнута,
-                                // заливка — когда раскрыта (заодно индикатор состояния).
                                 type='primary'
                                 ghost={!showAll}
                                 icon={<FilterOutlined />}
                                 onClick={() => setShowAll((v) => !v)}
                             >
-                                Все фильтры {showAll ? <UpOutlined /> : <DownOutlined />}
+                                Все фильтры {showAll ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
                             </Button>
                         </Badge>
                     </div>

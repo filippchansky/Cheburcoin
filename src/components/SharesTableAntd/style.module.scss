@@ -25,6 +25,17 @@
     white-space: nowrap;
 }
 
+.muted {
+    opacity: 0.4;
+}
+
+.outlierYield {
+    color: #d46b08;
+    cursor: help;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 .dayChange {
     display: inline-flex;
     flex-direction: column;

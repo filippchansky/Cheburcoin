@@ -1,0 +1,143 @@
+@import '../../app/_variables';
+
+.page {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 24px 0 48px;
+}
+
+.back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    opacity: 0.6;
+    margin-bottom: 20px;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.notFound {
+    font-size: 16px;
+    opacity: 0.6;
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.titleBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.title {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.ticker {
+    font-size: 13px;
+    opacity: 0.45;
+    font-variant-numeric: tabular-nums;
+}
+
+.tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.priceBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.price {
+    font-size: 32px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.change {
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+
+    &.up {
+        color: $green;
+        opacity: 1;
+    }
+    &.down {
+        color: $red;
+        opacity: 1;
+    }
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.tile {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+}
+
+.tileLabel {
+    font-size: 13px;
+    opacity: 0.5;
+}
+
+.hint {
+    margin-left: 5px;
+    font-size: 12px;
+    cursor: help;
+}
+
+.tileValue {
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+    .metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .title {
+        font-size: 24px;
+    }
+    .price {
+        font-size: 26px;
+    }
+}

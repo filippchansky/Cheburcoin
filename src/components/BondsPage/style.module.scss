@@ -131,6 +131,12 @@
     width: 110px;
 }
 
+.buttonAllFilters {
+    display: flex !important;
+    align-items: center !important;
+    text-align: center;
+}
+
 @media (max-width: 640px) {
     .title {
         font-size: 26px;

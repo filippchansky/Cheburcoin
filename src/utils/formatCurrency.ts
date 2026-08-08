@@ -47,3 +47,13 @@ export const intToRubCompact = (value: number) =>
         notation: 'compact',
         maximumFractionDigits: 1
     }).format(value);
+
+/** Компактный формат числа: 21586948000 → «21,6 млрд». */
+export const intToCompact = (value: number) =>
+    new Intl.NumberFormat('ru-RU', {
+        notation: 'compact',
+        maximumFractionDigits: 1
+    }).format(value);
+
+/** Разделяет разряды пробелами: 1234567 → «1 234 567». */
+export const intToGrouped = (value: number) => new Intl.NumberFormat('ru-RU').format(value);

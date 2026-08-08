@@ -39,12 +39,96 @@
 .filters {
     display: flex;
     flex-wrap: wrap;
+    align-items: flex-end;
     gap: 12px;
     margin-bottom: 16px;
 }
 
 .filter {
     min-width: 180px;
+}
+
+.checkbox {
+    white-space: nowrap;
+
+    // antd v5 задаёт wrapper align-items: baseline → подпись «уезжает» выше квадрата.
+    // Чейним с глобальным классом antd, чтобы перебить его рантайм-стиль (CSS-in-JS
+    // грузится после модульного CSS и при равной специфичности выигрывает).
+    &:global(.ant-checkbox-wrapper) {
+        align-items: center;
+    }
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(128, 128, 128, 0.18);
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.05);
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.groupTitle {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.5;
+}
+
+.groupControls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.chip {
+    margin: 0;
+    padding: 3px 8px;
+    font-size: 13px;
+    border-radius: 8px;
+}
+
+.resetBtn {
+    padding: 0 4px;
+}
+
+.range {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.rangeLabel {
+    font-size: 12px;
+    opacity: 0.6;
+    white-space: nowrap;
+}
+
+.rangeInputs {
+    display: flex;
+    gap: 8px;
+}
+
+.rangeInput {
+    width: 110px;
 }
 
 @media (max-width: 640px) {
@@ -56,5 +140,12 @@
     }
     .filter {
         flex: 1 1 45%;
+    }
+    .range {
+        flex: 1 1 100%;
+    }
+    .rangeInput {
+        flex: 1;
+        width: auto;
     }
 }

@@ -102,10 +102,17 @@ export interface IBond {
      */
     forQualified?: boolean;
     /**
-     * По бумаге допущен дефолт или технический дефолт (HASDEFAULT/HASTECHNICALDEFAULT).
-     * Заполняется джойном с картой флагов; undefined — карта ещё не загрузилась.
+     * По бумаге зафиксирован реальный дефолт эмитента (HASDEFAULT) — неисполнение
+     * обязательств. Заполняется джойном с картой флагов; undefined — карта ещё не
+     * загрузилась. Технический дефолт см. в {@link IBond.hasTechnicalDefault}.
      */
     hasDefault?: boolean;
+    /**
+     * По бумаге был технический дефолт (HASTECHNICALDEFAULT) — просрочка выплаты,
+     * как правило впоследствии погашенная. Флаг MOEX «липкий»: остаётся навсегда и
+     * не означает текущий дефолт эмитента. Заполняется джойном с картой флагов.
+     */
+    hasTechnicalDefault?: boolean;
 }
 
 /**
@@ -116,9 +123,54 @@ export interface IBond {
 export interface IBondFlags {
     /** Бумага только для квалифицированных инвесторов. */
     qualified: boolean;
-    /** Допущен дефолт или технический дефолт. */
+    /** Зафиксирован реальный дефолт эмитента (HASDEFAULT). */
     hasDefault: boolean;
+    /** Был технический дефолт (HASTECHNICALDEFAULT) — просрочка, обычно погашенная. */
+    hasTechnicalDefault: boolean;
 }
 
 /** Статическая карта признаков надёжности по secid (public/bonds-flags.json). */
 export type BondFlagsMap = Record<string, IBondFlags>;
+
+/**
+ * Одно рейтинговое действие агентства по бумаге/эмитенту — из репозитария ЦБ
+ * (ratings.cbr.ru). Собирается локально скриптом scripts/generateBondRatings.mjs.
+ */
+export interface IBondRatingAction {
+    /** Наименование агентства: «АКРА», «Эксперт РА», «НКР», «НРА». */
+    agency: string;
+    /** Значение рейтинга по шкале агентства: «A-(RU)», «ruAAA» и т.п. */
+    value: string;
+    /** Прогноз («Стабильный»/«Позитивный»/…) или '' если не предусмотрен. */
+    outlook: string;
+    /** Тип действия человеко-понятно: «повышен», «подтверждён», «снят с наблюдения». */
+    action: string;
+    /** Сырой код действия ЦБ: NW/UP/DOWN/AFF/RWR/RWN/WD и т.п. */
+    actionCode: string;
+    /** Дата действия, ISO 'yyyy-MM-dd'. */
+    date: string;
+    /** Ссылка на пресс-релиз агентства. */
+    url: string;
+    /** Рейтинг отозван (последнее действие — отзыв). */
+    withdrawn: boolean;
+}
+
+/** Рейтинги бумаги: актуальные по каждому агентству + полная история действий. */
+export interface IBondRatings {
+    /** Последнее действие по каждому агентству (актуальный рейтинг). */
+    current: IBondRatingAction[];
+    /** Все действия по бумаге, от новых к старым. */
+    history: IBondRatingAction[];
+}
+
+/**
+ * Статические рейтинги (public/bond-ratings.json). Рейтинг эмитентский, поэтому
+ * хранится ОДИН раз по ИНН, а бумаги ссылаются на него через карту secid→ИНН —
+ * без дублирования по каждому выпуску.
+ */
+export interface BondRatingsData {
+    /** Рейтинги по ИНН эмитента. */
+    issuers: Record<string, IBondRatings>;
+    /** secid бумаги → ИНН её эмитента. */
+    secids: Record<string, string>;
+}

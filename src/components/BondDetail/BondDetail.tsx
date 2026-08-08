@@ -3,10 +3,11 @@ import React from 'react';
 import Link from 'next/link';
 import { Skeleton, Tag, Tooltip } from 'antd';
 import { InfoCircleOutlined, LeftOutlined } from '@ant-design/icons';
-import { useBond, useBondAmortizations } from '@/hooks/useBonds';
+import { useBond, useBondAmortizations, useBondFlags, useBondRatings } from '@/hooks/useBonds';
 import { formatMoney } from '@/utils/formatCurrency';
 import { formatDate, yearsUntil } from '@/utils/dateUtils';
-import { couponPeriodLabel, couponTag, reliabilityInfo } from '@/utils/bondLabels';
+import { couponPeriodLabel, couponTag, defaultBadge, reliabilityInfo } from '@/utils/bondLabels';
+import BondRating from './BondRating/BondRating';
 import KeyRateCompare from './KeyRateCompare/KeyRateCompare';
 import BondCalculator from './BondCalculator/BondCalculator';
 import BondChart from './BondChart/BondChart';
@@ -21,6 +22,8 @@ interface BondDetailProps {
 const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
     const { data: bond, isLoading, isError } = useBond(secid);
     const { data: amortizations = [] } = useBondAmortizations(secid);
+    const { data: flags } = useBondFlags();
+    const { data: ratingsMap } = useBondRatings();
     const amortizes = amortizations.length > 0;
 
     if (isLoading) {
@@ -44,7 +47,18 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
 
     const years = yearsUntil(bond.maturityDate);
     const tag = couponTag[bond.couponType];
-    const reliability = reliabilityInfo(bond);
+    // Кредитный рейтинг (карта ЦБ: secid → ИНН → рейтинг эмитента). Питает и плитку «Надёжность».
+    const ratingInn = ratingsMap?.secids[bond.secid];
+    const ratings = ratingInn ? ratingsMap?.issuers[ratingInn] : undefined;
+    const topRating = ratings?.current.find((a) => !a.withdrawn)?.value ?? null;
+    const reliability = reliabilityInfo({ ...bond, creditRating: topRating });
+    // Флаги дефолта карточка MOEX не отдаёт — берём из статической карты по secid.
+    const flag = flags?.[bond.secid];
+    const defBadge = defaultBadge({
+        ...bond,
+        hasDefault: flag?.hasDefault,
+        hasTechnicalDefault: flag?.hasTechnicalDefault
+    });
 
     const metrics: { label: string; value: React.ReactNode; hint?: string }[] = [
         {
@@ -96,7 +110,16 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
 
             <header className={style.header}>
                 <div className={style.titleBlock}>
-                    <h1 className={style.title}>{bond.shortName}</h1>
+                    <div className={style.titleRow}>
+                        <h1 className={style.title}>{bond.shortName}</h1>
+                        {defBadge && (
+                            <Tooltip title={defBadge.tooltip}>
+                                <Tag color={defBadge.color} bordered={false}>
+                                    {defBadge.label}
+                                </Tag>
+                            </Tooltip>
+                        )}
+                    </div>
                     <div className={style.tags}>
                         <Tag color={tag.color} bordered={false}>
                             {tag.label}
@@ -142,6 +165,8 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
                     </div>
                 ))}
             </div>
+
+            <BondRating ratings={ratings} />
 
             <KeyRateCompare bondYield={bond.yield} />
             <BondCalculator bond={bond} />

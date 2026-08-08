@@ -7,6 +7,7 @@
         "build": "next build",
         "vercel-build": "node scripts/generateBondFlags.mjs && next build",
         "flags:sync": "node scripts/generateBondFlags.mjs",
+        "ratings:sync": "node scripts/generateBondRatings.mjs",
         "prettier": "npx prettier --write .",
         "start": "next start",
         "lint": "next lint",

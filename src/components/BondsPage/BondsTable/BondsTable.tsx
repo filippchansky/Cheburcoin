@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { IBond } from '@models/bond';
 import { formatMoney } from '@/utils/formatCurrency';
 import { formatDate, yearsUntil } from '@/utils/dateUtils';
-import { couponTag, isYieldOutlier } from '@/utils/bondLabels';
+import { couponTag, defaultBadge, isYieldOutlier } from '@/utils/bondLabels';
 import style from './style.module.scss';
+import Link from 'next/link';
 
 interface BondsTableProps {
     data: IBond[];
@@ -26,7 +27,7 @@ const columns: TableProps<IBond>['columns'] = [
         width: 150,
         render: (_, bond) => (
             <div className={style.name}>
-                <span className={style.nameTitle}>{bond.shortName}</span>
+                <Link target='_blank' href={`/bonds/${bond.secid}`} className={style.nameTitle}>{bond.shortName}</Link>
                 {bond.sector && <span className={style.sector}>{bond.sector}</span>}
                 <span className={style.tags}>
                     <Tag color={couponTag[bond.couponType].color} bordered={false}>
@@ -42,6 +43,18 @@ const columns: TableProps<IBond>['columns'] = [
                             Оферта
                         </Tag>
                     )}
+                    {(() => {
+                        const badge = defaultBadge(bond);
+                        return (
+                            badge && (
+                                <Tooltip title={badge.tooltip}>
+                                    <Tag color={badge.color} bordered={false}>
+                                        {badge.label}
+                                    </Tag>
+                                </Tooltip>
+                            )
+                        );
+                    })()}
                 </span>
             </div>
         )
@@ -174,7 +187,7 @@ const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
                 sticky
                 scroll={{ x: 'max-content' }}
                 pagination={{ pageSize: 25, showSizeChanger: false, hideOnSinglePage: true }}
-                onRow={(bond) => ({ onClick: () => router.push(`/bonds/${bond.secid}`) })}
+                // onRow={(bond) => ({ onClick: () => router.push(`/bonds/${bond.secid}`) })}
                 rowClassName={style.row}
             />
         </div>

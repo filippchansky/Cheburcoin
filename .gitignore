@@ -38,5 +38,6 @@ next-env.d.ts
 # editor / tooling
 /.claude
 
-# generated at build (vercel-build / npm run flags:sync)
+# generated at build (vercel-build / npm run flags:sync / shares:sync)
 /public/bonds-flags.json
+/public/shares-meta.json

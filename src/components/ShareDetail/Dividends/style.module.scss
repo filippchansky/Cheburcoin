@@ -1,0 +1,32 @@
+.wrapper {
+    margin-top: 32px;
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.yieldTag {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.stale {
+    font-size: 13px;
+    opacity: 0.55;
+    font-variant-numeric: tabular-nums;
+}
+
+.table {
+    margin-top: 16px;
+}

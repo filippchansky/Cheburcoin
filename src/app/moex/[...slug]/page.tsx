@@ -1,14 +1,22 @@
-import AboutShares from '@/components/AboutShares/AboutShares';
-import MoexChart from '@/components/MoexChart/MoexChart';
+import ShareDetail from '@/components/ShareDetail/ShareDetail';
 import React from 'react';
+import type { Metadata } from 'next';
 
-interface PageProps {}
+type Props = {
+    params: { slug: string[] };
+};
 
-const Page = ({ params }: { params: { slug: string } }) => {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const ticker = params.slug?.[0] ?? '';
+    return { title: ticker };
+}
+
+const Page = ({ params }: Props) => {
+    const ticker = params.slug?.[0] ?? '';
     return (
-        <>
-            <AboutShares ticker={params.slug} />
-        </>
+        <main>
+            <ShareDetail ticker={ticker} />
+        </main>
     );
 };
 export default Page;

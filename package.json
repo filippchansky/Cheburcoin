@@ -5,8 +5,9 @@
     "scripts": {
         "dev": "next dev",
         "build": "next build",
-        "vercel-build": "node scripts/generateBondFlags.mjs && next build",
+        "vercel-build": "node scripts/generateBondFlags.mjs && node scripts/generateSharesMeta.mjs && next build",
         "flags:sync": "node scripts/generateBondFlags.mjs",
+        "shares:sync": "node scripts/generateSharesMeta.mjs",
         "ratings:sync": "node scripts/generateBondRatings.mjs",
         "prettier": "npx prettier --write .",
         "start": "next start",

@@ -1,9 +1,11 @@
 'use client';
 import { IFilteredShares } from '@models/filteredShares';
-import { Empty, Table, TableProps } from 'antd';
+import { Empty, Table, TableProps, Tooltip } from 'antd';
+import { WarningOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { formatPercent, intToRub } from '@/utils/formatCurrency';
+import { isDividendYieldOutlier } from '@/utils/shareCalc';
 import TableName from '../TableName/TableName';
 import style from './style.module.scss';
 
@@ -74,6 +76,27 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             align: 'right',
             width: 110,
             render: (_, { highPrice }) => <span className={style.mono}>{intToRub(highPrice)}</span>
+        },
+        {
+            title: 'Дивдоходность',
+            dataIndex: 'dividendYield',
+            key: 'dividendYield',
+            align: 'right',
+            width: 140,
+            render: (_, { dividendYield }) => {
+                if (!dividendYield || dividendYield <= 0)
+                    return <span className={style.muted}>—</span>;
+                if (isDividendYieldOutlier(dividendYield))
+                    return (
+                        <Tooltip title='Аномально высокая доходность — вероятно сплит акций или разовый спецдивиденд. Историю выплат MOEX не корректирует на сплиты.'>
+                            <span className={style.outlierYield}>
+                                {dividendYield.toFixed(2)}% <WarningOutlined />
+                            </span>
+                        </Tooltip>
+                    );
+                return <span className={style.mono}>{dividendYield.toFixed(2)}%</span>;
+            },
+            sorter: (a, b) => (a.dividendYield ?? -1) - (b.dividendYield ?? -1)
         },
         {
             title: 'Капитализация',

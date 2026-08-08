@@ -4,7 +4,7 @@ import { getBondCandles } from '@api/moex/bonds/getBondCandles';
 import { getBondCoupons } from '@api/moex/bonds/getBondCoupons';
 import { getAllBonds } from '@api/moex/bonds/getBonds';
 import { mapBonds } from '@api/moex/bonds/mapBonds';
-import { BondFlagsMap, IBond, IBondsRaw } from '@models/bond';
+import { BondFlagsMap, BondRatingsData, IBond, IBondsRaw } from '@models/bond';
 import { IKeyRate } from '@models/bondDetail';
 import { useQuery } from '@tanstack/react-query';
 
@@ -68,6 +68,22 @@ export const useBondFlags = () =>
         queryFn: async (): Promise<BondFlagsMap> => {
             const res = await fetch('/bonds-flags.json');
             if (!res.ok) return {};
+            return res.json();
+        },
+        staleTime: Infinity
+    });
+
+/**
+ * Кредитные рейтинги по всем облигациям — статическая карта public/bond-ratings.json,
+ * собираемая локально скриптом scripts/generateBondRatings.mjs из репозитария ЦБ.
+ * Файла может не быть — тогда возвращаем пустую карту, и блок рейтинга просто скрыт.
+ */
+export const useBondRatings = () =>
+    useQuery({
+        queryKey: ['bond-ratings'],
+        queryFn: async (): Promise<BondRatingsData> => {
+            const res = await fetch('/bond-ratings.json');
+            if (!res.ok) return { issuers: {}, secids: {} };
             return res.json();
         },
         staleTime: Infinity

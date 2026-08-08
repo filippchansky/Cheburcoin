@@ -1,4 +1,4 @@
-import { CouponType, IBond } from '@models/bond';
+import { CouponType, IBond, IBondRatingAction } from '@models/bond';
 
 /** Подпись и цвет тега для типа купона. */
 export const couponTag: Record<CouponType, { label: string; color: string }> = {
@@ -20,6 +20,63 @@ export const bondStructure = (bond: IBond): BondStructure => {
     if (bond.bondType.startsWith('Конверт')) return 'convertible';
     if (bond.hasAmortization) return 'amortizing';
     return 'plain';
+};
+
+/** Бейдж статуса дефолта по бумаге: тег + пояснение, либо null (всё чисто). */
+export interface DefaultBadge {
+    label: string;
+    color: string;
+    tooltip: string;
+}
+
+/**
+ * Метка дефолта для бумаги. Реальный дефолт (HASDEFAULT) и технический
+ * (HASTECHNICALDEFAULT) — разные события: реальный приоритетнее и отображается
+ * красным, технический — оранжевым. null — по бумаге дефолтов не зафиксировано.
+ */
+export const defaultBadge = (bond: IBond): DefaultBadge | null => {
+    if (bond.hasDefault) {
+        return {
+            label: 'Дефолт',
+            color: 'red',
+            tooltip:
+                'По бумаге зафиксирован дефолт эмитента — неисполнение обязательств по выплате купона или номинала. Высокий риск потери вложений.'
+        };
+    }
+    if (bond.hasTechnicalDefault) {
+        return {
+            label: 'Техдефолт',
+            color: 'orange',
+            tooltip:
+                'По бумаге был технический дефолт — просрочка выплаты купона или номинала, как правило впоследствии погашенная. Флаг биржи остаётся навсегда и не означает, что эмитент в дефолте сейчас.'
+        };
+    }
+    return null;
+};
+
+/** Тир кредитного рейтинга для окраски бейджа. */
+export type RatingTier = 'high' | 'good' | 'moderate' | 'speculative' | 'withdrawn' | 'unknown';
+
+/** Буквенная часть рейтинга без шкалы: «ruAAA»/«AAA(RU)» → «AAA». */
+const normalizeRating = (value: string): string =>
+    value
+        .replace(/\(RU\)/gi, '')
+        .replace(/^ru/i, '')
+        .replace(/[.\s]/g, '')
+        .toUpperCase();
+
+/**
+ * Тир рейтинга для цвета: high (AAA/AA), good (A), moderate (BBB),
+ * speculative (BB и ниже), withdrawn (отозван), unknown (не распознан).
+ */
+export const ratingTier = (action: IBondRatingAction): RatingTier => {
+    if (action.withdrawn) return 'withdrawn';
+    const r = normalizeRating(action.value);
+    if (/^AA/.test(r)) return 'high';
+    if (/^A/.test(r)) return 'good';
+    if (/^BBB/.test(r)) return 'moderate';
+    if (/^(BB|B|CCC|CC|C|D|SD|RD)/.test(r)) return 'speculative';
+    return 'unknown';
 };
 
 /** Расшифровка биржевого уровня листинга (не кредитный риск). */

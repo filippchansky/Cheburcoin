@@ -23,7 +23,12 @@ const BondsPage: React.FC = () => {
         return bonds.map((bond) => {
             const flag = flags[bond.secid];
             return flag
-                ? { ...bond, forQualified: flag.qualified, hasDefault: flag.hasDefault }
+                ? {
+                      ...bond,
+                      forQualified: flag.qualified,
+                      hasDefault: flag.hasDefault,
+                      hasTechnicalDefault: flag.hasTechnicalDefault
+                  }
                 : bond;
         });
     }, [bonds, flags]);

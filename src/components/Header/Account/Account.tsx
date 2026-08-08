@@ -2,7 +2,7 @@ import { Avatar, Button, Popover } from 'antd';
 import style from './style.module.scss';
 import SkeletonAvatar from 'antd/es/skeleton/Avatar';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import SwitchTeme from '../SwitchTeme/SwitchTeme';
 import ModalAuth from '@/components/Authorization/ModalAuth';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -19,6 +19,11 @@ const Account: React.FC<AccountProps> = ({}) => {
     // console.log({ user });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // До монтирования на клиенте показываем то же, что и сервер (скелет),
+    // иначе Firebase может успеть восстановить сессию до гидрации и
+    // отрендерить <img> аватара, которого нет в серверном HTML → hydration error.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -42,7 +47,7 @@ const Account: React.FC<AccountProps> = ({}) => {
     return (
         <div className='flex items-center gap-5'>
             <SwitchTeme />
-            {loading && (
+            {(!mounted || loading) && (
                 <SkeletonAvatar
                     active
                     size={50}
@@ -50,7 +55,7 @@ const Account: React.FC<AccountProps> = ({}) => {
                     style={{ backgroundColor: 'rgb(27 28 30)' }}
                 />
             )}
-            {user && (
+            {mounted && user && (
                 <Popover content={content} title={user.email} trigger='click'>
                     <Image
                         alt='avatar'
@@ -61,7 +66,7 @@ const Account: React.FC<AccountProps> = ({}) => {
                     />
                 </Popover>
             )}
-            {!loading && !user && (
+            {mounted && !loading && !user && (
                 // <h1>qwe</h1>
                 <>
                     <Suspense>

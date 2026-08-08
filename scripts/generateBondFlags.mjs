@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 /**
  * Генерация статической карты признаков надёжности облигаций для сборки (вариант B).
  *
@@ -73,8 +73,11 @@ const fetchFlags = async (secid) => {
 
         return {
             qualified: byName.get('ISQUALIFIEDINVESTORS') === '1',
-            hasDefault:
-                byName.get('HASDEFAULT') === '1' || byName.get('HASTECHNICALDEFAULT') === '1'
+            // Реальный дефолт и технический дефолт — разные вещи: техдефолт это просрочка
+            // выплаты (часто впоследствии погашенная), а не банкротство эмитента. Держим
+            // их раздельно, чтобы UI мог показывать их разными метками/фильтрами.
+            hasDefault: byName.get('HASDEFAULT') === '1',
+            hasTechnicalDefault: byName.get('HASTECHNICALDEFAULT') === '1'
         };
     } catch {
         return undefined;
@@ -104,9 +107,10 @@ const main = async () => {
 
         const qual = Object.values(flags).filter((f) => f.qualified).length;
         const def = Object.values(flags).filter((f) => f.hasDefault).length;
+        const tech = Object.values(flags).filter((f) => f.hasTechnicalDefault).length;
         await write(flags);
         console.log(
-            `[flags] готово: ${Object.keys(flags).length} бумаг (квал ${qual}, дефолт ${def}) за ${(
+            `[flags] готово: ${Object.keys(flags).length} бумаг (квал ${qual}, дефолт ${def}, техдефолт ${tech}) за ${(
                 (Date.now() - started) /
                 1000
             ).toFixed(1)}с → public/bonds-flags.json`

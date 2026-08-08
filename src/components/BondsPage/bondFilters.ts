@@ -126,13 +126,20 @@ export const bondFilters: BondFilter[] = [
     {
         key: 'default',
         label: 'Дефолт',
+        // Реальный дефолт (HASDEFAULT) и технический (HASTECHNICALDEFAULT) — разные
+        // события, поэтому фильтруются раздельно. «Без дефолтных» убирает оба.
         options: [
             { label: 'Дефолт: любой', value: ALL },
             { label: 'Без дефолтных', value: 'no' },
-            { label: 'Только дефолтные', value: 'yes' }
+            { label: 'Реальный дефолт', value: 'real' },
+            { label: 'Технический дефолт', value: 'tech' }
         ],
-        match: (bond, value) =>
-            value === 'yes' ? bond.hasDefault === true : bond.hasDefault !== true
+        match: (bond, value) => {
+            if (value === 'real') return bond.hasDefault === true;
+            if (value === 'tech') return bond.hasTechnicalDefault === true;
+            // 'no': чистые бумаги — ни реального, ни технического дефолта.
+            return bond.hasDefault !== true && bond.hasTechnicalDefault !== true;
+        }
     }
 ];
 

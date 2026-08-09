@@ -12,6 +12,7 @@ import style from './style.module.scss';
 const navItems = [
     { key: '/moex', label: 'MOEX' },
     { key: '/bonds', label: 'Облигации' },
+    { key: '/moex/portfolio', label: 'Портфель' },
     { key: '/cryptocurrency', label: 'Крипта' },
     { key: '/news', label: 'Новости' }
 ];
@@ -22,7 +23,11 @@ const Header = () => {
     const pathname = usePathname();
     const palette = getPalette(darkTheme);
 
-    const selectedKey = navItems.find((item) => pathname?.startsWith(item.key))?.key;
+    // Берём самый длинный совпавший префикс, иначе /moex/portfolio подсветит
+    // и «MOEX» (оба начинаются с /moex).
+    const selectedKey = navItems
+        .filter((item) => pathname?.startsWith(item.key))
+        .sort((a, b) => b.key.length - a.key.length)[0]?.key;
 
     const brand = (
         <Link href='/' className='flex items-center font-bold' onClick={() => setMobileOpen(false)}>

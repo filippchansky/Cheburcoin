@@ -4,10 +4,15 @@ import { useQuery } from '@tanstack/react-query';
 import { getPortfolio } from '@api/tinkoff/getPortfolio/getPortfolio';
 import { useTbank } from '@/hooks/useTbank';
 import { IPosition } from '@models/tinkoffData';
-import { Table, TableProps } from 'antd';
+import { Table, TableProps, Tag } from 'antd';
 import TableName from '@/components/TableName/TableName';
 import { intToRub } from '@/utils/formatCurrency';
 import { useRouter } from 'next/navigation';
+import {
+    INSTRUMENT_TYPE_COLOR,
+    instrumentTypeLabel,
+    PORTFOLIO_INSTRUMENT_TYPES
+} from '@/utils/instrumentType';
 
 interface PortfolioItemProps {
     account: string;
@@ -31,6 +36,20 @@ const PortfolioItem: React.FC<PortfolioItemProps> = ({ account }) => {
             render: (_, { ticker, name, isin }) => (
                 <TableName icon={isin ?? ''} ticker={ticker ?? ''} title={name ?? ''} />
             )
+        },
+        {
+            title: 'Тип',
+            key: 'instrumentType',
+            render: (_, { instrumentType }) => (
+                <Tag color={INSTRUMENT_TYPE_COLOR[instrumentType]}>
+                    {instrumentTypeLabel(instrumentType)}
+                </Tag>
+            ),
+            filters: PORTFOLIO_INSTRUMENT_TYPES.map((type) => ({
+                text: instrumentTypeLabel(type),
+                value: type
+            })),
+            onFilter: (value, record) => record.instrumentType === value
         },
         {
             title: 'Кол-во',

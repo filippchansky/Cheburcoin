@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Alert, Button, Empty, Segmented, Skeleton, Table, TableProps, Tag } from 'antd';
+import { Alert, Button, Empty, Grid, Segmented, Skeleton, Table, TableProps, Tag } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { IPaymentItem, PaymentCategory } from '@models/tinkoffData';
@@ -9,6 +9,15 @@ import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import { intToRub } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/dateUtils';
+import cardStyle from './style.module.scss';
+
+/** Сколько карточек показываем на мобильных до нажатия «Показать ещё». */
+const MOBILE_PAGE = 15;
+
+const formatPaymentAmount = (payment: number, currency: string | null) =>
+    currency && !['rub', 'sur', 'RUB', 'SUR'].includes(currency)
+        ? `${payment.toFixed(2)} ${currency.toUpperCase()}`
+        : intToRub(payment);
 
 const PERIOD_OPTIONS = [
     { label: '6 мес', value: 6 },
@@ -46,6 +55,11 @@ const PaymentsHistory: React.FC = () => {
         usePayments(months);
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
+    const screens = Grid.useBreakpoint();
+    const isMobile = screens.md === false;
+    const [visible, setVisible] = React.useState(MOBILE_PAGE);
+
+    React.useEffect(() => setVisible(MOBILE_PAGE), [months]);
 
     const periodSwitch = (
         <Segmented<number>
@@ -142,14 +156,10 @@ const PaymentsHistory: React.FC = () => {
             align: 'right',
             render: (_, { payment, currency }) => {
                 const positive = payment >= 0;
-                const text =
-                    currency && !['rub', 'sur', 'RUB', 'SUR'].includes(currency)
-                        ? `${payment.toFixed(2)} ${currency.toUpperCase()}`
-                        : intToRub(payment);
                 return (
                     <span style={{ color: positive ? '#1baf7a' : '#e24b4a' }}>
                         {positive ? '+' : ''}
-                        {text}
+                        {formatPaymentAmount(payment, currency)}
                     </span>
                 );
             },
@@ -218,13 +228,63 @@ const PaymentsHistory: React.FC = () => {
                             <div className='mb-5'>
                                 <ReactECharts option={chartOption} style={{ height: 220 }} notMerge lazyUpdate />
                             </div>
-                            <Table<IPaymentItem>
-                                columns={columns}
-                                dataSource={items}
-                                rowKey='id'
-                                scroll={{ x: 'max-content' }}
-                                pagination={{ pageSize: 15, showSizeChanger: false, hideOnSinglePage: true }}
-                            />
+                            {isMobile ? (
+                                <div className={cardStyle.cardList}>
+                                    {items.slice(0, visible).map((item) => {
+                                        const positive = item.payment >= 0;
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className={cardStyle.card}
+                                                style={{ background: palette.containerBg, borderColor: palette.border }}
+                                            >
+                                                <div className={cardStyle.cardRow}>
+                                                    <span style={{ fontWeight: 500, minWidth: 0 }}>
+                                                        {item.name ?? '—'}
+                                                    </span>
+                                                    <Tag
+                                                        color={CATEGORY_META[item.category].color}
+                                                        style={{ marginInlineEnd: 0 }}
+                                                    >
+                                                        {CATEGORY_META[item.category].label}
+                                                    </Tag>
+                                                </div>
+                                                <div className={cardStyle.cardRow}>
+                                                    <span style={{ fontSize: 13, color: palette.textMuted }}>
+                                                        {formatDate(item.date?.slice(0, 10))}
+                                                    </span>
+                                                    <span
+                                                        style={{
+                                                            fontWeight: 500,
+                                                            color: positive ? '#1baf7a' : '#e24b4a'
+                                                        }}
+                                                    >
+                                                        {positive ? '+' : ''}
+                                                        {formatPaymentAmount(item.payment, item.currency)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {visible < items.length ? (
+                                        <Button
+                                            className={cardStyle.showMore}
+                                            block
+                                            onClick={() => setVisible((v) => v + MOBILE_PAGE)}
+                                        >
+                                            Показать ещё
+                                        </Button>
+                                    ) : null}
+                                </div>
+                            ) : (
+                                <Table<IPaymentItem>
+                                    columns={columns}
+                                    dataSource={items}
+                                    rowKey='id'
+                                    scroll={{ x: 'max-content' }}
+                                    pagination={{ pageSize: 15, showSizeChanger: false, hideOnSinglePage: true }}
+                                />
+                            )}
                         </>
                     ) : (
                         <Empty description='За выбранный период выплат не было' />

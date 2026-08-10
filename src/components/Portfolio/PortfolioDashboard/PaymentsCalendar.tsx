@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Alert, Button, Empty, Skeleton, Switch, Table, TableProps, Tag, Tooltip } from 'antd';
+import { Alert, Button, Empty, Grid, Skeleton, Switch, Table, TableProps, Tag, Tooltip } from 'antd';
 import { InfoCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { IPosition } from '@models/tinkoffData';
@@ -10,6 +10,15 @@ import { getPalette } from '@/theme/palette';
 import { intToRub } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/dateUtils';
 import TableName from '@/components/TableName/TableName';
+import cardStyle from './style.module.scss';
+
+/** Сколько карточек показываем на мобильных до нажатия «Показать ещё». */
+const MOBILE_PAGE = 15;
+
+const formatEventAmount = (amount: number, currency: string | null) =>
+    currency && !['rub', 'sur', 'RUB', 'SUR'].includes(currency)
+        ? `${amount.toFixed(2)} ${currency.toUpperCase()}`
+        : intToRub(amount);
 
 interface PaymentsCalendarProps {
     /** Облигационные позиции (агрегат по всем счетам) — источник купонов. */
@@ -59,7 +68,10 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
     } = usePaymentsCalendar(bondPositions, sharePositions);
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
+    const screens = Grid.useBreakpoint();
+    const isMobile = screens.md === false;
     const [showForecast, setShowForecast] = React.useState(true);
+    const [visible, setVisible] = React.useState(MOBILE_PAGE);
 
     if (status === 'empty') {
         return <Empty description='В портфеле нет облигаций и акций — предстоящих выплат не ожидается' />;
@@ -237,10 +249,7 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
             title: 'Сумма',
             key: 'amount',
             align: 'right',
-            render: (_, { amount, currency }) =>
-                currency && !['rub', 'sur', 'RUB', 'SUR'].includes(currency)
-                    ? `${amount.toFixed(2)} ${currency.toUpperCase()}`
-                    : intToRub(amount),
+            render: (_, { amount, currency }) => formatEventAmount(amount, currency),
             sorter: (a, b) => a.amount - b.amount
         }
     ];
@@ -302,14 +311,93 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
                     <div className='mb-5'>
                         <ReactECharts option={chartOption} style={{ height: 240 }} notMerge lazyUpdate />
                     </div>
-                    <Table<CalendarEvent>
-                        columns={columns}
-                        dataSource={visibleEvents}
-                        rowKey='id'
-                        scroll={{ x: 'max-content' }}
-                        onRow={(record) => (record.projected ? { style: { opacity: 0.6 } } : {})}
-                        pagination={{ pageSize: 15, showSizeChanger: false, hideOnSinglePage: true }}
-                    />
+                    {isMobile ? (
+                        <div className={cardStyle.cardList}>
+                            {[...visibleEvents]
+                                .sort((a, b) => a.date.localeCompare(b.date))
+                                .slice(0, visible)
+                                .map((event) => (
+                                    <div
+                                        key={event.id}
+                                        className={cardStyle.card}
+                                        style={{
+                                            background: palette.containerBg,
+                                            borderColor: palette.border,
+                                            opacity: event.projected ? 0.6 : 1
+                                        }}
+                                    >
+                                        <div className={cardStyle.cardHead}>
+                                            <TableName
+                                                icon={event.isin ?? ''}
+                                                ticker={event.ticker ?? ''}
+                                                title={event.name ?? ''}
+                                            />
+                                            <span className='inline-flex items-center gap-1'>
+                                                <Tag color={KIND_META[event.kind].color} style={{ marginInlineEnd: 0 }}>
+                                                    {KIND_META[event.kind].label}
+                                                </Tag>
+                                                {event.projected ? (
+                                                    <span
+                                                        style={{
+                                                            fontSize: 11,
+                                                            lineHeight: '18px',
+                                                            color: palette.textMuted,
+                                                            border: `1px dashed ${palette.border}`,
+                                                            borderRadius: 6,
+                                                            padding: '0 6px'
+                                                        }}
+                                                    >
+                                                        прогноз
+                                                    </span>
+                                                ) : null}
+                                            </span>
+                                        </div>
+                                        <div className={cardStyle.cardMetrics}>
+                                            <div className={cardStyle.metric}>
+                                                <span className={cardStyle.metricLabel}>Дата выплаты</span>
+                                                <span className={cardStyle.metricValue}>
+                                                    {formatDate(event.date?.slice(0, 10))}
+                                                </span>
+                                            </div>
+                                            <div className={cardStyle.metric}>
+                                                <span className={cardStyle.metricLabel}>Сумма</span>
+                                                <span className={cardStyle.metricValue}>
+                                                    {formatEventAmount(event.amount, event.currency)}
+                                                </span>
+                                            </div>
+                                            <div className={cardStyle.metric}>
+                                                <span className={cardStyle.metricLabel}>Отсечка</span>
+                                                <span className={cardStyle.metricValue}>
+                                                    {event.fixDate ? formatDate(event.fixDate.slice(0, 10)) : '—'}
+                                                </span>
+                                            </div>
+                                            <div className={cardStyle.metric}>
+                                                <span className={cardStyle.metricLabel}>Кол-во</span>
+                                                <span className={cardStyle.metricValue}>{event.quantity}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            {visible < visibleEvents.length ? (
+                                <Button
+                                    className={cardStyle.showMore}
+                                    block
+                                    onClick={() => setVisible((v) => v + MOBILE_PAGE)}
+                                >
+                                    Показать ещё
+                                </Button>
+                            ) : null}
+                        </div>
+                    ) : (
+                        <Table<CalendarEvent>
+                            columns={columns}
+                            dataSource={visibleEvents}
+                            rowKey='id'
+                            scroll={{ x: 'max-content' }}
+                            onRow={(record) => (record.projected ? { style: { opacity: 0.6 } } : {})}
+                            pagination={{ pageSize: 15, showSizeChanger: false, hideOnSinglePage: true }}
+                        />
+                    )}
                 </>
             ) : (
                 <Empty description='Нет предстоящих выплат в ближайшие 12 месяцев' />

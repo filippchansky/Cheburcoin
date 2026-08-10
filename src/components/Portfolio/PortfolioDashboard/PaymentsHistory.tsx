@@ -8,11 +8,31 @@ import { usePayments } from '@/hooks/usePayments';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import { intToRub } from '@/utils/formatCurrency';
-import { formatDate } from '@/utils/dateUtils';
+import { formatDate, formatDayWeekday, formatMonthTitle } from '@/utils/dateUtils';
 import cardStyle from './style.module.scss';
 
-/** Сколько карточек показываем на мобильных до нажатия «Показать ещё». */
-const MOBILE_PAGE = 15;
+/** Сколько выплат показываем на мобильных до нажатия «Показать ещё». */
+const MOBILE_PAGE = 20;
+
+/** Группирует выплаты по месяцу со знаковым итогом группы (налоги — в минус). */
+const groupByMonth = (items: IPaymentItem[]) => {
+    const groups: { key: string; total: number; items: IPaymentItem[] }[] = [];
+    const index = new Map<string, number>();
+    items.forEach((item) => {
+        const key = item.date.slice(0, 7);
+        let gi = index.get(key);
+        if (gi === undefined) {
+            gi = groups.length;
+            index.set(key, gi);
+            groups.push({ key, total: 0, items: [] });
+        }
+        groups[gi].items.push(item);
+        if (!item.currency || ['rub', 'sur', 'RUB', 'SUR'].includes(item.currency)) {
+            groups[gi].total += item.payment;
+        }
+    });
+    return groups;
+};
 
 const formatPaymentAmount = (payment: number, currency: string | null) =>
     currency && !['rub', 'sur', 'RUB', 'SUR'].includes(currency)
@@ -58,8 +78,15 @@ const PaymentsHistory: React.FC = () => {
     const screens = Grid.useBreakpoint();
     const isMobile = screens.md === false;
     const [visible, setVisible] = React.useState(MOBILE_PAGE);
+    const [categories, setCategories] = React.useState<PaymentCategory[]>([]);
 
-    React.useEffect(() => setVisible(MOBILE_PAGE), [months]);
+    /** Типы выплат, реально встречающиеся в периоде — только их показываем в фильтре. */
+    const presentCategories = React.useMemo(
+        () => (Object.keys(CATEGORY_META) as PaymentCategory[]).filter((c) => items.some((i) => i.category === c)),
+        [items]
+    );
+
+    React.useEffect(() => setVisible(MOBILE_PAGE), [months, categories]);
 
     const periodSwitch = (
         <Segmented<number>
@@ -90,8 +117,17 @@ const PaymentsHistory: React.FC = () => {
         );
     }
 
+    /** Мобильный список фильтруется по выбранным типам (пусто = показываем все). */
+    const filteredItems = categories.length ? items.filter((i) => categories.includes(i.category)) : items;
+
     const chartOption = {
-        grid: { top: 16, right: 12, bottom: 24, left: 8, containLabel: true },
+        grid: {
+            top: 16,
+            right: isMobile ? 6 : 12,
+            bottom: 24,
+            left: isMobile ? 4 : 8,
+            containLabel: true
+        },
         tooltip: {
             trigger: 'axis',
             formatter: (params: { name: string; value: number }[]) =>
@@ -100,12 +136,19 @@ const PaymentsHistory: React.FC = () => {
         xAxis: {
             type: 'category',
             data: byMonth.map((bucket) => bucket.label),
-            axisLabel: { color: palette.textMuted, fontSize: 11 },
+            axisLabel: {
+                color: palette.textMuted,
+                fontSize: 11,
+                // На мобилках оставляем только месяц без года: «авг. 2026 г.» → «авг.»
+                formatter: isMobile ? (value: string) => value.split(' ')[0] : undefined
+            },
             axisLine: { lineStyle: { color: palette.border } }
         },
         yAxis: {
             type: 'value',
+            // На мобилках убираем колонку сумм слева, чтобы график занял всю ширину.
             axisLabel: {
+                show: !isMobile,
                 color: palette.textMuted,
                 fontSize: 11,
                 formatter: (value: number) =>
@@ -229,53 +272,113 @@ const PaymentsHistory: React.FC = () => {
                                 <ReactECharts option={chartOption} style={{ height: 220 }} notMerge lazyUpdate />
                             </div>
                             {isMobile ? (
-                                <div className={cardStyle.cardList}>
-                                    {items.slice(0, visible).map((item) => {
-                                        const positive = item.payment >= 0;
+                                <>
+                                    {presentCategories.length > 1 ? (
+                                        <div className='flex flex-wrap gap-2 mb-4'>
+                                            {presentCategories.map((c) => (
+                                                <Tag.CheckableTag
+                                                    key={c}
+                                                    checked={categories.includes(c)}
+                                                    onChange={(checked) =>
+                                                        setCategories((prev) =>
+                                                            checked
+                                                                ? [...prev, c]
+                                                                : prev.filter((x) => x !== c)
+                                                        )
+                                                    }
+                                                >
+                                                    {CATEGORY_META[c].label}
+                                                </Tag.CheckableTag>
+                                            ))}
+                                        </div>
+                                    ) : null}
+
+                                    {filteredItems.length ? (
+                                        <div
+                                            className={cardStyle.payList}
+                                            style={{
+                                                ['--rowBorder' as string]: palette.border,
+                                                ['--rowBg' as string]: palette.layoutBg
+                                            }}
+                                        >
+                                            {groupByMonth(
+                                                [...filteredItems]
+                                                    .sort((a, b) => b.date.localeCompare(a.date))
+                                                    .slice(0, visible)
+                                            ).map((group) => {
+                                        const groupPositive = group.total >= 0;
                                         return (
-                                            <div
-                                                key={item.id}
-                                                className={cardStyle.card}
-                                                style={{ background: palette.containerBg, borderColor: palette.border }}
-                                            >
-                                                <div className={cardStyle.cardRow}>
-                                                    <span style={{ fontWeight: 500, minWidth: 0 }}>
-                                                        {item.name ?? '—'}
-                                                    </span>
-                                                    <Tag
-                                                        color={CATEGORY_META[item.category].color}
-                                                        style={{ marginInlineEnd: 0 }}
-                                                    >
-                                                        {CATEGORY_META[item.category].label}
-                                                    </Tag>
-                                                </div>
-                                                <div className={cardStyle.cardRow}>
-                                                    <span style={{ fontSize: 13, color: palette.textMuted }}>
-                                                        {formatDate(item.date?.slice(0, 10))}
+                                            <React.Fragment key={group.key}>
+                                                <div className={cardStyle.monthHead}>
+                                                    <span className={cardStyle.monthName}>
+                                                        {formatMonthTitle(group.key)}
                                                     </span>
                                                     <span
+                                                        className={cardStyle.monthTotal}
                                                         style={{
-                                                            fontWeight: 500,
-                                                            color: positive ? '#1baf7a' : '#e24b4a'
+                                                            color: groupPositive ? '#1baf7a' : '#e24b4a',
+                                                            background: groupPositive
+                                                                ? 'rgba(27,175,122,0.12)'
+                                                                : 'rgba(226,75,74,0.12)'
                                                         }}
                                                     >
-                                                        {positive ? '+' : ''}
-                                                        {formatPaymentAmount(item.payment, item.currency)}
+                                                        {groupPositive ? '+' : ''}
+                                                        {intToRub(group.total)}
                                                     </span>
                                                 </div>
-                                            </div>
+                                                {group.items.map((item) => {
+                                                    const positive = item.payment >= 0;
+                                                    return (
+                                                        <div key={item.id} className={cardStyle.payRow}>
+                                                            <div className={cardStyle.payHead}>
+                                                                <span className={cardStyle.payDate}>
+                                                                    📅 {formatDayWeekday(item.date)}
+                                                                </span>
+                                                                <Tag
+                                                                    color={CATEGORY_META[item.category].color}
+                                                                    style={{ marginInlineEnd: 0 }}
+                                                                >
+                                                                    {CATEGORY_META[item.category].label}
+                                                                </Tag>
+                                                            </div>
+                                                            <div className={cardStyle.payBody}>
+                                                                <div className={cardStyle.payInfo}>
+                                                                    <span className={cardStyle.payName}>
+                                                                        {item.name ?? '—'}
+                                                                    </span>
+                                                                </div>
+                                                                <div className={cardStyle.payAmount}>
+                                                                    <span
+                                                                        className={cardStyle.payAmountValue}
+                                                                        style={{
+                                                                            color: positive ? '#1baf7a' : '#e24b4a'
+                                                                        }}
+                                                                    >
+                                                                        {positive ? '+' : ''}
+                                                                        {formatPaymentAmount(item.payment, item.currency)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </React.Fragment>
                                         );
-                                    })}
-                                    {visible < items.length ? (
-                                        <Button
-                                            className={cardStyle.showMore}
-                                            block
-                                            onClick={() => setVisible((v) => v + MOBILE_PAGE)}
-                                        >
-                                            Показать ещё
-                                        </Button>
-                                    ) : null}
-                                </div>
+                                            })}
+                                            {visible < filteredItems.length ? (
+                                                <Button
+                                                    className={cardStyle.showMore}
+                                                    block
+                                                    onClick={() => setVisible((v) => v + MOBILE_PAGE)}
+                                                >
+                                                    Показать ещё
+                                                </Button>
+                                            ) : null}
+                                        </div>
+                                    ) : (
+                                        <Empty description='Нет выплат выбранного типа' />
+                                    )}
+                                </>
                             ) : (
                                 <Table<IPaymentItem>
                                     columns={columns}

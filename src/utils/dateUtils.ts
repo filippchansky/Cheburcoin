@@ -88,6 +88,38 @@ export const formatDate = (dateString: string) => {
     return `${day}.${month}.${year}`;
 };
 
+/** Разбирает ISO-дату (может быть со временем) в локальную дату без сдвига по TZ. */
+const parseLocalDate = (iso: string) => {
+    const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1);
+};
+
+const dayMonthFmt = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' });
+const weekdayFmt = new Intl.DateTimeFormat('ru-RU', { weekday: 'short' });
+const monthYearFmt = new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' });
+
+/** «2026-08-06» → «6 авг.» (для компактного списка выплат). */
+export const formatDayShort = (iso?: string | null) => {
+    if (!iso) return '—';
+    const dt = parseLocalDate(iso);
+    return Number.isNaN(dt.getTime()) ? '—' : dayMonthFmt.format(dt);
+};
+
+/** «2026-08-06» → «6 авг., Чт» — дата с днём недели. */
+export const formatDayWeekday = (iso?: string | null) => {
+    if (!iso) return '—';
+    const dt = parseLocalDate(iso);
+    if (Number.isNaN(dt.getTime())) return '—';
+    const wd = weekdayFmt.format(dt);
+    return `${dayMonthFmt.format(dt)}, ${wd.charAt(0).toUpperCase()}${wd.slice(1)}`;
+};
+
+/** Ключ месяца «2026-08» → «август 2026» (заголовок группы). */
+export const formatMonthTitle = (monthKey: string) => {
+    const dt = parseLocalDate(`${monthKey}-01`);
+    return Number.isNaN(dt.getTime()) ? monthKey : monthYearFmt.format(dt);
+};
+
 /** Число полных лет от сегодня до указанной даты (для срока до погашения). */
 export const yearsUntil = (dateString: string): number | null => {
     if (!dateString || dateString === '0000-00-00') return null;

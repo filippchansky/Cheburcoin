@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Alert, Button, Empty, Grid, Skeleton, Switch, Table, TableProps, Tag, Tooltip } from 'antd';
+import { Alert, Button, Empty, Grid, Segmented, Skeleton, Switch, Table, TableProps, Tag, Tooltip } from 'antd';
 import { InfoCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { IPosition } from '@models/tinkoffData';
@@ -8,17 +8,37 @@ import { CalendarEvent, CalendarKind, usePaymentsCalendar } from '@/hooks/usePay
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import { intToRub } from '@/utils/formatCurrency';
-import { formatDate } from '@/utils/dateUtils';
+import { formatDate, formatDayShort, formatDayWeekday, formatMonthTitle } from '@/utils/dateUtils';
 import TableName from '@/components/TableName/TableName';
+import ShareLogo from '@/components/ShareLogo/ShareLogo';
 import cardStyle from './style.module.scss';
 
-/** Сколько карточек показываем на мобильных до нажатия «Показать ещё». */
-const MOBILE_PAGE = 15;
+/** Сколько выплат показываем на мобильных до нажатия «Показать ещё». */
+const MOBILE_PAGE = 20;
+
+const isRubCurrency = (currency: string | null) =>
+    !currency || ['rub', 'sur', 'RUB', 'SUR'].includes(currency);
 
 const formatEventAmount = (amount: number, currency: string | null) =>
-    currency && !['rub', 'sur', 'RUB', 'SUR'].includes(currency)
-        ? `${amount.toFixed(2)} ${currency.toUpperCase()}`
-        : intToRub(amount);
+    isRubCurrency(currency) ? intToRub(amount) : `${amount.toFixed(2)} ${currency!.toUpperCase()}`;
+
+/** Группирует отсортированные события по месяцу с рублёвым итогом группы. */
+const groupByMonth = (events: CalendarEvent[]) => {
+    const groups: { key: string; total: number; items: CalendarEvent[] }[] = [];
+    const index = new Map<string, number>();
+    events.forEach((event) => {
+        const key = event.date.slice(0, 7);
+        let gi = index.get(key);
+        if (gi === undefined) {
+            gi = groups.length;
+            index.set(key, gi);
+            groups.push({ key, total: 0, items: [] });
+        }
+        groups[gi].items.push(event);
+        if (isRubCurrency(event.currency)) groups[gi].total += event.amount;
+    });
+    return groups;
+};
 
 interface PaymentsCalendarProps {
     /** Облигационные позиции (агрегат по всем счетам) — источник купонов. */
@@ -29,7 +49,6 @@ interface PaymentsCalendarProps {
 
 const COUPON_COLOR = '#1baf7a';
 const DIVIDEND_COLOR = '#4098fc';
-const DIVIDEND_FORECAST_COLOR = 'rgba(64, 152, 252, 0.35)';
 
 const KIND_META: Record<CalendarKind, { label: string; color: string }> = {
     coupon: { label: 'Купон', color: 'green' },
@@ -71,6 +90,7 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
     const screens = Grid.useBreakpoint();
     const isMobile = screens.md === false;
     const [showForecast, setShowForecast] = React.useState(true);
+    const [kindFilter, setKindFilter] = React.useState<'all' | CalendarKind>('all');
     const [visible, setVisible] = React.useState(MOBILE_PAGE);
 
     if (status === 'empty') {
@@ -105,19 +125,66 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
     }
 
     const hasForecast = dividendProjectedTotal > 0 || events.some((e) => e.projected);
-    const visibleEvents = showForecast ? events : events.filter((e) => !e.projected);
+    const showCoupons = kindFilter !== 'dividend';
+    const showDividends = kindFilter !== 'coupon';
+    const visibleEvents = events.filter(
+        (e) => (showForecast || !e.projected) && (kindFilter === 'all' || e.kind === kindFilter)
+    );
     const dividendTileTotal = showForecast ? round(dividendTotal + dividendProjectedTotal) : dividendTotal;
 
     const forecastSeriesData = byMonth.map((bucket) => (showForecast ? bucket.dividendProjected : 0));
 
+    const couponSeries = {
+        name: 'Купоны',
+        type: 'bar',
+        stack: 'total',
+        data: byMonth.map((bucket) => bucket.coupon),
+        itemStyle: { color: COUPON_COLOR },
+        barMaxWidth: 36
+    };
+    const dividendSeries = {
+        name: 'Дивиденды',
+        type: 'bar',
+        stack: 'total',
+        data: byMonth.map((bucket) => bucket.dividend),
+        itemStyle: { color: DIVIDEND_COLOR },
+        barMaxWidth: 36
+    };
+    const forecastSeries = {
+        name: 'Дивиденды · прогноз',
+        type: 'bar',
+        stack: 'total',
+        data: forecastSeriesData,
+        itemStyle: { color: DIVIDEND_COLOR },
+        barMaxWidth: 36
+    };
+
+    const chartSeries = [
+        ...(showCoupons ? [couponSeries] : []),
+        ...(showDividends ? [dividendSeries, forecastSeries] : [])
+    ];
+    const legendData = [
+        ...(showCoupons ? ['Купоны'] : []),
+        ...(showDividends ? ['Дивиденды'] : []),
+        ...(showDividends && showForecast ? ['Дивиденды · прогноз'] : [])
+    ];
+
     const chartOption = {
-        grid: { top: 16, right: 12, bottom: 24, left: 8, containLabel: true },
+        grid: {
+            top: isMobile ? 40 : 16,
+            right: isMobile ? 6 : 12,
+            bottom: 24,
+            left: isMobile ? 4 : 8,
+            containLabel: true
+        },
         legend: {
-            data: showForecast ? ['Купоны', 'Дивиденды', 'Дивиденды · прогноз'] : ['Купоны', 'Дивиденды'],
+            data: legendData,
             top: 0,
-            textStyle: { color: palette.textMuted },
+            left: 'center',
+            textStyle: { color: palette.textMuted, fontSize: isMobile ? 10 : 12 },
             itemWidth: 12,
-            itemHeight: 12
+            itemHeight: 12,
+            itemGap: isMobile ? 8 : 14
         },
         tooltip: {
             trigger: 'axis',
@@ -134,12 +201,19 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
         xAxis: {
             type: 'category',
             data: byMonth.map((bucket) => bucket.label),
-            axisLabel: { color: palette.textMuted, fontSize: 11 },
+            axisLabel: {
+                color: palette.textMuted,
+                fontSize: 11,
+                // На мобилках оставляем только месяц без года: «авг. 2026 г.» → «авг.»
+                formatter: isMobile ? (value: string) => value.split(' ')[0] : undefined
+            },
             axisLine: { lineStyle: { color: palette.border } }
         },
         yAxis: {
             type: 'value',
+            // На мобилках убираем колонку сумм слева, чтобы график занял всю ширину.
             axisLabel: {
+                show: !isMobile,
                 color: palette.textMuted,
                 fontSize: 11,
                 formatter: (value: number) =>
@@ -147,37 +221,7 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
             },
             splitLine: { lineStyle: { color: palette.border, opacity: 0.4 } }
         },
-        series: [
-            {
-                name: 'Купоны',
-                type: 'bar',
-                stack: 'total',
-                data: byMonth.map((bucket) => bucket.coupon),
-                itemStyle: { color: COUPON_COLOR },
-                barMaxWidth: 36
-            },
-            {
-                name: 'Дивиденды',
-                type: 'bar',
-                stack: 'total',
-                data: byMonth.map((bucket) => bucket.dividend),
-                itemStyle: { color: DIVIDEND_COLOR },
-                barMaxWidth: 36
-            },
-            {
-                name: 'Дивиденды · прогноз',
-                type: 'bar',
-                stack: 'total',
-                data: forecastSeriesData,
-                itemStyle: {
-                    color: DIVIDEND_FORECAST_COLOR,
-                    borderColor: DIVIDEND_COLOR,
-                    borderWidth: 1,
-                    borderType: 'dashed'
-                },
-                barMaxWidth: 36
-            }
-        ]
+        series: chartSeries
     };
 
     const columns: TableProps<CalendarEvent>['columns'] = [
@@ -288,7 +332,20 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
                 </Button>
             </div>
 
-            {hasForecast ? (
+            <div className='mb-4'>
+                <Segmented<'all' | CalendarKind>
+                    block={isMobile}
+                    options={[
+                        { label: 'Все', value: 'all' },
+                        { label: 'Купоны', value: 'coupon' },
+                        { label: 'Дивиденды', value: 'dividend' }
+                    ]}
+                    value={kindFilter}
+                    onChange={setKindFilter}
+                />
+            </div>
+
+            {hasForecast && kindFilter !== 'coupon' ? (
                 <div className='flex items-center gap-2 mb-4'>
                     <Switch checked={showForecast} onChange={setShowForecast} size='small' />
                     <span style={{ color: palette.textMuted, fontSize: 13 }}>
@@ -312,72 +369,88 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
                         <ReactECharts option={chartOption} style={{ height: 240 }} notMerge lazyUpdate />
                     </div>
                     {isMobile ? (
-                        <div className={cardStyle.cardList}>
-                            {[...visibleEvents]
-                                .sort((a, b) => a.date.localeCompare(b.date))
-                                .slice(0, visible)
-                                .map((event) => (
-                                    <div
-                                        key={event.id}
-                                        className={cardStyle.card}
-                                        style={{
-                                            background: palette.containerBg,
-                                            borderColor: palette.border,
-                                            opacity: event.projected ? 0.6 : 1
-                                        }}
-                                    >
-                                        <div className={cardStyle.cardHead}>
-                                            <TableName
-                                                icon={event.isin ?? ''}
-                                                ticker={event.ticker ?? ''}
-                                                title={event.name ?? ''}
-                                            />
-                                            <span className='inline-flex items-center gap-1'>
-                                                <Tag color={KIND_META[event.kind].color} style={{ marginInlineEnd: 0 }}>
-                                                    {KIND_META[event.kind].label}
-                                                </Tag>
-                                                {event.projected ? (
-                                                    <span
-                                                        style={{
-                                                            fontSize: 11,
-                                                            lineHeight: '18px',
-                                                            color: palette.textMuted,
-                                                            border: `1px dashed ${palette.border}`,
-                                                            borderRadius: 6,
-                                                            padding: '0 6px'
-                                                        }}
-                                                    >
-                                                        прогноз
-                                                    </span>
-                                                ) : null}
-                                            </span>
-                                        </div>
-                                        <div className={cardStyle.cardMetrics}>
-                                            <div className={cardStyle.metric}>
-                                                <span className={cardStyle.metricLabel}>Дата выплаты</span>
-                                                <span className={cardStyle.metricValue}>
-                                                    {formatDate(event.date?.slice(0, 10))}
-                                                </span>
-                                            </div>
-                                            <div className={cardStyle.metric}>
-                                                <span className={cardStyle.metricLabel}>Сумма</span>
-                                                <span className={cardStyle.metricValue}>
-                                                    {formatEventAmount(event.amount, event.currency)}
-                                                </span>
-                                            </div>
-                                            <div className={cardStyle.metric}>
-                                                <span className={cardStyle.metricLabel}>Отсечка</span>
-                                                <span className={cardStyle.metricValue}>
-                                                    {event.fixDate ? formatDate(event.fixDate.slice(0, 10)) : '—'}
-                                                </span>
-                                            </div>
-                                            <div className={cardStyle.metric}>
-                                                <span className={cardStyle.metricLabel}>Кол-во</span>
-                                                <span className={cardStyle.metricValue}>{event.quantity}</span>
-                                            </div>
-                                        </div>
+                        <div
+                            className={cardStyle.payList}
+                            style={{
+                                ['--rowBorder' as string]: palette.border,
+                                ['--rowBg' as string]: palette.layoutBg
+                            }}
+                        >
+                            {groupByMonth(
+                                [...visibleEvents].sort((a, b) => a.date.localeCompare(b.date)).slice(0, visible)
+                            ).map((group) => (
+                                <React.Fragment key={group.key}>
+                                    <div className={cardStyle.monthHead}>
+                                        <span className={cardStyle.monthName}>{formatMonthTitle(group.key)}</span>
+                                        <span
+                                            className={cardStyle.monthTotal}
+                                            style={{ color: '#1baf7a', background: 'rgba(27,175,122,0.12)' }}
+                                        >
+                                            +{intToRub(group.total)}
+                                        </span>
                                     </div>
-                                ))}
+                                    {group.items.map((event) => (
+                                        <div
+                                            key={event.id}
+                                            className={cardStyle.payRow}
+                                        >
+                                            <div className={cardStyle.payHead}>
+                                                <span className={cardStyle.payDate}>
+                                                    📅 {formatDayWeekday(event.date)}
+                                                </span>
+                                                <span className='inline-flex items-center gap-1'>
+                                                    <Tag
+                                                        color={KIND_META[event.kind].color}
+                                                        style={{ marginInlineEnd: 0 }}
+                                                    >
+                                                        {KIND_META[event.kind].label}
+                                                    </Tag>
+                                                    {event.projected ? (
+                                                        <span
+                                                            style={{
+                                                                fontSize: 11,
+                                                                lineHeight: '18px',
+                                                                color: palette.textMuted,
+                                                                border: `1px dashed ${palette.border}`,
+                                                                borderRadius: 6,
+                                                                padding: '0 6px'
+                                                            }}
+                                                        >
+                                                            прогноз
+                                                        </span>
+                                                    ) : null}
+                                                </span>
+                                            </div>
+                                            <div className={cardStyle.payBody}>
+                                                <ShareLogo
+                                                    icon={event.isin ?? ''}
+                                                    ticker={event.ticker ?? ''}
+                                                    size={40}
+                                                />
+                                                <div className={cardStyle.payInfo}>
+                                                    <span className={cardStyle.payName}>
+                                                        {event.name ?? event.ticker ?? '—'}
+                                                    </span>
+                                                    <span className={cardStyle.paySub}>
+                                                        {event.fixDate
+                                                            ? `✂ ${formatDayShort(event.fixDate)} · `
+                                                            : ''}
+                                                        {event.quantity} шт
+                                                    </span>
+                                                </div>
+                                                <div className={cardStyle.payAmount}>
+                                                    <span
+                                                        className={cardStyle.payAmountValue}
+                                                        style={{ color: '#1baf7a' }}
+                                                    >
+                                                        +{formatEventAmount(event.amount, event.currency)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </React.Fragment>
+                            ))}
                             {visible < visibleEvents.length ? (
                                 <Button
                                     className={cardStyle.showMore}
@@ -394,7 +467,6 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
                             dataSource={visibleEvents}
                             rowKey='id'
                             scroll={{ x: 'max-content' }}
-                            onRow={(record) => (record.projected ? { style: { opacity: 0.6 } } : {})}
                             pagination={{ pageSize: 15, showSizeChanger: false, hideOnSinglePage: true }}
                         />
                     )}

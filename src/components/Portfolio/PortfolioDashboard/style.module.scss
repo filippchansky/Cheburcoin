@@ -33,77 +33,193 @@
     height: 100%;
 }
 
-/* ── Мобильные карточки (замена таблиц на узких экранах) ───────────────── */
+.showMore {
+    margin-top: 12px;
+}
 
-.cardList {
+/* ── Компактная строка позиции (стиль списка бумаг Т-Инвестиций) ───────── */
+
+.posList {
     display: flex;
     flex-direction: column;
-    gap: 10px;
     width: 100%;
 }
 
-.card {
-    width: 100%;
-    border: 1px solid;
-    border-radius: 12px;
-    padding: 12px 14px;
+.posRow {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 2px;
 }
 
-.cardClickable {
+.posRow:not(:first-child) {
+    border-top: 1px solid var(--rowBorder);
+}
+
+.posRowClickable {
     cursor: pointer;
 }
 
-.cardHead {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-/* Сетка «подпись / значение» — 2 колонки, значение прижато вправо. */
-.cardMetrics {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 12px;
-}
-
-.metric {
+/* Левая колонка: название + «кол-во · средняя», ужимается и обрезается. */
+.posMain {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    min-width: 0;
+    gap: 3px;
 }
 
-.metricLabel {
-    font-size: 12px;
-    opacity: 0.5;
-    line-height: 1.2;
-}
-
-.metricValue {
+.posName {
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.2;
-    font-variant-numeric: tabular-nums;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.metricSub {
-    font-size: 12px;
-    line-height: 1.2;
-    font-variant-numeric: tabular-nums;
-}
-
-/* Ряд «подпись — значение» в одну строку (для компактных карточек выплат). */
-.cardRow {
+/* Правая колонка: стоимость + доходность, прижата вправо, не сжимается. */
+.posRight {
     display: flex;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.posValue {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.posSub {
+    font-size: 12.5px;
+    line-height: 1.2;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.posSubMuted {
+    opacity: 0.5;
+}
+
+/* ── Список выплат по месяцам (стиль календаря Т-Инвестиций) ───────────── */
+
+.payList {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.monthHead {
+    display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: 8px;
+    padding: 18px 2px 8px;
+    /* Заголовок месяца липнет к верху под шапкой приложения (64px / 56px),
+       пока его не вытолкнет следующий такой же заголовок. */
+    position: sticky;
+    top: 64px;
+    z-index: 3;
+    background: var(--rowBg);
+
+    @media (max-width: 599px) {
+        top: 56px;
+    }
 }
 
-.showMore {
-    margin-top: 4px;
+.monthHead:first-child {
+    padding-top: 4px;
+}
+
+.monthName {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.monthTotal {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 8px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.payRow {
+    padding: 10px 2px;
+}
+
+.payRow:not(:last-child) {
+    border-bottom: 1px solid var(--rowBorder);
+}
+
+/* Верхняя строка блока выплаты: дата + день недели и статус/тип справа. */
+.payHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.payDate {
+    font-size: 13px;
+    opacity: 0.6;
+    white-space: nowrap;
+}
+
+.payBody {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.payInfo {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.payName {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.paySub {
+    font-size: 12.5px;
+    line-height: 1.2;
+    opacity: 0.5;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.payAmount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.payAmountValue {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }

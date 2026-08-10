@@ -47,6 +47,31 @@ export interface ICouponsResponse {
     events: ICouponEvent[];
 }
 
+/** Одно объявленное будущее дивидендное событие (ответ прокси `POST /dividends`). */
+export interface IDividendEvent {
+    /** instrumentUid акции — ключ для джойна с позицией (ticker/name). */
+    instrumentId: string;
+    /** Кол-во акций в портфеле на момент запроса. */
+    quantity: number;
+    /** Дата выплаты дивиденда (ISO). */
+    paymentDate: string;
+    /** Дата фиксации реестра (держатель на неё получает выплату). */
+    recordDate: string | null;
+    /** Последний день купить бумагу, чтобы попасть в реестр. */
+    lastBuyDate: string | null;
+    dividendType: string | null;
+    /** Валюта выплаты (rub/usd/...). Нерублёвые не суммируем в рублёвый итог. */
+    currency: string | null;
+    /** Дивиденд на одну акцию. */
+    amountPerShare: number;
+    /** Сумма выплаты по позиции = amountPerShare × quantity. */
+    amount: number;
+}
+
+export interface IDividendsResponse {
+    events: IDividendEvent[];
+}
+
 /** Категория выплаты для группировки/цвета (совпадает с беком). */
 export type PaymentCategory = 'coupon' | 'dividend' | 'repayment' | 'tax' | 'other';
 

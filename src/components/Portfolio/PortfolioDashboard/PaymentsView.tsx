@@ -2,7 +2,7 @@
 import React from 'react';
 import { Segmented } from 'antd';
 import { IPosition } from '@models/tinkoffData';
-import CouponCalendar from './CouponCalendar';
+import PaymentsCalendar from './PaymentsCalendar';
 import PaymentsHistory from './PaymentsHistory';
 
 type PaymentsTab = 'calendar' | 'history';
@@ -10,10 +10,12 @@ type PaymentsTab = 'calendar' | 'history';
 interface PaymentsViewProps {
     /** Облигационные позиции для календаря будущих купонов (агрегат по счетам). */
     bondPositions: IPosition[];
+    /** Акции для календаря будущих дивидендов (агрегат по счетам). */
+    sharePositions: IPosition[];
 }
 
-/** Вкладка «Выплаты»: будущее (календарь купонов) vs прошлое (история выплат). */
-const PaymentsView: React.FC<PaymentsViewProps> = ({ bondPositions }) => {
+/** Вкладка «Выплаты»: будущее (календарь купонов+дивидендов) vs прошлое (история). */
+const PaymentsView: React.FC<PaymentsViewProps> = ({ bondPositions, sharePositions }) => {
     const [tab, setTab] = React.useState<PaymentsTab>('calendar');
 
     return (
@@ -21,7 +23,7 @@ const PaymentsView: React.FC<PaymentsViewProps> = ({ bondPositions }) => {
             <div className='mb-4'>
                 <Segmented<PaymentsTab>
                     options={[
-                        { label: 'Календарь купонов', value: 'calendar' },
+                        { label: 'Календарь выплат', value: 'calendar' },
                         { label: 'История выплат', value: 'history' }
                     ]}
                     value={tab}
@@ -30,7 +32,7 @@ const PaymentsView: React.FC<PaymentsViewProps> = ({ bondPositions }) => {
             </div>
 
             {tab === 'calendar' ? (
-                <CouponCalendar bondPositions={bondPositions} />
+                <PaymentsCalendar bondPositions={bondPositions} sharePositions={sharePositions} />
             ) : (
                 <PaymentsHistory />
             )}

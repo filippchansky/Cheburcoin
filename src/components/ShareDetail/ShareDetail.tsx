@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Skeleton, Tag, Tooltip } from 'antd';
 import { InfoCircleOutlined, LeftOutlined } from '@ant-design/icons';
 import {
+    useDividendYields,
     useShareDetail,
     useShareDividends,
     useShareIndices
@@ -30,6 +31,7 @@ const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
     const { data: dividends = [] } = useShareDividends(ticker);
     const { data: indices = [] } = useShareIndices(ticker);
     const { data: sectors } = useSectors();
+    const { yieldByDate, isLoading: pricesLoading } = useDividendYields(ticker, dividends);
 
     if (isLoading) {
         return (
@@ -172,7 +174,12 @@ const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
 
             <PriceRange ticker={share.ticker} price={share.price} currency={share.currency} />
             <ShareChart ticker={share.ticker} />
-            <Dividends dividends={dividends} price={share.price} />
+            <Dividends
+                dividends={dividends}
+                price={share.price}
+                yieldByDate={yieldByDate}
+                pricesLoading={pricesLoading}
+            />
             <ShareCalculator share={share} annualDivPerShare={annualDiv} />
             <ShareProfile share={share} indices={indices} />
         </div>

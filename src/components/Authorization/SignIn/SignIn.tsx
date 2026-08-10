@@ -42,6 +42,7 @@ const SignIn: React.FC<SignInProps> = ({ setActiveModal }) => {
             .then((res) => {
                 localStorage.setItem('firebaseUid', res.user.uid);
                 setLoading(false);
+                setActiveModal(false)
             })
             .catch((error) => {
                 const errorCode = error.code;

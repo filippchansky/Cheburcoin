@@ -1,0 +1,34 @@
+@import '../../../app/variables';
+
+.gain {
+    color: $green;
+}
+
+.loss {
+    color: red;
+}
+
+.sub {
+    font-size: 12px;
+}
+
+.clickableRow {
+    cursor: pointer;
+}
+
+.weightCell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 72px;
+}
+
+.weightBar {
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.weightBarFill {
+    height: 100%;
+}

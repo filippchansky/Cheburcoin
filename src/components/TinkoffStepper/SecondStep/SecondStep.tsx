@@ -5,21 +5,21 @@ import { IPlainOptions } from '../TinkoffSteper';
 const CheckboxGroup = Checkbox.Group;
 
 interface SecondStepProps {
-    activeStep: number;
     handleBack: () => void;
     handleNext: () => void;
     checkedList: string[];
     setCheckedList: React.Dispatch<React.SetStateAction<string[]>>;
     plainOptions: IPlainOptions[];
+    loading: boolean;
 }
 
 const SecondStep: React.FC<SecondStepProps> = ({
-    activeStep,
     handleBack,
     handleNext,
     checkedList,
     setCheckedList,
-    plainOptions
+    plainOptions,
+    loading
 }) => {
     const checkAll = plainOptions.length === checkedList.length;
     const indeterminate = checkedList.length > 0 && checkedList.length < plainOptions.length;
@@ -34,19 +34,24 @@ const SecondStep: React.FC<SecondStepProps> = ({
 
     return (
         <>
-            <p className='mb-1 mt-4'>Выберите аккаунт(ы)</p>
+            <p className='mb-1 mt-4'>Выберите счёт(а)</p>
             <Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>
-                Check all
+                Выбрать все
             </Checkbox>
             <Divider />
             <CheckboxGroup options={plainOptions} value={checkedList} onChange={onChange} />
             <div className='flex flex-row pt-4'>
-                <Button disabled={activeStep === 0} onClick={handleBack} className='mr-2'>
-                    Back
+                <Button onClick={handleBack} className='mr-2' disabled={loading}>
+                    Назад
                 </Button>
                 <div className='flex-auto' />
-                <Button type='primary' onClick={handleNext} disabled={!checkedList.length}>
-                    Далее
+                <Button
+                    type='primary'
+                    onClick={handleNext}
+                    disabled={!checkedList.length}
+                    loading={loading}
+                >
+                    Готово
                 </Button>
             </div>
         </>

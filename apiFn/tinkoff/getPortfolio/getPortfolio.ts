@@ -1,24 +1,19 @@
 import { IPortfolio } from '@models/tinkoffData';
 import { apiTinkoff } from '../instance';
 
-export const getPortfolio = async (
-    account: string,
-    token: string
-): Promise<IPortfolio | null> => {
-    try {
-        const res = await apiTinkoff.post(
-            '/portfolio',
-            {
-                accountId: account,
-                currency: 'RUB'
-            },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        if (res.status !== 200) return null;
-        return res.data;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
+/**
+ * Портфель по счёту. Ошибку НЕ глушим в null — пробрасываем, чтобы react-query
+ * различал состояния loading / error / success (иначе битый ответ выглядел бы
+ * как пустой портфель).
+ */
+export const getPortfolio = async (account: string, token: string): Promise<IPortfolio> => {
+    const res = await apiTinkoff.post(
+        '/portfolio',
+        {
+            accountId: account,
+            currency: 'RUB'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return res.data;
 };

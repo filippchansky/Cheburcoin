@@ -32,3 +32,78 @@
 .weightBarFill {
     height: 100%;
 }
+
+/* ── Мобильные карточки (замена таблиц на узких экранах) ───────────────── */
+
+.cardList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.card {
+    width: 100%;
+    border: 1px solid;
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cardClickable {
+    cursor: pointer;
+}
+
+.cardHead {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* Сетка «подпись / значение» — 2 колонки, значение прижато вправо. */
+.cardMetrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+}
+
+.metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.metricLabel {
+    font-size: 12px;
+    opacity: 0.5;
+    line-height: 1.2;
+}
+
+.metricValue {
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+.metricSub {
+    font-size: 12px;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Ряд «подпись — значение» в одну строку (для компактных карточек выплат). */
+.cardRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.showMore {
+    margin-top: 4px;
+}

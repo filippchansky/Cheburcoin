@@ -118,8 +118,11 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     ];
 
     // Календарь выплат считаем по всем счетам (агрегат), вне переключателя счёта.
-    const bondPositions = (aggregate?.positions ?? []).filter(
-        (item) => item.instrumentType === 'bond'
+    const allPositions = aggregate?.positions ?? [];
+    const bondPositions = allPositions.filter((item) => item.instrumentType === 'bond');
+    // Дивиденды платят и акции, и фонды (etf) — берём оба типа.
+    const sharePositions = allPositions.filter(
+        (item) => item.instrumentType === 'share' || item.instrumentType === 'etf'
     );
 
     // Срезы пончика для выбранного режима (классы/сектора/бумаги).
@@ -139,7 +142,7 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
             </div>
 
             {view === 'payments' ? (
-                <PaymentsView bondPositions={bondPositions} />
+                <PaymentsView bondPositions={bondPositions} sharePositions={sharePositions} />
             ) : (
                 <>
             <div className='flex items-center justify-between gap-3 mb-4 flex-wrap'>

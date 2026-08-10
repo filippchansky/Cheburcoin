@@ -15,3 +15,16 @@
     font-size: 20px;
     font-weight: 700;
 }
+
+// На телефоне выносим график в край экрана: гасим боковые поля глобального
+// контейнера (.px-4 = 16px в MainLayout), а шапку возвращаем в отступы.
+@media (max-width: 640px) {
+    .wrapper {
+        margin-left: -16px;
+        margin-right: -16px;
+    }
+    .head {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}

@@ -4,24 +4,14 @@ import ReactECharts from 'echarts-for-react';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import { intToRub } from '@/utils/formatCurrency';
-import { instrumentTypeLabel } from '@/utils/instrumentType';
-import { AllocationSlice } from '@/utils/portfolioScope';
+import { AllocSlice } from '@/utils/portfolioAllocation';
 
 interface AllocationDonutProps {
-    allocation: AllocationSlice[];
+    slices: AllocSlice[];
     total: number;
 }
 
-/** Цвета срезов по типу инструмента (hex — ECharts не понимает CSS-переменные). */
-const TYPE_COLOR: Record<string, string> = {
-    share: '#2a78d6',
-    bond: '#1baf7a',
-    etf: '#7f77dd',
-    currency: '#eda100',
-    futures: '#eb6834'
-};
-
-const AllocationDonut: React.FC<AllocationDonutProps> = ({ allocation, total }) => {
+const AllocationDonut: React.FC<AllocationDonutProps> = ({ slices, total }) => {
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
 
@@ -40,10 +30,10 @@ const AllocationDonut: React.FC<AllocationDonutProps> = ({ allocation, total }) 
                 itemStyle: { borderColor: palette.containerBg, borderWidth: 2 },
                 label: { show: false },
                 labelLine: { show: false },
-                data: allocation.map((slice) => ({
-                    name: instrumentTypeLabel(slice.type),
-                    value: Number(slice.value.toFixed(2)),
-                    itemStyle: { color: TYPE_COLOR[slice.type] ?? palette.textMuted }
+                data: slices.map((slice) => ({
+                    name: slice.label,
+                    value: slice.value,
+                    itemStyle: { color: slice.color }
                 }))
             }
         ]

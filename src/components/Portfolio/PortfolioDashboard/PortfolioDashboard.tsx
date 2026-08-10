@@ -3,28 +3,29 @@ import React from 'react';
 import { Alert, Button, Segmented, Skeleton } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { usePortfolio } from '@/hooks/usePortfolio';
+import { useSectors } from '@/hooks/useShares';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import { intToRub, formatPercent } from '@/utils/formatCurrency';
-import { instrumentTypeLabel } from '@/utils/instrumentType';
 import {
     PortfolioScope,
     scopeFromAggregate,
     scopeFromPortfolio
 } from '@/utils/portfolioScope';
+import { AllocationMode, buildAllocation } from '@/utils/portfolioAllocation';
 import AllocationDonut from './AllocationDonut';
 import PositionsTable from './PositionsTable';
+import PaymentsView from './PaymentsView';
 import style from './style.module.scss';
 
 const ALL = 'all';
+type View = 'overview' | 'payments';
 
-const SLICE_COLOR: Record<string, string> = {
-    share: '#2a78d6',
-    bond: '#1baf7a',
-    etf: '#7f77dd',
-    currency: '#eda100',
-    futures: '#eb6834'
-};
+const ALLOCATION_OPTIONS: { label: string; value: AllocationMode }[] = [
+    { label: 'Классы', value: 'type' },
+    { label: 'Сектора', value: 'sector' },
+    { label: 'Бумаги', value: 'asset' }
+];
 
 interface StatCardProps {
     label: string;
@@ -58,6 +59,9 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
     const [scope, setScope] = React.useState<string>(ALL);
+    const [view, setView] = React.useState<View>('overview');
+    const [allocMode, setAllocMode] = React.useState<AllocationMode>('type');
+    const { data: sectorMap = {} } = useSectors();
 
     if (status === 'loading') {
         return (
@@ -113,8 +117,31 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
         ...accounts.map((item) => ({ label: item.account.name, value: item.account.id }))
     ];
 
+    // Календарь выплат считаем по всем счетам (агрегат), вне переключателя счёта.
+    const bondPositions = (aggregate?.positions ?? []).filter(
+        (item) => item.instrumentType === 'bond'
+    );
+
+    // Срезы пончика для выбранного режима (классы/сектора/бумаги).
+    const allocationSlices = scopeData ? buildAllocation(allocMode, scopeData, sectorMap) : [];
+
     return (
         <div>
+            <div className='mb-4'>
+                <Segmented<View>
+                    options={[
+                        { label: 'Обзор', value: 'overview' },
+                        { label: 'Выплаты', value: 'payments' }
+                    ]}
+                    value={view}
+                    onChange={setView}
+                />
+            </div>
+
+            {view === 'payments' ? (
+                <PaymentsView bondPositions={bondPositions} />
+            ) : (
+                <>
             <div className='flex items-center justify-between gap-3 mb-4 flex-wrap'>
                 <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
                     <Segmented options={options} value={effectiveScope} onChange={(v) => setScope(v as string)} />
@@ -177,33 +204,43 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                 />
             </div>
 
-            {scopeData && scopeData.allocation.length ? (
-                <div
-                    className='grid gap-5 mb-6 items-center'
-                    style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
-                >
-                    <AllocationDonut allocation={scopeData.allocation} total={scopeData.total} />
-                    <div className='flex flex-col gap-2'>
-                        {scopeData.allocation.map((slice) => {
-                            const share = scopeData!.total > 0 ? (slice.value / scopeData!.total) * 100 : 0;
-                            return (
-                                <div key={slice.type} className='flex items-center gap-2' style={{ fontSize: 13 }}>
-                                    <span
-                                        style={{
-                                            width: 10,
-                                            height: 10,
-                                            borderRadius: 2,
-                                            background: SLICE_COLOR[slice.type] ?? palette.textMuted
-                                        }}
-                                    />
-                                    <span className='flex-1'>{instrumentTypeLabel(slice.type)}</span>
-                                    <span style={{ color: palette.textMuted }}>{share.toFixed(0)}%</span>
-                                    <span style={{ minWidth: 96, textAlign: 'right' }}>
-                                        {intToRub(slice.value)}
-                                    </span>
-                                </div>
-                            );
-                        })}
+            {scopeData && allocationSlices.length ? (
+                <div className='mb-6'>
+                    <div className='mb-3'>
+                        <Segmented<AllocationMode>
+                            size='small'
+                            options={ALLOCATION_OPTIONS}
+                            value={allocMode}
+                            onChange={setAllocMode}
+                        />
+                    </div>
+                    <div
+                        className='grid gap-5 items-center'
+                        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
+                    >
+                        <AllocationDonut slices={allocationSlices} total={scopeData.total} />
+                        <div className='flex flex-col gap-2'>
+                            {allocationSlices.map((slice) => {
+                                const share = scopeData!.total > 0 ? (slice.value / scopeData!.total) * 100 : 0;
+                                return (
+                                    <div key={slice.key} className='flex items-center gap-2' style={{ fontSize: 13 }}>
+                                        <span
+                                            style={{
+                                                width: 10,
+                                                height: 10,
+                                                borderRadius: 2,
+                                                background: slice.color
+                                            }}
+                                        />
+                                        <span className='flex-1'>{slice.label}</span>
+                                        <span style={{ color: palette.textMuted }}>{share.toFixed(0)}%</span>
+                                        <span style={{ minWidth: 96, textAlign: 'right' }}>
+                                            {intToRub(slice.value)}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             ) : null}
@@ -213,6 +250,8 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                 total={scopeData?.total ?? 0}
                 loading={tableLoading}
             />
+                </>
+            )}
         </div>
     );
 };

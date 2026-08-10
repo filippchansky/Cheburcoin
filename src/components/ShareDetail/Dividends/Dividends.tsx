@@ -1,6 +1,7 @@
 'use client';
 import React, { useMemo } from 'react';
-import { Empty, Table, TableProps, Tag } from 'antd';
+import { Empty, Table, TableProps, Tag, Tooltip } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { IShareDividend } from '@models/shareDetail';
 import { formatMoney } from '@/utils/formatCurrency';
@@ -13,9 +14,17 @@ import style from './style.module.scss';
 interface DividendsProps {
     dividends: IShareDividend[];
     price: number | null;
+    /** Историческая доходность на дату отсечки: дата отсечки → %|null. */
+    yieldByDate: Map<string, number | null>;
+    /** История цен ещё грузится — доходность на отсечку пока неизвестна. */
+    pricesLoading?: boolean;
 }
 
-const Dividends: React.FC<DividendsProps> = ({ dividends, price }) => {
+const yieldHint =
+    'Дивиденд к цене закрытия на дату отсечки (или ближайший торговый день раньше). ' +
+    'Историческая доходность, не к текущей цене. Прочерк — если бумага тогда не торговалась.';
+
+const Dividends: React.FC<DividendsProps> = ({ dividends, price, yieldByDate, pricesLoading }) => {
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
 
@@ -83,12 +92,20 @@ const Dividends: React.FC<DividendsProps> = ({ dividends, price }) => {
             render: (_, row) => formatMoney(row.value, row.currency)
         },
         {
-            title: 'Доходность к текущей цене',
+            title: (
+                <span className={style.yieldHead}>
+                    Доходность на отсечку
+                    <Tooltip title={yieldHint}>
+                        <InfoCircleOutlined className={style.hint} />
+                    </Tooltip>
+                </span>
+            ),
             key: 'yield',
             align: 'right',
             render: (_, row) => {
-                const y = dividendYield(row.value, price);
-                return y === null ? '—' : `${y.toFixed(2)}%`;
+                if (pricesLoading) return '…';
+                const y = yieldByDate.get(row.date);
+                return y == null ? '—' : `${y.toFixed(2)}%`;
             }
         }
     ];

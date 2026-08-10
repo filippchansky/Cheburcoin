@@ -18,7 +18,8 @@ export interface IPortfolio {
     virtualPositions: any[];
     dailyYield: number;
     dailyYieldRelative: number;
-    name: string;
+    /** Имя счёта фронт берёт из useTbank; бэк его больше не резолвит. */
+    name?: string;
     expectedYieldInt: number;
 }
 

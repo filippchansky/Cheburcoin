@@ -40,7 +40,11 @@ export const useSetTbankToken = () => {
             if (!uid) return;
             await updateDoc(doc(db, 'users', uid), { tokenTbank: token });
         },
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tbank', uid] })
+        // Токен вне queryKey портфеля — инвалидируем его вручную при смене токена.
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tbank', uid] });
+            queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+        }
     });
 };
 
@@ -54,6 +58,30 @@ export const useSetTbankAccounts = () => {
             if (!uid) return;
             await updateDoc(doc(db, 'users', uid), { activeAccounts: accounts });
         },
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tbank', uid] })
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tbank', uid] });
+            queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+        }
+    });
+};
+
+/** Отключение Т-Банка: сбрасываем токен и выбранные счета текущего пользователя. */
+export const useDisconnectTbank = () => {
+    const queryClient = useQueryClient();
+    const [user] = useAuthState(auth);
+    const uid = user?.uid;
+
+    return useMutation({
+        mutationFn: async () => {
+            if (!uid) return;
+            await updateDoc(doc(db, 'users', uid), {
+                tokenTbank: null,
+                activeAccounts: []
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['tbank', uid] });
+            queryClient.removeQueries({ queryKey: ['portfolio'] });
+        }
     });
 };

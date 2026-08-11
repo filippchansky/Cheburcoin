@@ -192,7 +192,7 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
                                     {position.name ?? position.ticker ?? '—'}
                                 </span>
                                 <span className={`${style.posSub} ${style.posSubMuted}`}>
-                                    {position.quantity} шт · {compactRub(position.averagePositionPrice)}
+                                    {position.quantity} шт · {compactRub(position.currentPrice)}
                                 </span>
                             </div>
                             <div className={style.posRight}>

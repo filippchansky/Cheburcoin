@@ -73,7 +73,7 @@ export interface IDividendsResponse {
 }
 
 /** Категория выплаты для группировки/цвета (совпадает с беком). */
-export type PaymentCategory = 'coupon' | 'dividend' | 'repayment' | 'tax' | 'other';
+export type PaymentCategory = 'coupon' | 'dividend' | 'repayment' | 'tax' | 'fee' | 'other';
 
 /** Одна фактически прошедшая выплата (ответ прокси `POST /payments`). */
 export interface IPaymentItem {
@@ -95,6 +95,45 @@ export interface IPaymentItem {
 
 export interface IPaymentsResponse {
     items: IPaymentItem[];
+}
+
+/** Одна продажа с готовым реализованным результатом (ответ прокси `POST /realized`). */
+export interface IRealizedItem {
+    id: string;
+    /** Дата продажи (ISO). */
+    date: string;
+    name: string | null;
+    ticker: string | null;
+    figi: string | null;
+    instrumentUid: string | null;
+    instrumentType: string | null;
+    /** Реализованный P/L по сделке (₽), посчитан Т-Банком. null у валютных конвертаций. */
+    realized: number | null;
+    /** Относительная доходность сделки, %. */
+    realizedRelative: number | null;
+    quantity: number | null;
+    currency: string | null;
+}
+
+export interface IRealizedResponse {
+    items: IRealizedItem[];
+}
+
+/** Внешний денежный поток за день для XIRR (ответ прокси `POST /cashflows`). */
+export interface ICashflowPoint {
+    /** День потока ‘YYYY-MM-DD’. */
+    date: string;
+    /** Знаковая сумма за день: вклад «−», вывод/дивиденд на карту «+», ₽. */
+    amount: number;
+}
+
+export interface ICashflowsResponse {
+    items: ICashflowPoint[];
+    hasNonRub: boolean;
+    /** Всего внесено (модуль вкладов), ₽ — для сверки. */
+    contributions: number;
+    /** Всего выведено инвестору (модуль), ₽ — для сверки. */
+    distributions: number;
 }
 
 export interface IPosition {

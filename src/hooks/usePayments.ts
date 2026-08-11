@@ -63,8 +63,13 @@ export const usePayments = (months: number): UsePaymentsResult => {
         }))
     });
 
+    // Комиссии (category 'fee') прилетают тем же эндпоинтом /payments (нужны для
+    // KPI «Доходность»), но вкладка «Выплаты» — про полученный доход. Здесь их
+    // отбрасываем: иначе отрицательный payment комиссии учёлся бы как «налог»
+    // (см. ниже payment < 0) и занизил бы месячные столбцы.
     const items: IPaymentItem[] = queries
         .flatMap((query) => query.data?.items ?? [])
+        .filter((item) => item.category !== 'fee')
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     let totalGross = 0;

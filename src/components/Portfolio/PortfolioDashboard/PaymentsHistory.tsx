@@ -50,6 +50,7 @@ const CATEGORY_META: Record<PaymentCategory, { label: string; color: string }> =
     dividend: { label: 'Дивиденд', color: 'blue' },
     repayment: { label: 'Погашение', color: 'purple' },
     tax: { label: 'Налог', color: 'red' },
+    fee: { label: 'Комиссия', color: 'volcano' },
     other: { label: 'Прочее', color: 'default' }
 };
 

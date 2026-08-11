@@ -13,9 +13,14 @@ import {
     scopeFromPortfolio
 } from '@/utils/portfolioScope';
 import { AllocationMode, buildAllocation } from '@/utils/portfolioAllocation';
+import { usePaymentsBreakdown } from '@/hooks/usePaymentsBreakdown';
+import { useRealized } from '@/hooks/useRealized';
+import { useCashflows } from '@/hooks/useCashflows';
+import { xirr } from '@/utils/xirr';
 import AllocationDonut from './AllocationDonut';
 import PositionsTable from './PositionsTable';
 import PaymentsView from './PaymentsView';
+import YieldBreakdownCard from './YieldBreakdownCard';
 import style from './style.module.scss';
 
 const ALL = 'all';
@@ -62,6 +67,21 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     const [view, setView] = React.useState<View>('overview');
     const [allocMode, setAllocMode] = React.useState<AllocationMode>('type');
     const { data: sectorMap = {} } = useSectors();
+    const {
+        byAccount: breakdownByAccount,
+        all: breakdownAll,
+        status: breakdownStatus
+    } = usePaymentsBreakdown();
+    const {
+        byAccount: realizedByAccount,
+        all: realizedAll,
+        status: realizedStatus
+    } = useRealized();
+    // const {
+    //     byAccount: cashflowsByAccount,
+    //     all: cashflowsAll,
+    //     status: cashflowsStatus
+    // } = useCashflows();
 
     if (status === 'loading') {
         return (
@@ -128,6 +148,29 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     // Срезы пончика для выбранного режима (классы/сектора/бумаги).
     const allocationSlices = scopeData ? buildAllocation(allocMode, scopeData, sectorMap) : [];
 
+    // Разбивка выплат для KPI «Доходность» уважает выбранный счёт: «Все счета» →
+    // сводный агрегат, иначе — конкретный счёт. Готова только в статусе ready.
+    const breakdown = breakdownStatus === 'ready'
+        ? (effectiveScope === ALL ? breakdownAll : breakdownByAccount[effectiveScope] ?? null)
+        : null;
+    const realizedScope = realizedStatus === 'ready'
+        ? (effectiveScope === ALL ? realizedAll.realized : realizedByAccount[effectiveScope]?.realized ?? 0)
+        : null;
+    const breakdownLoading = breakdownStatus === 'loading' || realizedStatus === 'loading';
+
+    // XIRR (годовая доходность с учётом дат/величины пополнений и выводов). К
+    // внешним потокам добавляем терминальную стоимость портфеля сегодня — как
+    // будто «продали всё». Считаем инлайн: hooks выше early-return нельзя.
+    // const xirrValue = (() => {
+    //     if (cashflowsStatus !== 'ready' || !scopeData || scopeData.total <= 0) return null;
+    //     const flows = effectiveScope === ALL
+    //         ? cashflowsAll.items
+    //         : cashflowsByAccount[effectiveScope]?.items ?? [];
+    //     if (!flows.length) return null;
+    //     const today = new Date().toISOString().slice(0, 10);
+    //     return xirr([...flows, { date: today, amount: scopeData.total }]);
+    // })();
+
     return (
         <div>
             <div className='mb-4'>
@@ -170,7 +213,7 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
 
             <div
                 className='grid gap-3 mb-5'
-                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', alignItems: 'start' }}
             >
                 <StatCard
                     label='Стоимость'
@@ -180,11 +223,11 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                     border={palette.border}
                     muted={palette.textMuted}
                 />
-                <StatCard
-                    label='Доходность'
-                    value={signed(scopeData?.plAbs ?? 0)}
-                    sub={formatPercent(scopeData?.plPct ?? 0)}
-                    tone={tone(scopeData?.plAbs ?? 0)}
+                <YieldBreakdownCard
+                    unrealized={scopeData?.plAbs ?? 0}
+                    breakdown={breakdown}
+                    realized={realizedScope}
+                    loading={breakdownLoading}
                     bg={palette.containerBg}
                     border={palette.border}
                     muted={palette.textMuted}
@@ -198,13 +241,22 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                     border={palette.border}
                     muted={palette.textMuted}
                 />
-                <StatCard
+                {/* <StatCard
+                    label='Годовых (XIRR)'
+                    value={xirrValue !== null ? formatPercent(xirrValue * 100) : '—'}
+                    sub={xirrValue !== null ? 'с учётом дат пополнений' : cashflowsStatus === 'loading' ? 'считаем…' : undefined}
+                    tone={xirrValue !== null ? tone(xirrValue) : 'neutral'}
+                    bg={palette.containerBg}
+                    border={palette.border}
+                    muted={palette.textMuted}
+                /> */}
+                {/* <StatCard
                     label='Позиций'
                     value={String(scopeData?.positions.length ?? 0)}
                     bg={palette.containerBg}
                     border={palette.border}
                     muted={palette.textMuted}
-                />
+                /> */}
             </div>
 
             {scopeData && allocationSlices.length ? (

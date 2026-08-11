@@ -1,5 +1,12 @@
+@import '../../../app/variables';
+
 .wrapper {
     width: 100%;
+}
+
+/* Вся строка — ссылка на детальную страницу фонда. */
+.row {
+    cursor: pointer;
 }
 
 /* Заголовки — одной строкой, чтобы шапка не разъезжалась на узких экранах. */
@@ -14,67 +21,56 @@
     }
 }
 
-.row {
-    cursor: pointer;
+.nameCell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .name {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 0;
 }
 
 .nameTitle {
-    color: inherit;
-    text-decoration: none;
     font-size: 15px;
     font-weight: 600;
-
-    &:hover {
-        text-decoration: underline;
-    }
+    line-height: 1.2;
 }
 
-.sector {
+.sub {
     font-size: 12px;
     opacity: 0.55;
     line-height: 1.2;
 }
 
-.tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-}
-
-.cell {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
+.mono {
     font-variant-numeric: tabular-nums;
-}
-
-.strong {
-    font-weight: 600;
     white-space: nowrap;
 }
 
 .muted {
-    font-size: 12px;
     opacity: 0.5;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
-/* Аномальная (артефактная/предбанкротная) доходность — заметно, но не «сочно». */
-.outlierYield {
+.up {
+    color: $green;
     font-weight: 600;
-    white-space: nowrap;
-    color: #d46b08;
-    cursor: help;
+}
+.down {
+    color: $red;
+    font-weight: 600;
+}
+.flat {
+    opacity: 0.5;
 }
 
-/* ── Мобильная карточка облигации (вариант B: шапка + теги + метрики) ───── */
+/* ── Мобильная карточка фонда (лого · тикер/название/тег ←→ цена · за день) ── */
 
 .mList {
     display: flex;
@@ -82,54 +78,62 @@
     width: 100%;
 }
 
-.mCard {
+.mRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     padding: 12px 2px;
     cursor: pointer;
 }
 
-.mCard:not(:first-child) {
+.mRow:not(:first-child) {
     border-top: 1px solid var(--rowBorder);
 }
 
-.mHead {
+.mMain {
+    flex: 1;
+    min-width: 0;
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
 }
 
 .mName {
     font-size: 15px;
     font-weight: 600;
     line-height: 1.2;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
-.mYield {
+.mRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.mValue {
     font-size: 15px;
     font-weight: 600;
+    line-height: 1.2;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
-    flex-shrink: 0;
 }
 
-.mCard .sector {
-    display: block;
-    margin-top: 3px;
-}
-
-.mCard .tags {
-    margin-top: 6px;
-}
-
-.mMetrics {
-    margin-top: 7px;
+.mSub {
     font-size: 12.5px;
-    opacity: 0.6;
-    line-height: 1.3;
+    line-height: 1.2;
+    white-space: nowrap;
     font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+}
+
+/* Внутри правой подстроки .up/.down красят текст — приглушение снимаем. */
+.mSub.up,
+.mSub.down {
+    opacity: 1;
 }
 
 .showMore {

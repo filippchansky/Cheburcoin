@@ -1,0 +1,98 @@
+@import '../../../app/_variables';
+
+.wrapper {
+    margin-top: 20px;
+    padding: 18px 22px 22px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.04);
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.sub {
+    font-size: 13px;
+    opacity: 0.55;
+    font-variant-numeric: tabular-nums;
+}
+
+.track {
+    position: relative;
+    height: 8px;
+    border-radius: 6px;
+    background: rgba(128, 128, 128, 0.18);
+}
+
+.fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(99, 91, 255, 0.35), $accent);
+}
+
+.marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.markerDot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: $accent;
+    box-shadow: 0 0 0 4px rgba(99, 91, 255, 0.2);
+}
+
+.markerLabel {
+    position: absolute;
+    top: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.bounds {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 34px;
+}
+
+.bound {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.boundRight {
+    align-items: flex-end;
+}
+
+.boundLabel {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+.boundValue {
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}

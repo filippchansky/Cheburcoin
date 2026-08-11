@@ -42,16 +42,16 @@
     align-items: flex-end;
     gap: 2px;
     font-variant-numeric: tabular-nums;
+}
 
-    &.up {
-        color: $green;
-    }
-    &.down {
-        color: $red;
-    }
-    &.flat {
-        opacity: 0.5;
-    }
+.up {
+    color: $green;
+}
+.down {
+    color: $red;
+}
+.flat {
+    opacity: 0.5;
 }
 
 .dayChangeRub {
@@ -62,4 +62,81 @@
 
 .dayChangePct {
     font-size: 12px;
+}
+
+/* ── Мобильный список акций (строка «лого · название ←→ цена · за день») ── */
+
+.mList {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.mRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 2px;
+    cursor: pointer;
+}
+
+.mRow:not(:first-child) {
+    border-top: 1px solid var(--rowBorder);
+}
+
+.mMain {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.mName {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.mValue {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.mSub {
+    font-size: 12.5px;
+    line-height: 1.2;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+}
+
+/* Внутри подстроки .up/.down красят текст — приглушение снимаем. */
+.mSub.up,
+.mSub.down {
+    opacity: 1;
+}
+
+.mWarn {
+    margin-left: 4px;
+    color: #d46b08;
+}
+
+.showMore {
+    margin-top: 12px;
 }

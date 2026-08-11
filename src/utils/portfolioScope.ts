@@ -38,17 +38,40 @@ const relative = (part: number, total: number) => {
     return base > 0 ? Number(((part / base) * 100).toFixed(2)) : 0;
 };
 
+/**
+ * «Разница цены активов» (переоценка открытых позиций) как сумма по бумагам
+ * (текущая цена − средняя цена покупки) × количество. Считаем сами, а не берём
+ * бэковский `expectedYieldInt` — он равен «средний % доходности портфеля ×
+ * полная стоимость портфеля (с кэшем)» и систематически ЗАНИЖАЕТ убыток, когда
+ * портфель в минусе (умножает процент на меньшую текущую базу вместо стоимости
+ * покупки). Валюту/кэш исключаем: это «разница цены АКТИВОВ» (бумаг), а у
+ * денежного остатка средней цены покупки в этом смысле нет.
+ */
+const priceGainAbs = (positions: IPosition[]): number =>
+    Number(
+        positions
+            .filter((pos) => pos.instrumentType !== 'currency')
+            .reduce((sum, pos) => {
+                const current = Number(pos.currentPrice) || 0;
+                const avg = Number(pos.averagePositionPrice) || 0;
+                const qty = Number(pos.quantity) || 0;
+                return sum + (current - avg) * qty;
+            }, 0)
+            .toFixed(2)
+    );
+
 /** Срез по одному счёту. */
 export const scopeFromPortfolio = (p: IPortfolio): PortfolioScope => {
     const byType: Record<string, number> = {};
     TYPE_FIELDS.forEach(([field, type]) => {
         byType[type] = Number(p[field]) || 0;
     });
+    const plAbs = priceGainAbs(p.positions ?? []);
     return {
         total: p.totalAmountPortfolio ?? 0,
         cash: p.totalAmountCurrencies ?? 0,
-        plAbs: p.expectedYieldInt ?? 0,
-        plPct: p.expectedYield ?? 0,
+        plAbs,
+        plPct: relative(plAbs, p.totalAmountPortfolio ?? 0),
         dayAbs: p.dailyYield ?? 0,
         dayPct: p.dailyYieldRelative ?? 0,
         allocation: buildAllocation(byType),
@@ -57,13 +80,16 @@ export const scopeFromPortfolio = (p: IPortfolio): PortfolioScope => {
 };
 
 /** Срез по всем счетам (из агрегата usePortfolio). Проценты считаем сами — в агрегате их нет. */
-export const scopeFromAggregate = (agg: PortfolioAggregate): PortfolioScope => ({
-    total: agg.totalAmountPortfolio,
-    cash: agg.byType.currency ?? 0,
-    plAbs: agg.expectedYieldInt,
-    plPct: relative(agg.expectedYieldInt, agg.totalAmountPortfolio),
-    dayAbs: agg.dailyYieldInt,
-    dayPct: relative(agg.dailyYieldInt, agg.totalAmountPortfolio),
-    allocation: buildAllocation(agg.byType),
-    positions: agg.positions.filter((item) => item.ticker)
-});
+export const scopeFromAggregate = (agg: PortfolioAggregate): PortfolioScope => {
+    const plAbs = priceGainAbs(agg.positions);
+    return {
+        total: agg.totalAmountPortfolio,
+        cash: agg.byType.currency ?? 0,
+        plAbs,
+        plPct: relative(plAbs, agg.totalAmountPortfolio),
+        dayAbs: agg.dailyYieldInt,
+        dayPct: relative(agg.dailyYieldInt, agg.totalAmountPortfolio),
+        allocation: buildAllocation(agg.byType),
+        positions: agg.positions.filter((item) => item.ticker)
+    };
+};

@@ -1,12 +1,14 @@
 'use client';
 import React from 'react';
-import { Empty, Table, TableProps, Tag, Tooltip } from 'antd';
+import { Button, Empty, Grid, Table, TableProps, Tag, Tooltip } from 'antd';
 import { WarningOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { IBond } from '@models/bond';
 import { formatMoney } from '@/utils/formatCurrency';
 import { formatDate, yearsUntil } from '@/utils/dateUtils';
 import { couponTag, defaultBadge, isYieldOutlier } from '@/utils/bondLabels';
+import { useDarkTheme } from '@/store/darkTheme';
+import { getPalette } from '@/theme/palette';
 import style from './style.module.scss';
 import Link from 'next/link';
 
@@ -16,7 +18,46 @@ interface BondsTableProps {
     error?: boolean;
 }
 
+/** Сколько карточек показываем на мобильных до нажатия «Показать ещё». */
+const MOBILE_PAGE = 25;
+
 const num = (value: number | null, digits = 2) => (value === null ? '—' : value.toFixed(digits));
+
+/** «2041-05-19» → «05.2041» для компактной строки метрик. */
+const maturityShort = (dateString: string) => {
+    if (!dateString || dateString === '0000-00-00') return '—';
+    const [year, month] = dateString.split('-');
+    return `${month}.${year}`;
+};
+
+/** Набор тегов выпуска (тип купона, аморт., оферта, дефолт) — общий для таблицы и карточек. */
+const BondTags: React.FC<{ bond: IBond }> = ({ bond }) => {
+    const badge = defaultBadge(bond);
+    return (
+        <span className={style.tags}>
+            <Tag color={couponTag[bond.couponType].color} bordered={false}>
+                {couponTag[bond.couponType].label}
+            </Tag>
+            {bond.hasAmortization && (
+                <Tag color='purple' bordered={false}>
+                    Аморт.
+                </Tag>
+            )}
+            {bond.hasOffer && (
+                <Tag color='volcano' bordered={false}>
+                    Оферта
+                </Tag>
+            )}
+            {badge && (
+                <Tooltip title={badge.tooltip}>
+                    <Tag color={badge.color} bordered={false}>
+                        {badge.label}
+                    </Tag>
+                </Tooltip>
+            )}
+        </span>
+    );
+};
 
 const columns: TableProps<IBond>['columns'] = [
     {
@@ -29,33 +70,7 @@ const columns: TableProps<IBond>['columns'] = [
             <div className={style.name}>
                 <Link target='_blank' href={`/bonds/${bond.secid}`} className={style.nameTitle}>{bond.shortName}</Link>
                 {bond.sector && <span className={style.sector}>{bond.sector}</span>}
-                <span className={style.tags}>
-                    <Tag color={couponTag[bond.couponType].color} bordered={false}>
-                        {couponTag[bond.couponType].label}
-                    </Tag>
-                    {bond.hasAmortization && (
-                        <Tag color='purple' bordered={false}>
-                            Аморт.
-                        </Tag>
-                    )}
-                    {bond.hasOffer && (
-                        <Tag color='volcano' bordered={false}>
-                            Оферта
-                        </Tag>
-                    )}
-                    {(() => {
-                        const badge = defaultBadge(bond);
-                        return (
-                            badge && (
-                                <Tooltip title={badge.tooltip}>
-                                    <Tag color={badge.color} bordered={false}>
-                                        {badge.label}
-                                    </Tag>
-                                </Tooltip>
-                            )
-                        );
-                    })()}
-                </span>
+                <BondTags bond={bond} />
             </div>
         )
     },
@@ -170,10 +185,68 @@ const columns: TableProps<IBond>['columns'] = [
 
 const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
     const router = useRouter();
+    const { darkTheme } = useDarkTheme();
+    const palette = getPalette(darkTheme);
+    const screens = Grid.useBreakpoint();
+    const isMobile = screens.md === false;
+    const [visible, setVisible] = React.useState(MOBILE_PAGE);
 
     if (error) {
         return (
             <Empty description='Не удалось загрузить облигации. Попробуйте обновить страницу.' />
+        );
+    }
+
+    if (isMobile) {
+        const shown = data.slice(0, visible);
+        return (
+            <div className={style.wrapper}>
+                <div
+                    className={style.mList}
+                    style={{ ['--rowBorder' as string]: palette.border }}
+                >
+                    {shown.map((bond) => {
+                        const outlier = isYieldOutlier(bond);
+                        const coupon =
+                            bond.couponPercent === null
+                                ? 'плав.'
+                                : `${bond.couponPercent.toFixed(2)}%`;
+                        return (
+                            <div
+                                key={bond.id}
+                                className={style.mCard}
+                                onClick={() => router.push(`/bonds/${bond.secid}`)}
+                            >
+                                <div className={style.mHead}>
+                                    <span className={style.mName}>{bond.shortName}</span>
+                                    {outlier ? (
+                                        <span className={`${style.mYield} ${style.outlierYield}`}>
+                                            {num(bond.yield)}% <WarningOutlined />
+                                        </span>
+                                    ) : (
+                                        <span className={style.mYield}>{num(bond.yield)}%</span>
+                                    )}
+                                </div>
+                                {bond.sector && <span className={style.sector}>{bond.sector}</span>}
+                                <BondTags bond={bond} />
+                                <div className={style.mMetrics}>
+                                    Купон {coupon} · Погашение {maturityShort(bond.maturityDate)} ·
+                                    Цена {num(bond.pricePercent, 1)}%
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {visible < data.length ? (
+                        <Button
+                            className={style.showMore}
+                            block
+                            onClick={() => setVisible((v) => v + MOBILE_PAGE)}
+                        >
+                            Показать ещё
+                        </Button>
+                    ) : null}
+                </div>
+            </div>
         );
     }
 

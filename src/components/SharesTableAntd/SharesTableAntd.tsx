@@ -1,13 +1,19 @@
 'use client';
 import { IFilteredShares } from '@models/filteredShares';
-import { Empty, Table, TableProps, Tooltip } from 'antd';
+import { Button, Empty, Grid, Table, TableProps, Tooltip } from 'antd';
 import { WarningOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { formatPercent, intToRub } from '@/utils/formatCurrency';
 import { isDividendYieldOutlier } from '@/utils/shareCalc';
+import { useDarkTheme } from '@/store/darkTheme';
+import { getPalette } from '@/theme/palette';
+import ShareLogo from '../ShareLogo/ShareLogo';
 import TableName from '../TableName/TableName';
 import style from './style.module.scss';
+
+/** Сколько строк показываем на мобильных до нажатия «Показать ещё». */
+const MOBILE_PAGE = 25;
 
 interface SharesTableAntdProps {
     data: IFilteredShares[];
@@ -21,8 +27,17 @@ const dayChangeClass = (percent: number) => {
     return style.flat;
 };
 
+/** Подпись дивдоходности для мобильной подстроки: «Див 10.42%» / «Див —». */
+const dividendLabel = (dividendYield?: number | null) =>
+    dividendYield && dividendYield > 0 ? `Див ${dividendYield.toFixed(2)}%` : 'Див —';
+
 const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error }) => {
     const router = useRouter();
+    const { darkTheme } = useDarkTheme();
+    const palette = getPalette(darkTheme);
+    const screens = Grid.useBreakpoint();
+    const isMobile = screens.md === false;
+    const [visible, setVisible] = React.useState(MOBILE_PAGE);
 
     const columns: TableProps<IFilteredShares>['columns'] = [
         {
@@ -116,6 +131,56 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
         return (
             <div className={style.wrapper}>
                 <Empty description='Не удалось загрузить список акций. Попробуйте обновить страницу.' />
+            </div>
+        );
+    }
+
+    if (isMobile) {
+        // По убыванию капитализации — как defaultSortOrder колонки на десктопе.
+        const sorted = [...data].sort((a, b) => b.capitalization - a.capitalization);
+        const shown = sorted.slice(0, visible);
+        return (
+            <div className={style.wrapper}>
+                <div className={style.mList} style={{ ['--rowBorder' as string]: palette.border }}>
+                    {shown.map((share) => {
+                        const cls = dayChangeClass(share.dayChangePercent);
+                        const outlier =
+                            !!share.dividendYield && isDividendYieldOutlier(share.dividendYield);
+                        return (
+                            <div
+                                key={share.id}
+                                className={style.mRow}
+                                onClick={() => router.push(`/moex/${share.ticker}`)}
+                            >
+                                <ShareLogo icon={share.icon} ticker={share.ticker} size={40} />
+                                <div className={style.mMain}>
+                                    <span className={style.mName}>{share.title}</span>
+                                    <span className={style.mSub}>
+                                        {share.ticker} · {dividendLabel(share.dividendYield)}
+                                        {outlier && <WarningOutlined className={style.mWarn} />}
+                                    </span>
+                                </div>
+                                <div className={style.mRight}>
+                                    <span className={style.mValue}>{intToRub(share.price)}</span>
+                                    <span className={`${style.mSub} ${cls}`}>
+                                        {share.dayChange > 0 ? '+' : ''}
+                                        {intToRub(share.dayChange)} ·{' '}
+                                        {formatPercent(share.dayChangePercent)}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {visible < sorted.length ? (
+                        <Button
+                            className={style.showMore}
+                            block
+                            onClick={() => setVisible((v) => v + MOBILE_PAGE)}
+                        >
+                            Показать ещё
+                        </Button>
+                    ) : null}
+                </div>
             </div>
         );
     }

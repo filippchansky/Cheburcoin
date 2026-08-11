@@ -25,10 +25,14 @@
 }
 
 .nameTitle {
-    color: aliceblue;
+    color: inherit;
     text-decoration: none;
     font-size: 15px;
     font-weight: 600;
+
+    &:hover {
+        text-decoration: underline;
+    }
 }
 
 .sector {
@@ -68,4 +72,66 @@
     white-space: nowrap;
     color: #d46b08;
     cursor: help;
+}
+
+/* ── Мобильная карточка облигации (вариант B: шапка + теги + метрики) ───── */
+
+.mList {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.mCard {
+    padding: 12px 2px;
+    cursor: pointer;
+}
+
+.mCard:not(:first-child) {
+    border-top: 1px solid var(--rowBorder);
+}
+
+.mHead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.mName {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mYield {
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+.mCard .sector {
+    display: block;
+    margin-top: 3px;
+}
+
+.mCard .tags {
+    margin-top: 6px;
+}
+
+.mMetrics {
+    margin-top: 7px;
+    font-size: 12.5px;
+    opacity: 0.6;
+    line-height: 1.3;
+    font-variant-numeric: tabular-nums;
+}
+
+.showMore {
+    margin-top: 12px;
 }

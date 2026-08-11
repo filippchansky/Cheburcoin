@@ -1,0 +1,87 @@
+@import '../../../app/_variables';
+
+.wrapper {
+    margin-top: 32px;
+    padding: 20px 22px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px 32px;
+}
+
+.row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.12);
+}
+
+.label {
+    font-size: 13px;
+    opacity: 0.5;
+    white-space: nowrap;
+}
+
+.value {
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.block {
+    margin-top: 20px;
+}
+
+.blockLabel {
+    display: block;
+    font-size: 13px;
+    opacity: 0.5;
+    margin-bottom: 10px;
+}
+
+.sessions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.session {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+
+    &.on {
+        color: $green;
+    }
+    &.off {
+        opacity: 0.4;
+    }
+}
+
+.note {
+    margin-top: 18px;
+    font-size: 12px;
+    opacity: 0.45;
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}

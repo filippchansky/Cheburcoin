@@ -32,6 +32,7 @@ export const mapShares = (raw: IShares): IFilteredShares[] => {
                 openPrice: toNumber(mkt(row, 'OPEN')),
                 lowPrice: toNumber(mkt(row, 'LOW')),
                 highPrice: toNumber(mkt(row, 'HIGH')),
+                currency: sec<string>(security, 'CURRENCYID') ?? 'SUR',
                 prevPrice,
                 capitalization: toNumber(mkt(row, 'ISSUECAPITALIZATION')),
                 valToday: toNumber(mkt(row, 'VALTODAY')),

@@ -4,7 +4,7 @@ import { Button, Empty, Grid, Table, TableProps, Tooltip } from 'antd';
 import { WarningOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import React from 'react';
-import { formatPercent, intToRub } from '@/utils/formatCurrency';
+import { formatAmount, formatPercent, intToRub } from '@/utils/formatCurrency';
 import { isDividendYieldOutlier } from '@/utils/shareCalc';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
@@ -56,7 +56,9 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             key: 'price',
             align: 'right',
             width: 110,
-            render: (_, { price }) => <span className={style.mono}>{intToRub(price)}</span>,
+            render: (_, { price, currency }) => (
+                <span className={style.mono}>{formatAmount(price, currency)}</span>
+            ),
             sorter: (a, b) => a.price - b.price
         },
         {
@@ -65,11 +67,10 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             key: 'dayChangePercent',
             align: 'right',
             width: 120,
-            render: (_, { dayChange, dayChangePercent }) => (
+            render: (_, { dayChange, dayChangePercent, currency }) => (
                 <div className={`${style.dayChange} ${dayChangeClass(dayChangePercent)}`}>
                     <span className={style.dayChangeRub}>
-                        {dayChange > 0 ? '+' : ''}
-                        {intToRub(dayChange)}
+                        {formatAmount(dayChange, currency, { signed: true })}
                     </span>
                     <span className={style.dayChangePct}>{formatPercent(dayChangePercent)}</span>
                 </div>
@@ -82,7 +83,9 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             key: 'lowPrice',
             align: 'right',
             width: 110,
-            render: (_, { lowPrice }) => <span className={style.mono}>{intToRub(lowPrice)}</span>
+            render: (_, { lowPrice, currency }) => (
+                <span className={style.mono}>{formatAmount(lowPrice, currency)}</span>
+            )
         },
         {
             title: 'Максимум',
@@ -90,7 +93,9 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
             key: 'highPrice',
             align: 'right',
             width: 110,
-            render: (_, { highPrice }) => <span className={style.mono}>{intToRub(highPrice)}</span>
+            render: (_, { highPrice, currency }) => (
+                <span className={style.mono}>{formatAmount(highPrice, currency)}</span>
+            )
         },
         {
             title: 'Дивдоходность',
@@ -161,11 +166,14 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
                                     </span>
                                 </div>
                                 <div className={style.mRight}>
-                                    <span className={style.mValue}>{intToRub(share.price)}</span>
+                                    <span className={style.mValue}>
+                                        {formatAmount(share.price, share.currency)}
+                                    </span>
                                     <span className={`${style.mSub} ${cls}`}>
-                                        {share.dayChange > 0 ? '+' : ''}
-                                        {intToRub(share.dayChange)} ·{' '}
-                                        {formatPercent(share.dayChangePercent)}
+                                        {formatAmount(share.dayChange, share.currency, {
+                                            signed: true
+                                        })}{' '}
+                                        · {formatPercent(share.dayChangePercent)}
                                     </span>
                                 </div>
                             </div>

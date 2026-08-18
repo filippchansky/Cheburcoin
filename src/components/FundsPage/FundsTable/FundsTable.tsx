@@ -3,7 +3,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Empty, Grid, Table, TableProps, Tag } from 'antd';
 import { IFund } from '@models/fund';
-import { formatPercent, intToRub, intToRubCompact } from '@/utils/formatCurrency';
+import { formatAmount, formatPercent, intToRubCompact } from '@/utils/formatCurrency';
 import { FUND_CATEGORY_COLOR, FUND_CATEGORY_LABEL } from '@api/moex/funds/fundCategory';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
@@ -60,7 +60,9 @@ const columns: TableProps<IFund>['columns'] = [
         align: 'right',
         width: 120,
         render: (_, fund) => (
-            <span className={style.mono}>{fund.price === null ? '—' : intToRub(fund.price)}</span>
+            <span className={style.mono}>
+                {fund.price === null ? '—' : formatAmount(fund.price, fund.currency)}
+            </span>
         ),
         sorter: (a, b) => (a.price ?? 0) - (b.price ?? 0)
     },
@@ -131,7 +133,9 @@ const FundsTable: React.FC<FundsTableProps> = ({ data, loading, error }) => {
                                 </div>
                                 <div className={style.mRight}>
                                     <span className={style.mValue}>
-                                        {fund.price === null ? '—' : intToRub(fund.price)}
+                                        {fund.price === null
+                                            ? '—'
+                                            : formatAmount(fund.price, fund.currency)}
                                     </span>
                                     <span className={`${style.mSub} ${cls}`}>
                                         {formatPercent(fund.dayChangePercent)}

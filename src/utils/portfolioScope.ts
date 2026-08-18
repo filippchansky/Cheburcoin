@@ -23,7 +23,8 @@ const TYPE_FIELDS: [keyof IPortfolio, string][] = [
     ['totalAmountBonds', 'bond'],
     ['totalAmountEtf', 'etf'],
     ['totalAmountCurrencies', 'currency'],
-    ['totalAmountFutures', 'futures']
+    ['totalAmountFutures', 'futures'],
+    ['totalAmountCrypto', 'crypto']
 ];
 
 const buildAllocation = (source: Record<string, number>): AllocationSlice[] =>
@@ -45,12 +46,14 @@ const relative = (part: number, total: number) => {
  * полная стоимость портфеля (с кэшем)» и систематически ЗАНИЖАЕТ убыток, когда
  * портфель в минусе (умножает процент на меньшую текущую базу вместо стоимости
  * покупки). Валюту/кэш исключаем: это «разница цены АКТИВОВ» (бумаг), а у
- * денежного остатка средней цены покупки в этом смысле нет.
+ * денежного остатка средней цены покупки в этом смысле нет. Крипту (Trezor) тоже
+ * исключаем: кошелёк не знает себестоимость (averagePositionPrice=0), иначе весь
+ * баланс монеты фиктивно засчитался бы как прибыль.
  */
 const priceGainAbs = (positions: IPosition[]): number =>
     Number(
         positions
-            .filter((pos) => pos.instrumentType !== 'currency')
+            .filter((pos) => pos.instrumentType !== 'currency' && pos.instrumentType !== 'crypto')
             .reduce((sum, pos) => {
                 const current = Number(pos.currentPrice) || 0;
                 const avg = Number(pos.averagePositionPrice) || 0;

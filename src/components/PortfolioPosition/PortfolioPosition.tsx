@@ -6,7 +6,7 @@ import { IPosition, IPaymentItem } from '@models/tinkoffData';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { useInstrumentPayments } from '@/hooks/useInstrumentPayments';
 import { useInstrumentRealized } from '@/hooks/useInstrumentRealized';
-import { intToRub } from '@/utils/formatCurrency';
+import { formatAmount, intToRub } from '@/utils/formatCurrency';
 import { formatDateTime } from '@/utils/dateUtils';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
@@ -179,7 +179,8 @@ const PortfolioPosition: React.FC<PortfolioPositionProps> = ({ ticker, isin, isP
             <div className={style.head}>
                 <h2 className={style.title}>В портфеле</h2>
                 <Tag bordered={false} className={style.qtyTag}>
-                    {position.quantity} шт · {intToRub(position.priceInPorfolio)}
+                    {position.quantity} шт ·{' '}
+                    {formatAmount(position.priceInPorfolio, position.currency)}
                 </Tag>
             </div>
 
@@ -252,7 +253,7 @@ const PortfolioPosition: React.FC<PortfolioPositionProps> = ({ ticker, isin, isP
                 ) : null}
                 <StatRow
                     label='Средняя цена'
-                    value={intToRub(position.averagePositionPrice)}
+                    value={formatAmount(position.averagePositionPrice, position.currency)}
                     muted={palette.textMuted}
                     border={palette.border}
                 />

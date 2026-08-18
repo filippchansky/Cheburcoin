@@ -5,7 +5,7 @@ import { RiseOutlined, FallOutlined, CrownOutlined } from '@ant-design/icons';
 import * as motion from 'motion/react-client';
 import Link from 'next/link';
 import React from 'react';
-import { formatPercent, intToRub, intToRubCompact } from '@/utils/formatCurrency';
+import { formatAmount, formatPercent, intToRubCompact } from '@/utils/formatCurrency';
 import ShareLogo from '../../ShareLogo/ShareLogo';
 import style from './style.module.scss';
 
@@ -66,7 +66,7 @@ const MoverCard: React.FC<MoverCardProps> = ({
                                   <div className={style.itemName}>
                                       <span className={style.itemTicker}>{share.ticker}</span>
                                       <span className={style.itemPrice}>
-                                          {intToRub(share.price)}
+                                          {formatAmount(share.price, share.currency)}
                                       </span>
                                   </div>
                                   <span className={`${style.itemMetric} ${style[accent]}`}>

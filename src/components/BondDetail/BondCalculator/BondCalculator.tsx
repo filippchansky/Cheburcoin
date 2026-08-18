@@ -4,6 +4,7 @@ import { InputNumber, Slider, Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { IBond } from '@models/bond';
 import { formatMoney } from '@/utils/formatCurrency';
+import { currencySymbol } from '@/utils/currencyRegistry';
 import { calcBondInvestment } from '@/utils/bondCalc';
 import style from './style.module.scss';
 
@@ -20,6 +21,7 @@ const BondCalculator: React.FC<BondCalculatorProps> = ({ bond }) => {
 
     const result = useMemo(() => calcBondInvestment(bond, amount), [bond, amount]);
     const money = (value: number) => formatMoney(value, bond.currency);
+    const symbol = currencySymbol(bond.currency);
 
     if (result === null) {
         return (
@@ -53,7 +55,7 @@ const BondCalculator: React.FC<BondCalculatorProps> = ({ bond }) => {
         {
             label: 'Доходность к погашению',
             value: result.ytm === null ? '—' : `${result.ytm.toFixed(2)}%`,
-            hint: 'Эффективная доходность к погашению по данным MOEX: предполагает реинвестирование купонов под ту же ставку. Доход в ₽ выше считается без реинвестирования.'
+            hint: 'Эффективная доходность к погашению по данным MOEX: предполагает реинвестирование купонов под ту же ставку. Доход в деньгах выше считается без реинвестирования.'
         }
     ];
 
@@ -70,7 +72,7 @@ const BondCalculator: React.FC<BondCalculatorProps> = ({ bond }) => {
                         min={0}
                         step={1000}
                         controls={false}
-                        addonAfter='₽'
+                        addonAfter={symbol}
                         formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
                         parser={(value) => Number((value ?? '').replace(/\s/g, '')) || 0}
                         onChange={(value) => setAmount(value ?? 0)}
@@ -97,7 +99,7 @@ const BondCalculator: React.FC<BondCalculatorProps> = ({ bond }) => {
                 max={SLIDER_MAX}
                 step={SLIDER_STEP}
                 onChange={setAmount}
-                tooltip={{ formatter: (value) => `${(value ?? 0).toLocaleString('ru-RU')} ₽` }}
+                tooltip={{ formatter: (value) => `${(value ?? 0).toLocaleString('ru-RU')} ${symbol}` }}
             />
 
             <div className={style.results}>

@@ -4,6 +4,7 @@ import { InputNumber, Slider, Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { IFundDetail } from '@models/fundDetail';
 import { formatMoney, intToGrouped } from '@/utils/formatCurrency';
+import { currencySymbol } from '@/utils/currencyRegistry';
 import { calcFundPosition, pluralPai } from '@/utils/fundCalc';
 import style from './style.module.scss';
 
@@ -23,6 +24,7 @@ const FundCalculator: React.FC<FundCalculatorProps> = ({ fund }) => {
         [amount, fund.price, fund.lotSize]
     );
     const money = (value: number) => formatMoney(value, fund.currency);
+    const symbol = currencySymbol(fund.currency);
 
     if (result === null) {
         return (
@@ -69,7 +71,7 @@ const FundCalculator: React.FC<FundCalculatorProps> = ({ fund }) => {
                         min={0}
                         step={1000}
                         controls={false}
-                        addonAfter='₽'
+                        addonAfter={symbol}
                         formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
                         parser={(value) => Number((value ?? '').replace(/\s/g, '')) || 0}
                         onChange={(value) => setAmount(value ?? 0)}
@@ -96,7 +98,7 @@ const FundCalculator: React.FC<FundCalculatorProps> = ({ fund }) => {
                 max={SLIDER_MAX}
                 step={SLIDER_STEP}
                 onChange={setAmount}
-                tooltip={{ formatter: (value) => `${(value ?? 0).toLocaleString('ru-RU')} ₽` }}
+                tooltip={{ formatter: (value) => `${(value ?? 0).toLocaleString('ru-RU')} ${symbol}` }}
             />
 
             <div className={style.results}>

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { IPosition } from '@models/tinkoffData';
 import TableName from '@/components/TableName/TableName';
 import ShareLogo from '@/components/ShareLogo/ShareLogo';
-import { intToRub, formatPercent } from '@/utils/formatCurrency';
+import { formatAmount, formatPercent } from '@/utils/formatCurrency';
+import { currencySymbol } from '@/utils/currencyRegistry';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import {
@@ -26,11 +27,16 @@ interface PositionsTableProps {
 /** Сколько строк показываем на мобильных до нажатия «Показать ещё». */
 const MOBILE_PAGE = 20;
 
-/** Рубли без принудительных копеек: 38520 → «38 520 ₽», 161.78 → «161,78 ₽». */
-const compactRub = (v: number) => `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(v)} ₽`;
+/**
+ * Сумма без принудительных копеек + символ валюты позиции: 38520/rub → «38 520 ₽»,
+ * 161.78/usd → «161,78 $». currency=null (рублёвая/старый бек) → рубль.
+ */
+const compactAmount = (v: number, currency: string | null) =>
+    `${new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 }).format(v)} ${currencySymbol(currency)}`;
 
-/** То же со знаком: «+2 266,44 ₽», «−7 599,5 ₽». */
-const signedCompactRub = (v: number) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${compactRub(Math.abs(v))}`;
+/** То же со знаком: «+2 266,44 ₽», «−7 599,5 $». */
+const signedCompactAmount = (v: number, currency: string | null) =>
+    `${v > 0 ? '+' : v < 0 ? '−' : ''}${compactAmount(Math.abs(v), currency)}`;
 
 /** Куда ведёт клик по строке (страница есть только у акций/фондов и облигаций). */
 const positionHref = (position: IPosition): string | null => {
@@ -121,21 +127,24 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
             title: 'В портфеле',
             key: 'value',
             align: 'right',
-            render: (_, { priceInPorfolio }) => intToRub(priceInPorfolio)
+            render: (_, { priceInPorfolio, currency }) => formatAmount(priceInPorfolio, currency)
         },
         {
             title: 'Прибыль',
             key: 'pl',
             align: 'right',
             render: (_, record) => {
+                // У крипты (Trezor) нет себестоимости — прибыль не считаем.
+                if (record.instrumentType === 'crypto') {
+                    return <span style={{ color: palette.textMuted }}>—</span>;
+                }
                 const value = totalProfit(record);
                 const positive = value >= 0;
                 const cls = positive ? style.gain : style.loss;
                 return (
                     <div className='flex flex-col'>
                         <span className={cls}>
-                            {positive ? '+' : ''}
-                            {intToRub(value)}
+                            {formatAmount(value, record.currency, { signed: true })}
                         </span>
                         <span className={[cls, style.sub].join(' ')}>
                             {formatPercent(totalProfitPercent(record))}
@@ -149,12 +158,11 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
             title: 'За день',
             key: 'daily',
             align: 'right',
-            render: (_, { dailyYield }) => {
+            render: (_, { dailyYield, currency }) => {
                 const positive = (dailyYield ?? 0) >= 0;
                 return (
                     <span className={positive ? style.gain : style.loss}>
-                        {positive ? '+' : ''}
-                        {intToRub(dailyYield ?? 0)}
+                        {formatAmount(dailyYield ?? 0, currency, { signed: true })}
                     </span>
                 );
             },
@@ -164,11 +172,11 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
             title: 'Цена',
             key: 'price',
             align: 'right',
-            render: (_, { averagePositionPrice, currentPrice }) => (
+            render: (_, { averagePositionPrice, currentPrice, currency }) => (
                 <div className='flex flex-col'>
-                    <span>{intToRub(currentPrice)}</span>
+                    <span>{formatAmount(currentPrice, currency)}</span>
                     <span className={style.sub} style={{ color: palette.textMuted }}>
-                        {intToRub(averagePositionPrice)}
+                        {formatAmount(averagePositionPrice, currency)}
                     </span>
                 </div>
             )
@@ -207,15 +215,22 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
                                     {position.name ?? position.ticker ?? '—'}
                                 </span>
                                 <span className={`${style.posSub} ${style.posSubMuted}`}>
-                                    {position.quantity} шт · {compactRub(position.currentPrice)}
+                                    {position.quantity} шт ·{' '}
+                                    {compactAmount(position.currentPrice, position.currency)}
                                 </span>
                             </div>
                             <div className={style.posRight}>
-                                <span className={style.posValue}>{compactRub(position.priceInPorfolio)}</span>
-                                <span className={`${style.posSub} ${plCls}`}>
-                                    {signedCompactRub(profit)} ·{' '}
-                                    {Math.abs(totalProfitPercent(position)).toFixed(2)}%
+                                <span className={style.posValue}>
+                                    {compactAmount(position.priceInPorfolio, position.currency)}
                                 </span>
+                                {position.instrumentType === 'crypto' ? (
+                                    <span className={`${style.posSub} ${style.posSubMuted}`}>—</span>
+                                ) : (
+                                    <span className={`${style.posSub} ${plCls}`}>
+                                        {signedCompactAmount(profit, position.currency)} ·{' '}
+                                        {Math.abs(totalProfitPercent(position)).toFixed(2)}%
+                                    </span>
+                                )}
                             </div>
                         </div>
                     );

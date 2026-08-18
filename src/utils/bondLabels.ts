@@ -22,38 +22,6 @@ export const bondStructure = (bond: IBond): BondStructure => {
     return 'plain';
 };
 
-/** Бейдж статуса дефолта по бумаге: тег + пояснение, либо null (всё чисто). */
-export interface DefaultBadge {
-    label: string;
-    color: string;
-    tooltip: string;
-}
-
-/**
- * Метка дефолта для бумаги. Реальный дефолт (HASDEFAULT) и технический
- * (HASTECHNICALDEFAULT) — разные события: реальный приоритетнее и отображается
- * красным, технический — оранжевым. null — по бумаге дефолтов не зафиксировано.
- */
-export const defaultBadge = (bond: IBond): DefaultBadge | null => {
-    if (bond.hasDefault) {
-        return {
-            label: 'Дефолт',
-            color: 'red',
-            tooltip:
-                'По бумаге зафиксирован дефолт эмитента — неисполнение обязательств по выплате купона или номинала. Высокий риск потери вложений.'
-        };
-    }
-    if (bond.hasTechnicalDefault) {
-        return {
-            label: 'Техдефолт',
-            color: 'orange',
-            tooltip:
-                'По бумаге был технический дефолт — просрочка выплаты купона или номинала, как правило впоследствии погашенная. Флаг биржи остаётся навсегда и не означает, что эмитент в дефолте сейчас.'
-        };
-    }
-    return null;
-};
-
 /** Тир кредитного рейтинга для окраски бейджа. */
 export type RatingTier = 'high' | 'good' | 'moderate' | 'speculative' | 'withdrawn' | 'unknown';
 
@@ -141,6 +109,43 @@ export const YIELD_OUTLIER_THRESHOLD = 50;
 /** Доходность бумаги выглядит аномальной (вероятен дефолт или ошибка данных). */
 export const isYieldOutlier = (bond: IBond): boolean =>
     bond.yield !== null && bond.yield > YIELD_OUTLIER_THRESHOLD;
+
+/**
+ * Спред доходности над ключевой ставкой (п.п.), выше которого бумага считается
+ * рискованной: рынок требует премию за риск. 6 п.п. (при ставке 14% → порог YTM 20%)
+ * оставляет в основном гос/муни и крепкие корпораты. Единственная «ручка» фильтра.
+ */
+export const RELIABLE_SPREAD = 6;
+
+/**
+ * Цена (% от номинала), ниже которой бумага БЕЗ рассчитанного YTM считается стрессовой.
+ * У YTM нет — это либо флоатер (держится у номинала), либо дефолтная бумага, по которой
+ * биржа не может посчитать доходность. Различаем их по цене: здоровый флоатер ~90–105%,
+ * дефолт обваливается до 20–40%. Порог 80 с запасом отделяет одно от другого.
+ */
+const DISTRESS_PRICE = 80;
+
+/**
+ * Рыночная оценка надёжности для фильтра «Только надёжные»: бумага надёжна, если рынок
+ * НЕ закладывает в неё стресс. Опираемся на YTM — он уже вбирает цену: у проблемной
+ * бумаги низкая цена даёт высокую доходность. Когда YTM рассчитан, стресс = аномальный
+ * YTM (isYieldOutlier) или доходность выше ключевой ставки на RELIABLE_SPREAD. Когда YTM
+ * НЕ рассчитан (null), спред применить нельзя — падаем на цену: обвал ниже DISTRESS_PRICE
+ * = стресс (ловит дефолтные бумаги вроде RU000A106YN4, у которых MOEX не считает YTM),
+ * цена у номинала = норма (флоатеры остаются надёжными).
+ *
+ * keyRate — текущая ключевая ставка ЦБ, % годовых. Если она ещё не загружена
+ * (null/undefined), оценить спред нельзя — считаем бумагу надёжной, чтобы фильтр
+ * деградировал в no-op, а не прятал весь список.
+ */
+export const isReliableBond = (bond: IBond, keyRate: number | null | undefined): boolean => {
+    if (keyRate === null || keyRate === undefined) return true;
+    if (isYieldOutlier(bond)) return false;
+    if (bond.yield === null) {
+        return bond.pricePercent === null || bond.pricePercent >= DISTRESS_PRICE;
+    }
+    return bond.yield <= keyRate + RELIABLE_SPREAD;
+};
 
 /**
  * Ранг надёжности для сортировки по умолчанию (меньше — надёжнее):

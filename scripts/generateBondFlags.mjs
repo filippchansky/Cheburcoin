@@ -2,14 +2,14 @@
 /**
  * Генерация статической карты признаков надёжности облигаций для сборки (вариант B).
  *
- * Флаги ISQUALIFIEDINVESTORS / HASDEFAULT / HASTECHNICALDEFAULT MOEX отдаёт только в
- * карточке /iss/securities/{secid} (в списочном эндпоинте их нет, bulk-эндпоинта нет).
- * Гонять ~1700 карточек в рантайме на serverless нельзя, поэтому обходим их один раз
- * на этапе `next build` и кладём результат в public/bonds-flags.json — статикой.
+ * Флаг ISQUALIFIEDINVESTORS MOEX отдаёт только в карточке /iss/securities/{secid}
+ * (в списочном эндпоинте его нет, bulk-эндпоинта нет). Гонять ~1700 карточек в
+ * рантайме на serverless нельзя, поэтому обходим их один раз на этапе `next build`
+ * и кладём результат в public/bonds-flags.json — статикой.
  * Клиент читает готовый файл, никакой серверной логики.
  *
  * Устойчивость к сбою — приоритет: скрипт НИКОГДА не роняет сборку. При сетевой ошибке
- * пишет пустую карту (фильтры «квал/дефолт» тогда просто ничего не отсекают) и выходит с 0.
+ * пишет пустую карту (фильтр «квал» тогда просто ничего не отсекает) и выходит с 0.
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -72,12 +72,7 @@ const fetchFlags = async (secid) => {
         const byName = new Map(desc.data.map((row) => [String(row[nameIdx]), String(row[valueIdx] ?? '')]));
 
         return {
-            qualified: byName.get('ISQUALIFIEDINVESTORS') === '1',
-            // Реальный дефолт и технический дефолт — разные вещи: техдефолт это просрочка
-            // выплаты (часто впоследствии погашенная), а не банкротство эмитента. Держим
-            // их раздельно, чтобы UI мог показывать их разными метками/фильтрами.
-            hasDefault: byName.get('HASDEFAULT') === '1',
-            hasTechnicalDefault: byName.get('HASTECHNICALDEFAULT') === '1'
+            qualified: byName.get('ISQUALIFIEDINVESTORS') === '1'
         };
     } catch {
         return undefined;
@@ -106,11 +101,9 @@ const main = async () => {
         }
 
         const qual = Object.values(flags).filter((f) => f.qualified).length;
-        const def = Object.values(flags).filter((f) => f.hasDefault).length;
-        const tech = Object.values(flags).filter((f) => f.hasTechnicalDefault).length;
         await write(flags);
         console.log(
-            `[flags] готово: ${Object.keys(flags).length} бумаг (квал ${qual}, дефолт ${def}, техдефолт ${tech}) за ${(
+            `[flags] готово: ${Object.keys(flags).length} бумаг (квал ${qual}) за ${(
                 (Date.now() - started) /
                 1000
             ).toFixed(1)}с → public/bonds-flags.json`

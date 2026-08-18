@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { IBond } from '@models/bond';
 import { formatMoney } from '@/utils/formatCurrency';
 import { formatDate, yearsUntil } from '@/utils/dateUtils';
-import { couponTag, defaultBadge, isYieldOutlier } from '@/utils/bondLabels';
+import { couponTag, isYieldOutlier } from '@/utils/bondLabels';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import style from './style.module.scss';
@@ -30,9 +30,8 @@ const maturityShort = (dateString: string) => {
     return `${month}.${year}`;
 };
 
-/** Набор тегов выпуска (тип купона, аморт., оферта, дефолт) — общий для таблицы и карточек. */
+/** Набор тегов выпуска (тип купона, аморт., оферта) — общий для таблицы и карточек. */
 const BondTags: React.FC<{ bond: IBond }> = ({ bond }) => {
-    const badge = defaultBadge(bond);
     return (
         <span className={style.tags}>
             <Tag color={couponTag[bond.couponType].color} bordered={false}>
@@ -47,13 +46,6 @@ const BondTags: React.FC<{ bond: IBond }> = ({ bond }) => {
                 <Tag color='volcano' bordered={false}>
                     Оферта
                 </Tag>
-            )}
-            {badge && (
-                <Tooltip title={badge.tooltip}>
-                    <Tag color={badge.color} bordered={false}>
-                        {badge.label}
-                    </Tag>
-                </Tooltip>
             )}
         </span>
     );

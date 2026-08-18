@@ -174,23 +174,15 @@ export const bondFilters: BondFilter[] = [
             value === 'yes' ? bond.forQualified === true : bond.forQualified !== true
     },
     {
-        key: 'default',
-        label: 'Дефолт',
+        key: 'reliable',
+        label: 'Только надёжные',
+        type: 'checkbox',
         group: FILTER_GROUPS.risk,
-        // Реальный дефолт (HASDEFAULT) и технический (HASTECHNICALDEFAULT) — разные
-        // события, поэтому фильтруются раздельно. «Без дефолтных» убирает оба.
-        options: [
-            { label: 'Дефолт: любой', value: ALL },
-            { label: 'Без дефолтных', value: 'no' },
-            { label: 'Реальный дефолт', value: 'real' },
-            { label: 'Технический дефолт', value: 'tech' }
-        ],
-        match: (bond, value) => {
-            if (value === 'real') return bond.hasDefault === true;
-            if (value === 'tech') return bond.hasTechnicalDefault === true;
-            // 'no': чистые бумаги — ни реального, ни технического дефолта.
-            return bond.hasDefault !== true && bond.hasTechnicalDefault !== true;
-        }
+        // Рыночная надёжность: рынок не закладывает в бумагу стресс (см. isReliableBond).
+        // Признак bond.reliable считается в BondsPage из цены/доходности и ключевой ставки;
+        // undefined (ставка не загружена) трактуем как «надёжна» — фильтр не отсекает.
+        options: [],
+        match: (bond) => bond.reliable !== false
     },
     {
         key: 'belowFace',

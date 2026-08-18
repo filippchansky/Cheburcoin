@@ -7,8 +7,8 @@ import {
     FilterOutlined,
     SearchOutlined
 } from '@ant-design/icons';
-import { useBonds, useBondFlags } from '@/hooks/useBonds';
-import { defaultBondOrder } from '@/utils/bondLabels';
+import { useBonds, useBondFlags, useKeyRate } from '@/hooks/useBonds';
+import { defaultBondOrder, isReliableBond } from '@/utils/bondLabels';
 import {
     ALL,
     BondFilter,
@@ -26,6 +26,7 @@ import style from './style.module.scss';
 const BondsPage: React.FC = () => {
     const { data: bonds = [], isLoading, isError } = useBonds();
     const { data: flags } = useBondFlags();
+    const { data: keyRate } = useKeyRate();
     const [search, setSearch] = useState('');
     const [filters, setFilters] = useState<Record<string, FilterValue>>(defaultFilterValues);
     const [showAll, setShowAll] = useState(false);
@@ -39,21 +40,21 @@ const BondsPage: React.FC = () => {
     const optionsOf = (filter: BondFilter) =>
         filter.getOptions ? filter.getOptions(bonds) : filter.options;
 
-    /** Список, обогащённый признаками надёжности из статической карты по secid. */
-    const bondsWithFlags = useMemo(() => {
-        if (!flags) return bonds;
-        return bonds.map((bond) => {
-            const flag = flags[bond.secid];
-            return flag
-                ? {
-                      ...bond,
-                      forQualified: flag.qualified,
-                      hasDefault: flag.hasDefault,
-                      hasTechnicalDefault: flag.hasTechnicalDefault
-                  }
-                : bond;
-        });
-    }, [bonds, flags]);
+    /**
+     * Список, обогащённый признаками для фильтров: квал-флаг из статической карты по
+     * secid и производный признак рыночной надёжности (цена/доходность против ключевой
+     * ставки). reliable считаем всегда — при незагруженной ставке isReliableBond вернёт
+     * true, и фильтр «Только надёжные» просто ничего не отсечёт.
+     */
+    const bondsWithFlags = useMemo(
+        () =>
+            bonds.map((bond) => ({
+                ...bond,
+                forQualified: flags?.[bond.secid]?.qualified,
+                reliable: isReliableBond(bond, keyRate?.rate)
+            })),
+        [bonds, flags, keyRate]
+    );
 
     /** Видимые при текущих значениях фильтры (скрытые не влияют на отбор). */
     const visibleFilters = useMemo(

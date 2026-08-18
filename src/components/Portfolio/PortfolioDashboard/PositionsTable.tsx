@@ -19,6 +19,8 @@ interface PositionsTableProps {
     positions: IPosition[];
     total: number;
     loading?: boolean;
+    /** instrumentUid → (реализованный + начисления нетто), ₽. Для полной «Прибыли». */
+    profitExtraByUid?: Map<string, number>;
 }
 
 /** Сколько строк показываем на мобильных до нажатия «Показать ещё». */
@@ -40,13 +42,24 @@ const positionHref = (position: IPosition): string | null => {
     return null;
 };
 
-const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loading }) => {
+const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loading, profitExtraByUid }) => {
     const router = useRouter();
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
     const screens = Grid.useBreakpoint();
     const isMobile = screens.md === false;
     const [visible, setVisible] = React.useState(MOBILE_PAGE);
+
+    // Полная прибыль = курсовая (FIFO) + реализованный P/L проданных лотов +
+    // начисления нетто (с учётом связки обычка↔префы). Совпадает с «Прибыль» на
+    // странице бумаги. Пока история выплат/продаж грузится — extra=0 (курсовая).
+    const totalProfit = (position: IPosition) =>
+        (position.expectedYieldFifo ?? 0) + (profitExtraByUid?.get(position.instrumentUid) ?? 0);
+    // Процент — от вложенного (средняя × кол-во), чтобы согласовался с рублём.
+    const totalProfitPercent = (position: IPosition) => {
+        const invested = (position.averagePositionPrice ?? 0) * (position.quantity ?? 0);
+        return invested > 0 ? (totalProfit(position) / invested) * 100 : 0;
+    };
 
     const columns: TableProps<IPosition>['columns'] = [
         {
@@ -111,25 +124,26 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
             render: (_, { priceInPorfolio }) => intToRub(priceInPorfolio)
         },
         {
-            title: 'Доходность',
+            title: 'Прибыль',
             key: 'pl',
             align: 'right',
-            render: (_, { expectedYieldFifo, expectedYieldPercent }) => {
-                const positive = expectedYieldFifo >= 0;
+            render: (_, record) => {
+                const value = totalProfit(record);
+                const positive = value >= 0;
                 const cls = positive ? style.gain : style.loss;
                 return (
                     <div className='flex flex-col'>
                         <span className={cls}>
                             {positive ? '+' : ''}
-                            {intToRub(expectedYieldFifo)}
+                            {intToRub(value)}
                         </span>
                         <span className={[cls, style.sub].join(' ')}>
-                            {formatPercent(expectedYieldPercent ?? 0)}
+                            {formatPercent(totalProfitPercent(record))}
                         </span>
                     </div>
                 );
             },
-            sorter: (a, b) => a.expectedYieldFifo - b.expectedYieldFifo
+            sorter: (a, b) => totalProfit(a) - totalProfit(b)
         },
         {
             title: 'За день',
@@ -179,7 +193,8 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
             <div className={style.posList} style={{ ['--rowBorder' as string]: palette.border }}>
                 {shown.map((position) => {
                     const href = positionHref(position);
-                    const plCls = position.expectedYieldFifo >= 0 ? style.gain : style.loss;
+                    const profit = totalProfit(position);
+                    const plCls = profit >= 0 ? style.gain : style.loss;
                     return (
                         <div
                             key={position.positionUid}
@@ -198,8 +213,8 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
                             <div className={style.posRight}>
                                 <span className={style.posValue}>{compactRub(position.priceInPorfolio)}</span>
                                 <span className={`${style.posSub} ${plCls}`}>
-                                    {signedCompactRub(position.expectedYieldFifo)} ·{' '}
-                                    {Math.abs(position.expectedYieldPercent ?? 0).toFixed(2)}%
+                                    {signedCompactRub(profit)} ·{' '}
+                                    {Math.abs(totalProfitPercent(position)).toFixed(2)}%
                                 </span>
                             </div>
                         </div>

@@ -15,6 +15,7 @@ import {
 import { AllocationMode, buildAllocation } from '@/utils/portfolioAllocation';
 import { usePaymentsBreakdown } from '@/hooks/usePaymentsBreakdown';
 import { useRealized } from '@/hooks/useRealized';
+import { usePositionsProfit } from '@/hooks/usePositionsProfit';
 import { useCashflows } from '@/hooks/useCashflows';
 import { xirr } from '@/utils/xirr';
 import AllocationDonut from './AllocationDonut';
@@ -77,6 +78,7 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
         all: realizedAll,
         status: realizedStatus
     } = useRealized();
+    const { extraByUid: profitExtraByUid } = usePositionsProfit();
     // const {
     //     byAccount: cashflowsByAccount,
     //     all: cashflowsAll,
@@ -304,6 +306,7 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                 positions={scopeData?.positions ?? []}
                 total={scopeData?.total ?? 0}
                 loading={tableLoading}
+                profitExtraByUid={profitExtraByUid}
             />
                 </>
             )}

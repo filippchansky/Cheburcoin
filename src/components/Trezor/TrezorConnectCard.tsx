@@ -1,92 +1,83 @@
 'use client';
 import React from 'react';
-import { Alert, Button, Card, Checkbox, Popconfirm, Space, Tag, Typography, notification } from 'antd';
-import { DisconnectOutlined, SafetyOutlined, UsbOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Input, Popconfirm, Space, Tag, Typography, notification } from 'antd';
+import { DisconnectOutlined, SafetyOutlined, WalletOutlined } from '@ant-design/icons';
 import { ITrezorAccount } from '@models/trezor';
 import { TREZOR_COINS } from '@/lib/trezor/coins';
-import { connectTrezor } from '@/lib/trezor/discover';
+import { validateDescriptor } from '@/lib/trezor/validate';
 import { useTrezor, useSetTrezorAccounts, useDisconnectTrezor } from '@/hooks/useTrezor';
 
-const { Text } = Typography;
+const { Text, Link } = Typography;
 
-const COIN_OPTIONS = TREZOR_COINS.map((coin) => ({
-    label: `${coin.name} (${coin.key})`,
-    value: coin.key
-}));
-const ALL_KEYS = TREZOR_COINS.map((coin) => coin.key);
+// Стабильная ссылка на пустой список — чтобы эффект синхронизации не зацикливался
+// на новом [] при каждом рендере (react-query отдаёт undefined до загрузки).
+const EMPTY: ITrezorAccount[] = [];
+
+/** Подсказка: что вставлять и где взять, по каждой монете. */
+const HINTS: Record<string, { placeholder: string; where: string }> = {
+    BTC: {
+        placeholder: 'xpub… / zpub…',
+        where: 'Trezor Suite → аккаунт Bitcoin → «Детали аккаунта» → «Показать публичный ключ»'
+    },
+    ETH: {
+        placeholder: '0x…',
+        where: 'Trezor Suite → аккаунт Ethereum → адрес получения (0x…)'
+    },
+    SOL: {
+        placeholder: 'base58-адрес',
+        where: 'Trezor Suite → аккаунт Solana → адрес получения'
+    }
+};
 
 /** Сокращает дескриптор для показа: xpub6C…dyUhrx. */
 const shortDescriptor = (d: string) => (d.length > 16 ? `${d.slice(0, 8)}…${d.slice(-6)}` : d);
 
-interface TrezorConnectCardProps {}
-
-const TrezorConnectCard: React.FC<TrezorConnectCardProps> = ({}) => {
-    const { data: accounts = [] } = useTrezor();
+const TrezorConnectCard: React.FC = () => {
+    const { data } = useTrezor();
+    const accounts = data ?? EMPTY;
     const setTrezor = useSetTrezorAccounts();
     const disconnect = useDisconnectTrezor();
-    const [checked, setChecked] = React.useState<string[]>(ALL_KEYS);
-    const [loading, setLoading] = React.useState(false);
     const [api, contextHolder] = notification.useNotification();
+
+    const [descriptors, setDescriptors] = React.useState<Record<string, string>>({});
+    const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+    // Подтягиваем сохранённые дескрипторы в поля при загрузке/смене аккаунтов.
+    React.useEffect(() => {
+        const next: Record<string, string> = {};
+        accounts.forEach((a) => {
+            next[a.coin] = a.descriptor;
+        });
+        setDescriptors(next);
+    }, [accounts]);
 
     const isConnected = accounts.length > 0;
 
-    const handleConnect = async () => {
-        if (!checked.length) return;
-        setLoading(true);
-        try {
-            const { accounts: fetched, failed, cancelled } = await connectTrezor(checked);
+    const handleSave = async () => {
+        const next: ITrezorAccount[] = [];
+        const nextErrors: Record<string, string> = {};
 
-            if (cancelled) {
-                api.info({ placement: 'top', message: 'Подключение отменено' });
-                return;
+        for (const coin of TREZOR_COINS) {
+            const raw = (descriptors[coin.key] ?? '').trim();
+            if (!raw) continue; // пустое поле = монета не подключена
+            const err = validateDescriptor(coin.adapter, raw);
+            if (err) {
+                nextErrors[coin.key] = err;
+                continue;
             }
-            if (!fetched.length) {
-                api.error({
-                    placement: 'top',
-                    message: 'Не удалось получить данные',
-                    description: 'Проверьте, что устройство подключено и разблокировано.'
-                });
-                return;
-            }
-
-            // Мерджим с уже подключёнными: переподключённые монеты обновляем,
-            // остальные (не выбранные сейчас) сохраняем.
-            const map = new Map<string, ITrezorAccount>(accounts.map((a) => [a.coin, a]));
-            fetched.forEach((a) => map.set(a.coin, a));
-            await setTrezor.mutateAsync(Array.from(map.values()));
-
-            if (failed.length) {
-                api.warning({
-                    placement: 'top',
-                    duration: 0,
-                    message: 'Часть монет не подключилась',
-                    description: (
-                        <div>
-                            <div>Остальные добавлены. Причина по монетам:</div>
-                            {failed.map((f) => (
-                                <div key={f.coin}>
-                                    <b>{f.coin}</b>: {f.error}
-                                </div>
-                            ))}
-                        </div>
-                    )
-                });
-            } else {
-                api.success({ placement: 'top', message: 'Trezor подключён' });
-            }
-        } catch (error) {
-            // Ошибка инициализации SDK / связи с устройством (не отмена).
-            api.error({
-                placement: 'top',
-                message: 'Ошибка Trezor',
-                description:
-                    error instanceof Error
-                        ? error.message
-                        : 'Не удалось связаться с устройством. Нужен Chrome/Chromium с WebUSB.'
-            });
-        } finally {
-            setLoading(false);
+            next.push({ coin: coin.key, descriptor: raw, label: coin.name });
         }
+
+        setErrors(nextErrors);
+        if (Object.keys(nextErrors).length) return;
+
+        if (!next.length) {
+            api.info({ placement: 'top', message: 'Вставьте хотя бы один дескриптор' });
+            return;
+        }
+
+        await setTrezor.mutateAsync(next);
+        api.success({ placement: 'top', message: 'Сохранено' });
     };
 
     return (
@@ -94,15 +85,15 @@ const TrezorConnectCard: React.FC<TrezorConnectCardProps> = ({}) => {
             className='mt-6'
             title={
                 <Space>
-                    <UsbOutlined />
+                    <WalletOutlined />
                     Аппаратный кошелёк Trezor
                 </Space>
             }
         >
             {contextHolder}
 
-            {isConnected ? (
-                <div className='flex flex-col gap-3'>
+            <div className='flex flex-col gap-4'>
+                {isConnected && (
                     <div>
                         <Text type='secondary'>Подключённые счета:</Text>
                         <div className='mt-2 flex flex-wrap gap-2'>
@@ -113,26 +104,56 @@ const TrezorConnectCard: React.FC<TrezorConnectCardProps> = ({}) => {
                             ))}
                         </div>
                     </div>
-                    <div>
-                        <Text type='secondary' className='block mb-2'>
-                            Переподключить, чтобы добавить монеты или обновить дескрипторы:
-                        </Text>
-                        <Checkbox.Group
-                            options={COIN_OPTIONS}
-                            value={checked}
-                            onChange={(v) => setChecked(v as string[])}
-                        />
-                    </div>
-                    <Space>
-                        <Button
-                            type='primary'
-                            icon={<UsbOutlined />}
-                            loading={loading}
-                            disabled={!checked.length}
-                            onClick={handleConnect}
-                        >
-                            Переподключить
-                        </Button>
+                )}
+
+                <Text type='secondary'>
+                    Вставьте публичный дескриптор — <b>xpub для BTC</b> или адрес получения для
+                    ETH/SOL. Это read-only: показывает баланс, но не позволяет тратить. Приватные
+                    ключи остаются на устройстве, само устройство подключать не нужно.
+                </Text>
+
+                {TREZOR_COINS.map((coin) => {
+                    const hint = HINTS[coin.key];
+                    return (
+                        <div key={coin.key} className='flex flex-col gap-1'>
+                            <Text strong>
+                                {coin.name} ({coin.key})
+                            </Text>
+                            <Input
+                                allowClear
+                                value={descriptors[coin.key] ?? ''}
+                                placeholder={hint?.placeholder}
+                                status={errors[coin.key] ? 'error' : undefined}
+                                onChange={(e) =>
+                                    setDescriptors((prev) => ({
+                                        ...prev,
+                                        [coin.key]: e.target.value
+                                    }))
+                                }
+                            />
+                            {errors[coin.key] ? (
+                                <Text type='danger' className='text-xs'>
+                                    {errors[coin.key]}
+                                </Text>
+                            ) : (
+                                <Text type='secondary' className='text-xs'>
+                                    {hint?.where}
+                                </Text>
+                            )}
+                        </div>
+                    );
+                })}
+
+                <Space>
+                    <Button
+                        type='primary'
+                        icon={<WalletOutlined />}
+                        loading={setTrezor.isPending}
+                        onClick={handleSave}
+                    >
+                        Сохранить
+                    </Button>
+                    {isConnected && (
                         <Popconfirm
                             title='Отключить Trezor?'
                             description='Сохранённые дескрипторы будут удалены.'
@@ -145,40 +166,24 @@ const TrezorConnectCard: React.FC<TrezorConnectCardProps> = ({}) => {
                                 Отключить
                             </Button>
                         </Popconfirm>
-                    </Space>
-                </div>
-            ) : (
-                <div className='flex flex-col gap-3'>
-                    <Text type='secondary'>
-                        Подключите Trezor, чтобы видеть крипто-баланс в общем портфеле. Приватные
-                        ключи остаются на устройстве — сохраняется только публичный дескриптор
-                        (read-only: показывает баланс, но не позволяет тратить).
-                    </Text>
-                    <Checkbox.Group
-                        options={COIN_OPTIONS}
-                        value={checked}
-                        onChange={(v) => setChecked(v as string[])}
-                    />
-                    <div>
-                        <Button
-                            type='primary'
-                            icon={<UsbOutlined />}
-                            loading={loading}
-                            disabled={!checked.length}
-                            onClick={handleConnect}
-                        >
-                            Подключить Trezor
-                        </Button>
-                    </div>
-                </div>
-            )}
+                    )}
+                </Space>
+            </div>
 
             <Alert
                 className='mt-4'
                 type='info'
                 showIcon
                 icon={<SafetyOutlined />}
-                message='Нужен браузер на базе Chromium (Chrome/Edge) с поддержкой WebUSB. При первом подключении подтвердите экспорт на экране устройства.'
+                message={
+                    <span>
+                        Дескриптор виден в Trezor Suite. Для BTC берите именно расширенный ключ
+                        (xpub/zpub) — по одному адресу баланс будет неполным.{' '}
+                        <Link href='https://suite.trezor.io' target='_blank' rel='noreferrer'>
+                            Открыть Trezor Suite
+                        </Link>
+                    </span>
+                }
             />
         </Card>
     );

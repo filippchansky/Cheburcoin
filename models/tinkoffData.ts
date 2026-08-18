@@ -170,4 +170,16 @@ export interface IPosition {
      * старый ответ бека без поля (fallback на рубль в formatAmount).
      */
     currency: string | null
+    /**
+     * Крипта (Trezor): сколько из `quantity` сейчас в стейкинге, в монетах.
+     * Задаётся только для instrumentType='crypto' и только если стейкинг > 0 —
+     * иначе undefined. Используется для пометки «в стейкинге» в таблице.
+     */
+    stakedQuantity?: number
+    /**
+     * Крипта (Trezor): цена и стоимость позиции в USD. Для двухвалютного показа
+     * ($ основной, ₽ снизу). Только instrumentType='crypto'; агрегаты портфеля
+     * при этом остаются в рублях (priceInPorfolio).
+     */
+    usd?: { price: number; value: number }
 }

@@ -38,6 +38,13 @@ const compactAmount = (v: number, currency: string | null) =>
 const signedCompactAmount = (v: number, currency: string | null) =>
     `${v > 0 ? '+' : v < 0 ? '−' : ''}${compactAmount(Math.abs(v), currency)}`;
 
+/** Кол-во монет с точностью до 4 знаков: 1.2345 SOL. */
+const formatCoins = (v: number) =>
+    new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 4 }).format(v);
+
+/** Доллары: без копеек от $100, с копейками для мелких сумм. */
+const formatUsd = (v: number) => formatAmount(v, 'USD', { digits: Math.abs(v) >= 100 ? 0 : 2 });
+
 /** Куда ведёт клик по строке (страница есть только у акций/фондов и облигаций). */
 const positionHref = (position: IPosition): string | null => {
     if (!position.ticker) return null;
@@ -48,7 +55,12 @@ const positionHref = (position: IPosition): string | null => {
     return null;
 };
 
-const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loading, profitExtraByUid }) => {
+const PositionsTable: React.FC<PositionsTableProps> = ({
+    positions,
+    total,
+    loading,
+    profitExtraByUid
+}) => {
     const router = useRouter();
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
@@ -72,62 +84,53 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
             title: 'Наименование',
             dataIndex: 'name',
             key: 'name',
-            render: (_, { ticker, name, isin }) => (
-                <TableName icon={isin ?? ''} ticker={ticker ?? ''} title={name ?? ''} />
+            render: (_, { ticker, name, isin, stakedQuantity }) => (
+                <div className='flex flex-col gap-1'>
+                    <TableName icon={isin ?? ''} ticker={ticker ?? ''} title={name ?? ''} />
+                    {stakedQuantity ? (
+                        <Tag color='gold' style={{ width: 'fit-content' }}>
+                            🔒 В стейкинге: {formatCoins(stakedQuantity)} {ticker}
+                        </Tag>
+                    ) : null}
+                </div>
             )
-        },
-        {
-            title: 'Тип',
-            key: 'instrumentType',
-            render: (_, { instrumentType }) => (
-                <Tag color={INSTRUMENT_TYPE_COLOR[instrumentType]}>
-                    {instrumentTypeLabel(instrumentType)}
-                </Tag>
-            ),
-            filters: PORTFOLIO_INSTRUMENT_TYPES.map((type) => ({
-                text: instrumentTypeLabel(type),
-                value: type
-            })),
-            onFilter: (value, record) => record.instrumentType === value
-        },
-        {
-            title: 'Кол-во',
-            key: 'quantity',
-            align: 'right',
-            render: (_, { quantity }) => quantity
-        },
-        {
-            title: 'Вес',
-            key: 'weight',
-            align: 'right',
-            render: (_, { priceInPorfolio }) => {
-                const weight = total > 0 ? (priceInPorfolio / total) * 100 : 0;
-                return (
-                    <div className={style.weightCell}>
-                        <span>{weight.toFixed(1)}%</span>
-                        <div
-                            className={style.weightBar}
-                            style={{ background: palette.border }}
-                        >
-                            <div
-                                className={style.weightBarFill}
-                                style={{
-                                    width: `${Math.min(weight, 100)}%`,
-                                    background: palette.primary
-                                }}
-                            />
-                        </div>
-                    </div>
-                );
-            },
-            sorter: (a, b) => a.priceInPorfolio - b.priceInPorfolio,
-            defaultSortOrder: 'descend'
         },
         {
             title: 'В портфеле',
             key: 'value',
             align: 'right',
-            render: (_, { priceInPorfolio, currency }) => formatAmount(priceInPorfolio, currency)
+            render: (_, { priceInPorfolio, currency, usd }) =>
+                usd ? (
+                    <div className='flex flex-col'>
+                        <span>{formatUsd(usd.value)}</span>
+                        <span className={style.sub} style={{ color: palette.textMuted }}>
+                            {formatAmount(priceInPorfolio, 'RUB')}
+                        </span>
+                    </div>
+                ) : (
+                    formatAmount(priceInPorfolio, currency)
+                )
+        },
+        {
+            title: 'Цена',
+            key: 'price',
+            align: 'right',
+            render: (_, { averagePositionPrice, currentPrice, currency, usd }) =>
+                usd ? (
+                    <div className='flex flex-col'>
+                        <span>{formatUsd(usd.price)}</span>
+                        <span className={style.sub} style={{ color: palette.textMuted }}>
+                            {formatAmount(currentPrice, 'RUB')}
+                        </span>
+                    </div>
+                ) : (
+                    <div className='flex flex-col'>
+                        <span>{formatAmount(currentPrice, currency)}</span>
+                        <span className={style.sub} style={{ color: palette.textMuted }}>
+                            {formatAmount(averagePositionPrice, currency)}
+                        </span>
+                    </div>
+                )
         },
         {
             title: 'Прибыль',
@@ -169,17 +172,50 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
             sorter: (a, b) => (a.dailyYield ?? 0) - (b.dailyYield ?? 0)
         },
         {
-            title: 'Цена',
-            key: 'price',
+            title: 'Кол-во',
+            key: 'quantity',
             align: 'right',
-            render: (_, { averagePositionPrice, currentPrice, currency }) => (
-                <div className='flex flex-col'>
-                    <span>{formatAmount(currentPrice, currency)}</span>
-                    <span className={style.sub} style={{ color: palette.textMuted }}>
-                        {formatAmount(averagePositionPrice, currency)}
-                    </span>
-                </div>
-            )
+            // Крипта — дробное кол-во монет (до 4 знаков); бумаги — целые лоты.
+            render: (_, { quantity, instrumentType }) =>
+                instrumentType === 'crypto' ? formatCoins(quantity) : quantity
+        },
+        {
+            title: 'Вес',
+            key: 'weight',
+            align: 'right',
+            render: (_, { priceInPorfolio }) => {
+                const weight = total > 0 ? (priceInPorfolio / total) * 100 : 0;
+                return (
+                    <div className={style.weightCell}>
+                        <span>{weight.toFixed(1)}%</span>
+                        <div className={style.weightBar} style={{ background: palette.border }}>
+                            <div
+                                className={style.weightBarFill}
+                                style={{
+                                    width: `${Math.min(weight, 100)}%`,
+                                    background: palette.primary
+                                }}
+                            />
+                        </div>
+                    </div>
+                );
+            },
+            sorter: (a, b) => a.priceInPorfolio - b.priceInPorfolio,
+            defaultSortOrder: 'descend'
+        },
+        {
+            title: 'Тип',
+            key: 'instrumentType',
+            render: (_, { instrumentType }) => (
+                <Tag color={INSTRUMENT_TYPE_COLOR[instrumentType]}>
+                    {instrumentTypeLabel(instrumentType)}
+                </Tag>
+            ),
+            filters: PORTFOLIO_INSTRUMENT_TYPES.map((type) => ({
+                text: instrumentTypeLabel(type),
+                value: type
+            })),
+            onFilter: (value, record) => record.instrumentType === value
         }
     ];
 
@@ -209,22 +245,46 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
                             className={`${style.posRow} ${href ? style.posRowClickable : ''}`}
                             onClick={() => href && router.push(href)}
                         >
-                            <ShareLogo icon={position.isin ?? ''} ticker={position.ticker ?? ''} size={40} />
+                            <ShareLogo
+                                icon={position.isin ?? ''}
+                                ticker={position.ticker ?? ''}
+                                size={40}
+                            />
                             <div className={style.posMain}>
                                 <span className={style.posName}>
                                     {position.name ?? position.ticker ?? '—'}
                                 </span>
                                 <span className={`${style.posSub} ${style.posSubMuted}`}>
-                                    {position.quantity} шт ·{' '}
-                                    {compactAmount(position.currentPrice, position.currency)}
+                                    {position.usd
+                                        ? `${formatCoins(position.quantity)} ${position.ticker}`
+                                        : `${position.quantity} шт`}{' '}
+                                    ·{' '}
+                                    {position.usd
+                                        ? formatUsd(position.usd.price)
+                                        : compactAmount(position.currentPrice, position.currency)}
                                 </span>
+                                {position.stakedQuantity ? (
+                                    <span className={`${style.posSub} ${style.posSubMuted}`}>
+                                        🔒 в стейкинге: {formatCoins(position.stakedQuantity)}{' '}
+                                        {position.ticker}
+                                    </span>
+                                ) : null}
                             </div>
                             <div className={style.posRight}>
                                 <span className={style.posValue}>
-                                    {compactAmount(position.priceInPorfolio, position.currency)}
+                                    {position.usd
+                                        ? formatUsd(position.usd.value)
+                                        : compactAmount(
+                                              position.priceInPorfolio,
+                                              position.currency
+                                          )}
                                 </span>
                                 {position.instrumentType === 'crypto' ? (
-                                    <span className={`${style.posSub} ${style.posSubMuted}`}>—</span>
+                                    <span className={`${style.posSub} ${style.posSubMuted}`}>
+                                        {position.usd
+                                            ? compactAmount(position.priceInPorfolio, 'RUB')
+                                            : '—'}
+                                    </span>
                                 ) : (
                                     <span className={`${style.posSub} ${plCls}`}>
                                         {signedCompactAmount(profit, position.currency)} ·{' '}
@@ -236,7 +296,11 @@ const PositionsTable: React.FC<PositionsTableProps> = ({ positions, total, loadi
                     );
                 })}
                 {visible < sorted.length ? (
-                    <Button className={style.showMore} block onClick={() => setVisible((v) => v + MOBILE_PAGE)}>
+                    <Button
+                        className={style.showMore}
+                        block
+                        onClick={() => setVisible((v) => v + MOBILE_PAGE)}
+                    >
                         Показать ещё
                     </Button>
                 ) : null}

@@ -15,9 +15,14 @@ const COINGECKO = process.env.NEXT_PUBLIC_COINGECKO_API || 'https://api.coingeck
 interface CoinGeckoPrice {
     rub?: number;
     rub_24h_change?: number;
+    usd?: number;
 }
 
-/** Цены в ₽ по ключам монет (BTC/ETH/SOL). Пустой ответ по монете → её пропустят. */
+/**
+ * Цены по ключам монет (BTC/ETH/SOL): ₽ (основная валюта агрегатов) + $ (для
+ * двухвалютного отображения крипты). Оба — одним запросом. Пустой ответ по монете
+ * → её пропустят.
+ */
 export const fetchCryptoPricesRub = async (
     coinKeys: string[]
 ): Promise<Record<string, CryptoPriceInfo>> => {
@@ -26,7 +31,7 @@ export const fetchCryptoPricesRub = async (
         .filter((id): id is string => Boolean(id));
     if (!ids.length) return {};
 
-    const url = `${COINGECKO}/simple/price?ids=${ids.join(',')}&vs_currencies=rub&include_24hr_change=true`;
+    const url = `${COINGECKO}/simple/price?ids=${ids.join(',')}&vs_currencies=rub,usd&include_24hr_change=true`;
     const res = await fetch(url, { headers: { accept: 'application/json' } });
     if (!res.ok) throw new Error(`CoinGecko ${res.status}`);
     const json = (await res.json()) as Record<string, CoinGeckoPrice>;
@@ -36,7 +41,11 @@ export const fetchCryptoPricesRub = async (
         const id = trezorCoinByKey(key)?.coingeckoId;
         const row = id ? json[id] : undefined;
         if (row?.rub != null) {
-            result[key] = { priceRub: row.rub, changePct1d: row.rub_24h_change ?? 0 };
+            result[key] = {
+                priceRub: row.rub,
+                priceUsd: row.usd ?? 0,
+                changePct1d: row.rub_24h_change ?? 0
+            };
         }
     });
     return result;

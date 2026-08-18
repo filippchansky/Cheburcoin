@@ -3,8 +3,8 @@
  * тот же дашборд, что и бумаги Т-Банка.
  *
  * Решения (согласовано):
- *  • Стоимость в ₽: amount × цена(USD, CoinStats) × курс ЦБ USD/RUB. Поэтому
- *    currency='RUB' — «Цена»/«В портфеле» рисуются в рублях, как остальной портфель.
+ *  • Стоимость в ₽: amount × цена в ₽ (CoinGecko, simple/price vs_currency=rub).
+ *    Поэтому currency='RUB' — «Цена»/«В портфеле» рисуются в рублях, как остальной портфель.
  *  • «Прибыль» НЕ считаем: кошелёк не знает себестоимость → expectedYieldFifo=0,
  *    а таблица для типа 'crypto' покажет прочерк (Этап 4).
  *  • «За день» есть: priceInPorfolio × изменение цены за сутки, %.
@@ -17,7 +17,9 @@ import { trezorCoinByKey } from './coins';
 export interface CryptoPriceInfo {
     /** Цена одной монеты в рублях. */
     priceRub: number;
-    /** Изменение цены за сутки, % (из CoinStats priceChange1d). */
+    /** Цена одной монеты в долларах (для двухвалютного отображения). */
+    priceUsd: number;
+    /** Изменение цены за сутки, % (CoinGecko rub_24h_change). */
     changePct1d: number;
 }
 
@@ -32,6 +34,7 @@ export const cryptoToPositions = (
             const config = trezorCoinByKey(b.coin);
             const price = prices[b.coin];
             const priceRub = price?.priceRub ?? 0;
+            const priceUsd = price?.priceUsd ?? 0;
             const value = priceRub * b.amount;
             const dayAbs = (value * (price?.changePct1d ?? 0)) / 100;
 
@@ -60,7 +63,11 @@ export const cryptoToPositions = (
                 isin: undefined,
                 priceInPorfolio: Number(value.toFixed(2)),
                 expectedYieldPercent: 0,
-                currency: 'RUB'
+                currency: 'RUB',
+                // Пометка «в стейкинге»: показываем, только если что-то застейкано.
+                stakedQuantity: b.staked > 0 ? b.staked : undefined,
+                // Двухвалютное отображение крипты: $ основной, ₽ снизу.
+                usd: { price: priceUsd, value: Number((priceUsd * b.amount).toFixed(2)) }
             };
             return position;
         });

@@ -7,6 +7,11 @@ export interface IFilteredShares {
     openPrice: number;
     lowPrice: number;
     highPrice: number;
+    /**
+     * Валюта торгов бумаги (CURRENCYID, у рублёвых — SUR). Относится к цене/дню/
+     * минимуму/максимуму. Капитализация и оборот MOEX всегда отдаёт в рублях.
+     */
+    currency: string;
     /** Цена вчерашнего закрытия (PREVPRICE). */
     prevPrice: number;
     capitalization: number;

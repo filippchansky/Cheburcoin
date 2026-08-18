@@ -3,6 +3,7 @@ import { Button, Popconfirm, Space, Spin } from 'antd';
 import { SettingOutlined, DisconnectOutlined } from '@ant-design/icons';
 import React from 'react';
 import TinkoffSteper from '../TinkoffStepper/TinkoffSteper';
+import TrezorConnectCard from '../Trezor/TrezorConnectCard';
 import PortfolioDashboard from './PortfolioDashboard/PortfolioDashboard';
 
 interface PortfolioProps {}
@@ -25,7 +26,12 @@ const Portfolio: React.FC<PortfolioProps> = ({}) => {
     // Мастер подключения: при первом входе (нет токена/счетов) или когда
     // пользователь открыл настройки, чтобы сменить токен/счета.
     if (!isConnected || settingsOpen) {
-        return <TinkoffSteper onClose={settingsOpen ? () => setSettingsOpen(false) : undefined} />;
+        return (
+            <div className='max-w-[1000px] my-0 mx-[auto]'>
+                <TinkoffSteper onClose={settingsOpen ? () => setSettingsOpen(false) : undefined} />
+                <TrezorConnectCard />
+            </div>
+        );
     }
 
     return (

@@ -10,7 +10,8 @@ export const INSTRUMENT_TYPE_LABEL: Record<string, string> = {
     currency: 'Валюта',
     futures: 'Фьючерс',
     sp: 'Структурная нота',
-    option: 'Опцион'
+    option: 'Опцион',
+    crypto: 'Криптовалюта'
 };
 
 /** Цвета antd Tag для типов инструментов. */
@@ -20,7 +21,8 @@ export const INSTRUMENT_TYPE_COLOR: Record<string, string> = {
     etf: 'purple',
     futures: 'orange',
     sp: 'gold',
-    option: 'magenta'
+    option: 'magenta',
+    crypto: 'volcano'
 };
 
 /** Человекочитаемая метка типа инструмента (fallback — сырой код или «—»). */
@@ -28,4 +30,4 @@ export const instrumentTypeLabel = (type?: string | null) =>
     (type && INSTRUMENT_TYPE_LABEL[type]) || type || '—';
 
 /** Типы, которые реально попадают в таблицу позиций (валюта отсекается на беке). */
-export const PORTFOLIO_INSTRUMENT_TYPES = ['share', 'bond', 'etf', 'futures'] as const;
+export const PORTFOLIO_INSTRUMENT_TYPES = ['share', 'bond', 'etf', 'futures', 'crypto'] as const;

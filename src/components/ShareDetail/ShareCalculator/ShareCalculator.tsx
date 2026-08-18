@@ -4,6 +4,7 @@ import { InputNumber, Slider, Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { IShareDetail } from '@models/shareDetail';
 import { formatMoney, intToGrouped } from '@/utils/formatCurrency';
+import { currencySymbol } from '@/utils/currencyRegistry';
 import { calcSharePosition } from '@/utils/shareCalc';
 import style from './style.module.scss';
 
@@ -25,6 +26,7 @@ const ShareCalculator: React.FC<ShareCalculatorProps> = ({ share, annualDivPerSh
         [amount, share.price, share.lotSize, annualDivPerShare]
     );
     const money = (value: number) => formatMoney(value, share.currency);
+    const symbol = currencySymbol(share.currency);
 
     if (result === null) {
         return (
@@ -74,7 +76,7 @@ const ShareCalculator: React.FC<ShareCalculatorProps> = ({ share, annualDivPerSh
                         min={0}
                         step={1000}
                         controls={false}
-                        addonAfter='₽'
+                        addonAfter={symbol}
                         formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
                         parser={(value) => Number((value ?? '').replace(/\s/g, '')) || 0}
                         onChange={(value) => setAmount(value ?? 0)}
@@ -101,7 +103,7 @@ const ShareCalculator: React.FC<ShareCalculatorProps> = ({ share, annualDivPerSh
                 max={SLIDER_MAX}
                 step={SLIDER_STEP}
                 onChange={setAmount}
-                tooltip={{ formatter: (value) => `${(value ?? 0).toLocaleString('ru-RU')} ₽` }}
+                tooltip={{ formatter: (value) => `${(value ?? 0).toLocaleString('ru-RU')} ${symbol}` }}
             />
 
             <div className={style.results}>

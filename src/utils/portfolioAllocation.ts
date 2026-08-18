@@ -20,7 +20,8 @@ const TYPE_COLOR: Record<string, string> = {
     bond: '#1baf7a',
     etf: '#7f77dd',
     currency: '#eda100',
-    futures: '#eb6834'
+    futures: '#eb6834',
+    crypto: '#f7931a'
 };
 
 /** Категориальная палитра для секторов/бумаг (цвет по позиции в отсортированном списке). */
@@ -100,7 +101,9 @@ const allocationBySector = (
         if (value <= 0) return;
 
         let sector = OTHER_LABEL;
-        if (position.instrumentType === 'bond') {
+        if (position.instrumentType === 'crypto') {
+            sector = 'Криптовалюта';
+        } else if (position.instrumentType === 'bond') {
             const resolved = sectorByShortName(position.name ?? position.ticker ?? '');
             sector = resolved === BOND_SECTOR_OTHER ? OTHER_LABEL : resolved;
         } else if (position.instrumentType === 'share' || position.instrumentType === 'etf') {

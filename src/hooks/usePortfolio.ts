@@ -2,6 +2,7 @@ import { useQueries } from '@tanstack/react-query';
 import { getPortfolio } from '@api/tinkoff/getPortfolio/getPortfolio';
 import { IAccount, IPortfolio, IPosition } from '@models/tinkoffData';
 import { useTbank } from './useTbank';
+import { useCryptoPositions } from './useCryptoPositions';
 
 export interface AccountPortfolio {
     account: IAccount;
@@ -32,13 +33,17 @@ export interface UsePortfolioResult {
 }
 
 const TYPE_TOTAL_FIELDS: Record<keyof Pick<IPortfolio,
-    'totalAmountShares' | 'totalAmountBonds' | 'totalAmountEtf' | 'totalAmountCurrencies' | 'totalAmountFutures'>, string> = {
+    'totalAmountShares' | 'totalAmountBonds' | 'totalAmountEtf' | 'totalAmountCurrencies' | 'totalAmountFutures' | 'totalAmountCrypto'>, string> = {
     totalAmountShares: 'share',
     totalAmountBonds: 'bond',
     totalAmountEtf: 'etf',
     totalAmountCurrencies: 'currency',
-    totalAmountFutures: 'futures'
+    totalAmountFutures: 'futures',
+    totalAmountCrypto: 'crypto'
 };
+
+/** id синтетического счёта, под которым крипта Trezor встаёт в список счетов. */
+export const TREZOR_ACCOUNT_ID = 'trezor';
 
 const round = (n: number, digits = 2) => Number(n.toFixed(digits));
 
@@ -99,7 +104,7 @@ export const usePortfolio = (): UsePortfolioResult => {
         }))
     });
 
-    const accountPortfolios: AccountPortfolio[] = accounts.map((account, index) => {
+    const tbankPortfolios: AccountPortfolio[] = accounts.map((account, index) => {
         const query = queries[index];
         return {
             account,
@@ -109,6 +114,42 @@ export const usePortfolio = (): UsePortfolioResult => {
             refetch: () => query?.refetch()
         };
     });
+
+    // Крипта Trezor как синтетический счёт: собираем псевдо-IPortfolio из позиций
+    // (стоимость/дневная доходность уже в ₽) и добавляем в список счетов — тогда
+    // агрегат, пончик, таблица и переключатель счёта работают без спец-логики.
+    const crypto = useCryptoPositions();
+    const cryptoAccount: AccountPortfolio | null = crypto.positions.length
+        ? {
+              account: { id: TREZOR_ACCOUNT_ID, name: 'Trezor' },
+              portfolio: {
+                  totalAmountShares: 0,
+                  totalAmountBonds: 0,
+                  totalAmountEtf: 0,
+                  totalAmountCurrencies: 0,
+                  totalAmountFutures: 0,
+                  totalAmountCrypto: crypto.total,
+                  totalAmountOptions: 0,
+                  totalAmountSp: 0,
+                  totalAmountPortfolio: crypto.total,
+                  expectedYield: 0,
+                  expectedYieldInt: 0,
+                  positions: crypto.positions,
+                  accountId: TREZOR_ACCOUNT_ID,
+                  virtualPositions: [],
+                  dailyYield: crypto.dailyTotal,
+                  dailyYieldRelative: 0,
+                  name: 'Trezor'
+              },
+              isLoading: crypto.isLoading,
+              isError: crypto.isError,
+              refetch: crypto.refetch
+          }
+        : null;
+
+    const accountPortfolios: AccountPortfolio[] = cryptoAccount
+        ? [...tbankPortfolios, cryptoAccount]
+        : tbankPortfolios;
 
     const loaded = accountPortfolios.filter((item) => item.portfolio);
 
@@ -142,11 +183,15 @@ export const usePortfolio = (): UsePortfolioResult => {
           })()
         : null;
 
-    const status: PortfolioStatus = !token || accounts.length === 0
+    // Портфель пуст только если нет НИ одного источника: ни счетов Т-Банка, ни
+    // подключённой крипты (Trezor может быть единственным источником).
+    const hasCrypto = crypto.positions.length > 0;
+    const noSource = (!token || accounts.length === 0) && !hasCrypto;
+    const status: PortfolioStatus = noSource
         ? 'empty'
         : accountPortfolios.some((item) => item.isLoading && !item.portfolio)
           ? 'loading'
-          : accountPortfolios.every((item) => item.isError)
+          : accountPortfolios.length > 0 && accountPortfolios.every((item) => item.isError)
             ? 'error'
             : 'ready';
 
@@ -154,7 +199,10 @@ export const usePortfolio = (): UsePortfolioResult => {
         accounts: accountPortfolios,
         aggregate,
         status,
-        isFetching: queries.some((query) => query.isFetching),
-        refetchAll: () => queries.forEach((query) => query.refetch())
+        isFetching: queries.some((query) => query.isFetching) || crypto.isLoading,
+        refetchAll: () => {
+            queries.forEach((query) => query.refetch());
+            crypto.refetch();
+        }
     };
 };

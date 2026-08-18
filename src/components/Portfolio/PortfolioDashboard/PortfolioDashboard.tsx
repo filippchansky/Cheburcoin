@@ -15,6 +15,8 @@ import {
 import { AllocationMode, buildAllocation } from '@/utils/portfolioAllocation';
 import { usePaymentsBreakdown } from '@/hooks/usePaymentsBreakdown';
 import { useRealized } from '@/hooks/useRealized';
+import { usePositionsProfit } from '@/hooks/usePositionsProfit';
+import { useCryptoPositions } from '@/hooks/useCryptoPositions';
 import { useCashflows } from '@/hooks/useCashflows';
 import { xirr } from '@/utils/xirr';
 import AllocationDonut from './AllocationDonut';
@@ -77,6 +79,9 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
         all: realizedAll,
         status: realizedStatus
     } = useRealized();
+    const { extraByUid: profitExtraByUid } = usePositionsProfit();
+    // Диагностика крипты (Trezor): показать, почему баланс не виден, если подключён.
+    const cryptoDiag = useCryptoPositions();
     // const {
     //     byAccount: cashflowsByAccount,
     //     all: cashflowsAll,
@@ -148,6 +153,39 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     // Срезы пончика для выбранного режима (классы/сектора/бумаги).
     const allocationSlices = scopeData ? buildAllocation(allocMode, scopeData, sectorMap) : [];
 
+    // Диагностика крипты: если Trezor подключён, но позиций нет — объясняем почему
+    // (ошибка получения баланса/цены или реально нулевые балансы), иначе «пусто»
+    // выглядит как баг.
+    const cryptoNotice =
+        cryptoDiag.hasAccounts && !cryptoDiag.isLoading && cryptoDiag.positions.length === 0 ? (
+            <Alert
+                className='mb-4'
+                type={cryptoDiag.errors.length ? 'warning' : 'info'}
+                showIcon
+                message='Крипта Trezor не отображается'
+                description={
+                    cryptoDiag.errors.length ? (
+                        <div>
+                            <div>Не удалось получить данные:</div>
+                            {cryptoDiag.errors.map((e) => (
+                                <div key={e.coin}>
+                                    <b>{e.coin}</b>: {e.error}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div>
+                            Балансы нулевые
+                            {cryptoDiag.raw.length
+                                ? `: ${cryptoDiag.raw.map((b) => `${b.coin} ${b.amount}`).join(', ')}`
+                                : ''}
+                            . Проверьте, что монеты лежат на первом счёте кошелька.
+                        </div>
+                    )
+                }
+            />
+        ) : null;
+
     // Разбивка выплат для KPI «Доходность» уважает выбранный счёт: «Все счета» →
     // сводный агрегат, иначе — конкретный счёт. Готова только в статусе ready.
     const breakdown = breakdownStatus === 'ready'
@@ -210,6 +248,8 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                     }
                 />
             ) : null}
+
+            {cryptoNotice}
 
             <div
                 className='grid gap-3 mb-5'
@@ -304,6 +344,7 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                 positions={scopeData?.positions ?? []}
                 total={scopeData?.total ?? 0}
                 loading={tableLoading}
+                profitExtraByUid={profitExtraByUid}
             />
                 </>
             )}

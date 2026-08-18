@@ -14,6 +14,8 @@ export interface IPortfolio {
     accountId: string;
     totalAmountOptions: number;
     totalAmountSp: number;
+    /** Стоимость крипты (Trezor), ₽. Нет у ответов Т-Банка — только у синтетического крипто-счёта. */
+    totalAmountCrypto?: number;
     totalAmountPortfolio: number;
     virtualPositions: any[];
     dailyYield: number;
@@ -161,4 +163,11 @@ export interface IPosition {
     isin?: string;
     priceInPorfolio: number
     expectedYieldPercent: number
+    /**
+     * Валюта позиции (currentPrice.currency от Т-Банка, коды в нижнем регистре:
+     * rub/usd/...). Т-Банк цены позиций к рублю НЕ приводит — форматируем в родной
+     * валюте. Агрегаты портфеля (totalAmount*) при этом всегда в рублях. null —
+     * старый ответ бека без поля (fallback на рубль в formatAmount).
+     */
+    currency: string | null
 }

@@ -18,6 +18,7 @@ import ShareChart from './ShareChart/ShareChart';
 import Dividends from './Dividends/Dividends';
 import ShareCalculator from './ShareCalculator/ShareCalculator';
 import ShareProfile from './ShareProfile/ShareProfile';
+import PortfolioPosition from '@/components/PortfolioPosition/PortfolioPosition';
 import style from './style.module.scss';
 
 interface ShareDetailProps {
@@ -172,6 +173,7 @@ const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
                 ))}
             </div>
 
+            <PortfolioPosition ticker={share.ticker} isin={share.isin} isPreferred={share.isPreferred} />
             <PriceRange ticker={share.ticker} price={share.price} currency={share.currency} />
             <ShareChart ticker={share.ticker} />
             <Dividends

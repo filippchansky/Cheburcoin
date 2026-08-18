@@ -13,6 +13,7 @@ import BondCalculator from './BondCalculator/BondCalculator';
 import BondChart from './BondChart/BondChart';
 import CouponsTable from './CouponsTable/CouponsTable';
 import AmortizationTable from './AmortizationTable/AmortizationTable';
+import PortfolioPosition from '@/components/PortfolioPosition/PortfolioPosition';
 import style from './style.module.scss';
 
 interface BondDetailProps {
@@ -153,6 +154,7 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
 
             <BondRating ratings={ratings} />
 
+            <PortfolioPosition ticker={bond.secid} isin={bond.isin} />
             <KeyRateCompare bondYield={bond.yield} />
             <BondCalculator bond={bond} />
             <BondChart secid={bond.secid} />

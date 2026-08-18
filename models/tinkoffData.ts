@@ -85,6 +85,8 @@ export interface IPaymentItem {
     category: PaymentCategory;
     /** Название инструмента из операции (может отсутствовать). */
     name: string | null;
+    /** Тикер инструмента (для связки обычка↔префы). */
+    ticker: string | null;
     figi: string | null;
     instrumentUid: string | null;
     instrumentType: string | null;

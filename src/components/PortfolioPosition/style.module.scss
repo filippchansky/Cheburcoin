@@ -1,0 +1,77 @@
+.wrapper {
+    margin-top: 32px;
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.qtyTag {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.card {
+    border: 1px solid;
+    border-radius: 12px;
+    padding: 4px 16px;
+}
+
+.row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid;
+    font-variant-numeric: tabular-nums;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.rowLabel {
+    font-size: 14px;
+}
+
+.rowValue {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: right;
+}
+
+.rowSub {
+    font-size: 13px;
+    opacity: 0.85;
+}
+
+.hint {
+    margin-left: 5px;
+    font-size: 12px;
+    opacity: 0.55;
+    cursor: help;
+}
+
+.note {
+    margin-top: 12px;
+    font-size: 13px;
+    opacity: 0.55;
+}
+
+.table {
+    margin-top: 16px;
+}

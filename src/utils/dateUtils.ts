@@ -88,6 +88,24 @@ export const formatDate = (dateString: string) => {
     return `${day}.${month}.${year}`;
 };
 
+const fullDateMskFmt = new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'Europe/Moscow'
+});
+
+/**
+ * ISO-дата ИЛИ дата-время («2026-05-14T21:00:00Z») → «15.05.2026» по Москве.
+ * В отличие от formatDate, корректно ест таймстемпы операций Т-Банка (там время
+ * есть) и показывает календарный день так же, как приложение брокера (МСК).
+ */
+export const formatDateTime = (iso?: string | null) => {
+    if (!iso) return '—';
+    const dt = new Date(iso);
+    return Number.isNaN(dt.getTime()) ? '—' : fullDateMskFmt.format(dt);
+};
+
 /** Разбирает ISO-дату (может быть со временем) в локальную дату без сдвига по TZ. */
 const parseLocalDate = (iso: string) => {
     const [y, m, d] = iso.slice(0, 10).split('-').map(Number);

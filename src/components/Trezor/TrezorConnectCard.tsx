@@ -82,11 +82,10 @@ const TrezorConnectCard: React.FC = () => {
 
     return (
         <Card
-            className='mt-6'
             title={
                 <Space>
                     <WalletOutlined />
-                    Аппаратный кошелёк Trezor
+                    Криптокошелёк (Trezor)
                 </Space>
             }
         >
@@ -162,29 +161,33 @@ const TrezorConnectCard: React.FC = () => {
                             okButtonProps={{ danger: true }}
                             onConfirm={() => disconnect.mutate()}
                         >
-                            <Button danger icon={<DisconnectOutlined />} loading={disconnect.isPending}>
+                            <Button
+                                danger
+                                icon={<DisconnectOutlined />}
+                                loading={disconnect.isPending}
+                            >
                                 Отключить
                             </Button>
                         </Popconfirm>
                     )}
                 </Space>
             </div>
-
-            <Alert
-                className='mt-4'
-                type='info'
-                showIcon
-                icon={<SafetyOutlined />}
-                message={
-                    <span>
-                        Дескриптор виден в Trezor Suite. Для BTC берите именно расширенный ключ
-                        (xpub/zpub) — по одному адресу баланс будет неполным.{' '}
-                        <Link href='https://suite.trezor.io' target='_blank' rel='noreferrer'>
-                            Открыть Trezor Suite
-                        </Link>
-                    </span>
-                }
-            />
+            <div className='mt-4'>
+                <Alert
+                    type='info'
+                    showIcon
+                    icon={<SafetyOutlined />}
+                    message={
+                        <span>
+                            Дескриптор виден в Trezor Suite. Для BTC берите именно расширенный ключ
+                            (xpub/zpub) — по одному адресу баланс будет неполным.{' '}
+                            <Link href='https://suite.trezor.io' target='_blank' rel='noreferrer'>
+                                Открыть Trezor Suite
+                            </Link>
+                        </span>
+                    }
+                />
+            </div>
         </Card>
     );
 };

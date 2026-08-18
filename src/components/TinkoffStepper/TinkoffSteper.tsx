@@ -3,7 +3,8 @@ import FirstStep from './FirstStep/FirstStep';
 import SecondStep from './SecondStep/SecondStep';
 import { useTbank, useSetTbankToken, useSetTbankAccounts } from '@/hooks/useTbank';
 import { getAccounts } from '@api/tinkoff/getAccounts/getAccounts';
-import { notification, Steps } from 'antd';
+import { Card, notification, Space, Steps } from 'antd';
+import { BankOutlined } from '@ant-design/icons';
 
 export interface IPlainOptions {
     value: string;
@@ -75,7 +76,14 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({ onClose }) => {
     const handleBack = () => setActiveStep((prev) => prev - 1);
 
     return (
-        <div className='max-w-[1000px] my-0 mx-[auto]'>
+        <Card
+            title={
+                <Space>
+                    <BankOutlined />
+                    Брокерский счёт (Т-Банк)
+                </Space>
+            }
+        >
             {contextHolder}
             <Steps current={activeStep} items={steps.map((label) => ({ title: label }))} />
             {activeStep === 0 && (
@@ -96,7 +104,7 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({ onClose }) => {
                     loading={loading}
                 />
             )}
-        </div>
+        </Card>
     );
 };
 export default TinkoffSteper;

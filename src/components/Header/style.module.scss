@@ -5,11 +5,3 @@
         display: none;
     }
 }
-
-.mobileBtn {
-    display: none;
-
-    @media (max-width: 767px) {
-        display: inline-flex;
-    }
-}

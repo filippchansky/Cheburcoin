@@ -1,0 +1,91 @@
+.bar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 100;
+    display: none;
+    align-items: stretch;
+    height: calc(56px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+
+    // Показываем только на мобилке (тот же брейкпоинт, что и мобильное меню в шапке).
+    @media (max-width: 767px) {
+        display: flex;
+    }
+}
+
+.item {
+    flex: 1 1 0;
+    display: flex;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.link {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 2px;
+    color: inherit;
+}
+
+.iconWrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 30px;
+}
+
+.pill {
+    position: absolute;
+    inset: 0;
+    border-radius: 10px;
+}
+
+.icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+.label {
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    transition: color ease-out 0.15s;
+}
+
+.moreGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.moreItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 8px;
+    border-radius: 12px;
+    font-size: 13px;
+    transition: background ease-out 0.15s;
+
+    &:hover {
+        background: rgba(128, 128, 128, 0.1);
+    }
+}

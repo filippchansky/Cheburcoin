@@ -1,0 +1,395 @@
+@import '../../../app/variables';
+
+$line: rgba(128, 128, 128, 0.14);
+$fill: rgba(128, 128, 128, 0.05);
+
+/* ─────────────────────────── Общая лента (RU RSS) ─────────────────────────── */
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.headTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.headHint {
+    font-size: 13px;
+    opacity: 0.5;
+}
+
+/* Пульсирующая «живая» точка у заголовка. */
+.live {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: $green;
+    box-shadow: 0 0 0 0 rgba($green, 0.5);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba($green, 0.45);
+    }
+    70% {
+        box-shadow: 0 0 0 7px rgba($green, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba($green, 0);
+    }
+}
+
+/* ── Превью-картинка ── */
+.thumb {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba($accent, 0.28), rgba($accent, 0.06));
+
+    img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.45s ease;
+    }
+}
+
+.thumbMark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.7);
+    opacity: 0.6;
+}
+
+/* ── Афиша (самая свежая новость) ── */
+.featured {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    min-height: 240px;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid $line;
+    background: $fill;
+    color: inherit;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        border-color: rgba($accent, 0.5);
+        transform: translateY(-3px);
+        box-shadow: 0 18px 40px -24px rgba($accent, 0.55);
+
+        .thumb img {
+            transform: scale(1.05);
+        }
+    }
+}
+
+.featuredThumb {
+    height: 100%;
+    min-height: 220px;
+}
+
+.featuredBody {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 14px;
+    padding: 24px;
+}
+
+.featuredTitle {
+    font-size: 23px;
+    font-weight: 800;
+    line-height: 1.22;
+    letter-spacing: -0.01em;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ── Сетка карточек ── */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 16px;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid $line;
+    background: $fill;
+    color: inherit;
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+        border-color: rgba($accent, 0.5);
+        transform: translateY(-3px);
+        box-shadow: 0 16px 32px -24px rgba($accent, 0.6);
+
+        .thumb img {
+            transform: scale(1.05);
+        }
+    }
+}
+
+.cardThumb {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+}
+
+.cardBody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 16px 18px;
+}
+
+.cardTitle {
+    font-size: 15.5px;
+    font-weight: 700;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ── Мета (источник · время) ── */
+.meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+}
+
+.source {
+    font-weight: 700;
+    color: $accent;
+    letter-spacing: 0.01em;
+}
+
+.dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.35;
+}
+
+.time {
+    opacity: 0.55;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Скелетоны ── */
+.skeletonWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.skeletonFeatured,
+.skeletonCard,
+.skeletonRow {
+    width: 100% !important;
+
+    :global(.ant-skeleton-node) {
+        width: 100% !important;
+        height: 100% !important;
+    }
+}
+
+.skeletonFeatured {
+    height: 240px !important;
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.skeletonCard {
+    height: 210px !important;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.skeletonRow {
+    height: 74px !important;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+/* ─────────────────── Лента монеты (CryptoPanic + тональность) ─────────────── */
+.coinSection {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.coinHead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.coinList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.row {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    padding: 14px 16px 14px 20px;
+    border-radius: 14px;
+    border: 1px solid $line;
+    background: $fill;
+    color: inherit;
+    overflow: hidden;
+    transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
+
+    &:hover {
+        transform: translateX(3px);
+        background: rgba(128, 128, 128, 0.08);
+    }
+}
+
+/* Цветной рельс слева — цвет по тональности. */
+.rail {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+
+.rowBody {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.rowMeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    flex-wrap: wrap;
+}
+
+.sentiment {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+}
+
+.rowSource {
+    font-weight: 600;
+    opacity: 0.75;
+}
+
+.rowTitle {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+/* Тональности */
+.bull {
+    .rail {
+        background: $green;
+    }
+    .sentiment {
+        color: $green;
+        background: rgba($green, 0.14);
+    }
+    &:hover {
+        border-color: rgba($green, 0.45);
+    }
+}
+
+.bear {
+    .rail {
+        background: $red;
+    }
+    .sentiment {
+        color: $red;
+        background: rgba($red, 0.14);
+    }
+    &:hover {
+        border-color: rgba($red, 0.45);
+    }
+}
+
+.neu {
+    .rail {
+        background: rgba(128, 128, 128, 0.55);
+    }
+    .sentiment {
+        color: rgba(128, 128, 128, 0.95);
+        background: rgba(128, 128, 128, 0.16);
+    }
+    &:hover {
+        border-color: rgba(128, 128, 128, 0.4);
+    }
+}
+
+.empty {
+    padding: 28px 20px;
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.55;
+    border-radius: 14px;
+    border: 1px dashed $line;
+    background: $fill;
+}
+
+/* ── Адаптив ── */
+@media (max-width: 720px) {
+    .featured {
+        grid-template-columns: 1fr;
+    }
+    .featuredThumb {
+        aspect-ratio: 16 / 9;
+        min-height: 0;
+    }
+    .featuredTitle {
+        font-size: 20px;
+    }
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}

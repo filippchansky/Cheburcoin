@@ -1,53 +1,96 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { Alert, Input, Segmented } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import { useCryptoMarkets } from '@/hooks/useCrypto';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useVsCurrency } from '@/store/vsCurrency';
+import type { VsCurrency } from '@models/crypto';
+import CryptoMarketBar from './CryptoMarketBar/CryptoMarketBar';
+import CryptoTable from './CryptoTable/CryptoTable';
 import style from './style.module.scss';
-import News from './News/News';
-import Cryptoccurency from './Cryptocurrency/Cryptoccurency';
-import { Affix, Menu, MenuProps, Select } from 'antd';
-import { DollarOutlined, ReadOutlined } from '@ant-design/icons';
 
-interface CryptoPageProps {}
+type View = 'all' | 'favorites';
 
-const items: MenuProps['items'] = [
-    {
-        label: 'News',
-        key: 'news',
-        icon: <ReadOutlined />
-    },
-    {
-        label: 'Coins',
-        key: 'coins',
-        icon: <DollarOutlined />
-    }
-];
-const CryptoPage: React.FC<CryptoPageProps> = ({}) => {
-    const [type, setType] = useState('coins');
+const CryptoPage: React.FC = () => {
+    const { vs, setVs } = useVsCurrency();
+    const { data: coins = [], isLoading, isError } = useCryptoMarkets(vs);
+    const { data: favorites = [] } = useFavorites();
+    const [search, setSearch] = useState('');
+    const [view, setView] = useState<View>('all');
 
-    const [width, setWidth] = useState(1920); // TODO window is not defined (window.innerWidth)
+    const favSet = useMemo(() => new Set(favorites), [favorites]);
 
-    useEffect(() => {
-        setWidth(window.innerWidth);
+    const filtered = useMemo(() => {
+        const query = search.trim().toLowerCase();
+        return coins.filter((coin) => {
+            if (view === 'favorites' && !favSet.has(coin.id)) return false;
+            if (!query) return true;
+            return (
+                coin.name.toLowerCase().includes(query) ||
+                coin.symbol.toLowerCase().includes(query) ||
+                coin.id.toLowerCase().includes(query)
+            );
+        });
+    }, [coins, view, favSet, search]);
 
-        const handleResize = () => {
-            setWidth(window.innerWidth);
-        };
-
-        window.addEventListener('resize', handleResize);
-
-        // Clean up the event listener when the component unmounts
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
-    }, []);
-    const onClick: MenuProps['onClick'] = (e) => {
-        setType(e.key);
-    };
     return (
-        <>
-            <div className={style.wrapper}>
-                <Cryptoccurency />
+        <div className={style.page}>
+            <div className={style.header}>
+                <div className={style.titleBlock}>
+                    <h1 className={style.title}>Криптовалюты</h1>
+                    <p className={style.subtitle}>Топ монет по капитализации · данные CoinGecko</p>
+                </div>
+                <Input
+                    className={style.search}
+                    allowClear
+                    size='large'
+                    prefix={<SearchOutlined />}
+                    placeholder='Поиск по названию или тикеру'
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
             </div>
-        </>
+
+            {isError ? (
+                <Alert
+                    type='error'
+                    showIcon
+                    message='Не удалось загрузить крипторынок'
+                    description='Проверьте соединение и попробуйте обновить страницу.'
+                />
+            ) : (
+                <>
+                    <CryptoMarketBar vs={vs} />
+
+                    <div className={style.toolbar}>
+                        <Segmented<View>
+                            value={view}
+                            onChange={setView}
+                            options={[
+                                { label: 'Все', value: 'all' },
+                                { label: 'Избранное', value: 'favorites' }
+                            ]}
+                        />
+                        <Segmented<VsCurrency>
+                            value={vs}
+                            onChange={setVs}
+                            options={[
+                                { label: '$', value: 'usd' },
+                                { label: '₽', value: 'rub' }
+                            ]}
+                        />
+                    </div>
+
+                    <CryptoTable
+                        data={filtered}
+                        loading={isLoading}
+                        vs={vs}
+                        favorites={favorites}
+                    />
+                </>
+            )}
+        </div>
     );
 };
 export default CryptoPage;

@@ -65,3 +65,7 @@ export const TREZOR_COINS: TrezorCoinConfig[] = [
 /** Конфиг монеты по её ключу (BTC/ETH/SOL). */
 export const trezorCoinByKey = (key: string): TrezorCoinConfig | undefined =>
     TREZOR_COINS.find((coin) => coin.key === key);
+
+/** Конфиг монеты по её id в CoinGecko (bitcoin/ethereum/solana) — для страницы монеты. */
+export const trezorCoinByCoingeckoId = (id: string): TrezorCoinConfig | undefined =>
+    TREZOR_COINS.find((coin) => coin.coingeckoId === id);

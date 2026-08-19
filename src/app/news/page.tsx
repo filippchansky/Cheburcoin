@@ -1,9 +1,10 @@
-import News from '@/components/Cryptocurrency/News/News';
+import CryptoNews from '@/components/Cryptocurrency/CryptoNews/CryptoNews';
+import style from './style.module.scss';
 
-export default function Favorite() {
+export default function NewsRoute() {
     return (
-        <main>
-            <News />
+        <main className={style.page}>
+            <CryptoNews />
         </main>
     );
 }

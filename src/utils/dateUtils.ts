@@ -146,6 +146,34 @@ export const yearsUntil = (dateString: string): number | null => {
     return (target - Date.now()) / (365.25 * 24 * 60 * 60 * 1000);
 };
 
+const absTimeFmt = new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+});
+
+/**
+ * «Сколько назад» для новостной ленты: «только что», «5 мин назад», «2 ч назад»,
+ * «вчера»; старше двух суток — абсолютная дата «14 авг., 21:00». Битая дата → «—».
+ */
+export const formatTimeAgo = (iso?: string | null): string => {
+    if (!iso) return '—';
+    const dt = new Date(iso);
+    if (Number.isNaN(dt.getTime())) return '—';
+
+    const diffMs = Date.now() - dt.getTime();
+    const min = Math.floor(diffMs / 60000);
+    if (min < 1) return 'только что';
+    if (min < 60) return `${min} мин назад`;
+
+    const hours = Math.floor(min / 60);
+    if (hours < 24) return `${hours} ч назад`;
+    if (hours < 48) return 'вчера';
+
+    return absTimeFmt.format(dt);
+};
+
 export const getNormalDate = (date: string) => {
     const dateObj = new Date(date);
 

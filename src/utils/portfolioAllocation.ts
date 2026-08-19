@@ -1,6 +1,7 @@
 import { IPosition } from '@models/tinkoffData';
 import { BondSectorInfo } from '@models/bond';
 import { BOND_SECTOR_OTHER, sectorByShortName } from '@api/moex/bonds/bondSectors';
+import { categorizeFund, FUND_CATEGORY_LABEL } from '@api/moex/funds/fundCategory';
 import { instrumentTypeLabel } from './instrumentType';
 import { AllocationSlice, PortfolioScope } from './portfolioScope';
 
@@ -96,7 +97,10 @@ const resolveBondSector = (
     if (info) {
         if (info.issuerType === 'government') return OFZ_LABEL;
         if (info.issuerType === 'municipal') return MUNI_LABEL;
-        return info.sector || OTHER_LABEL;
+        // Корпорат без известной отрасли: mapBonds ставит sector = BOND_SECTOR_OTHER
+        // («Другое») — нормализуем в общий OTHER_LABEL, чтобы не плодить второй
+        // ярлык «неизвестно» рядом с «Прочее».
+        return info.sector && info.sector !== BOND_SECTOR_OTHER ? info.sector : OTHER_LABEL;
     }
     const resolved = sectorByShortName(position.name ?? position.ticker ?? '');
     return resolved === BOND_SECTOR_OTHER ? OTHER_LABEL : resolved;
@@ -104,8 +108,9 @@ const resolveBondSector = (
 
 /**
  * «Сектора» (Вариант 1 — джойн с MOEX-справочниками):
- * акции/фонды → карта useSectors по тикеру, облигации → useBondSectorMap по ISIN.
- * Незнакомые эмитенты и прочие типы → «Прочее»; кэш → «Валюта».
+ * акции → карта useSectors по тикеру, облигации → useBondSectorMap по ISIN,
+ * фонды → класс актива по названию (categorizeFund). Незнакомые эмитенты и
+ * прочие типы → «Прочее»; кэш → «Валюта».
  */
 const allocationBySector = (
     positions: IPosition[],
@@ -123,7 +128,12 @@ const allocationBySector = (
             sector = 'Криптовалюта';
         } else if (position.instrumentType === 'bond') {
             sector = resolveBondSector(position, bondSectorMap);
-        } else if (position.instrumentType === 'share' || position.instrumentType === 'etf') {
+        } else if (position.instrumentType === 'etf') {
+            // У фондов нет отраслевого сектора — классифицируем по классу актива
+            // (денежный рынок / облигации / акции / золото / смешанный) той же
+            // эвристикой по названию, что и страница «Фонды».
+            sector = FUND_CATEGORY_LABEL[categorizeFund(position.name ?? position.ticker ?? '')];
+        } else if (position.instrumentType === 'share') {
             sector = (position.ticker && shareSectorMap[position.ticker]) || OTHER_LABEL;
         }
         bucket.set(sector, (bucket.get(sector) ?? 0) + value);

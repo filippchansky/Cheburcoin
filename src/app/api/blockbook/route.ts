@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { readEverstakeStaking } from '@/lib/trezor/ethStaking';
 
 /**
- * Прокси к публичному Blockbook Trezor (btc1/eth1.trezor.io).
+ * Прокси к Blockbook (BTC по xpub, ETH по адресу) + стейкинг ETH.
  *
  * Зачем сервер, а не прямой fetch из браузера: Blockbook за Cloudflare — не отдаёт
- * CORS-заголовки и блокирует «не браузерный» User-Agent. Сервер обходит и то, и
- * другое. Через него читаем баланс BTC (по xpub) и ETH (по адресу) + СТЕЙКИНГ
- * (Everstake `stakingPools` в ответе eth) — того, чего нет в обычном RPC-балансе.
+ * CORS-заголовки и блокирует «не браузерный» User-Agent. Сервер обходит и то, и другое.
+ *
+ * Стейкинг ETH: Trezor-сборка Blockbook отдавала его в `stakingPools`, но провайдеры
+ * (NOWNodes) — нет. Поэтому для ETH дочитываем стейкинг Everstake через eth_call к
+ * контракту пула (см. ethStaking.ts) и кладём в `stakingPools` — клиент не меняется.
  *
  * SSRF-защита: chain из белого списка → фиксированный базовый URL, дескриптор
  * пропускаем только [A-Za-z0-9], длину ограничиваем. POST — чтобы xpub (чувствит.)
@@ -23,6 +26,9 @@ const BACKENDS: Record<string, { base: string; path: 'address' | 'xpub' }> = {
 // Blockbook по api-key. Кладём base-URL в *_BLOCKBOOK, а ключ — в BLOCKBOOK_API_KEY
 // (один на все сети). Если ключа нет — заголовок не шлём (дефолт на trezor.io для локалки).
 const BLOCKBOOK_API_KEY = process.env.BLOCKBOOK_API_KEY;
+
+// Публичный ETH-RPC для чтения стейкинга Everstake (eth_call, только чтение).
+const ETH_RPC = process.env.ETH_RPC || 'https://ethereum-rpc.publicnode.com';
 
 const BROWSER_UA =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36';
@@ -56,11 +62,21 @@ export async function POST(req: NextRequest) {
         }
 
         const data = await res.json();
+
+        // Стейкинг ETH: если Blockbook его не дал (NOWNodes) — дочитываем из контракта
+        // Everstake. Стейкинг не должен ронять ликвид: при сбое отдаём то, что есть.
+        let stakingPools = data.stakingPools ?? [];
+        if (chain === 'eth' && stakingPools.length === 0) {
+            try {
+                stakingPools = await readEverstakeStaking(descriptor, ETH_RPC);
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.warn('[blockbook] стейкинг ETH не получен:', error);
+            }
+        }
+
         // Отдаём только нужное: баланс + пулы стейкинга (остальное — лишний вес/история).
-        return NextResponse.json({
-            balance: data.balance ?? '0',
-            stakingPools: data.stakingPools ?? []
-        });
+        return NextResponse.json({ balance: data.balance ?? '0', stakingPools });
     } catch (error) {
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'blockbook proxy failed' },

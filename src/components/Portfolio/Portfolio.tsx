@@ -44,9 +44,7 @@ const Portfolio: React.FC<PortfolioProps> = ({}) => {
         <div className='max-w-[1400px] my-0 mx-[auto]'>
             <div className='flex justify-end mb-4'>
                 <Space>
-                    <Button icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)}>
-                        Настройки подключения
-                    </Button>
+                    <Button icon={<SettingOutlined />} onClick={() => setSettingsOpen(true)} />
                     {isTbankConnected && (
                         <Popconfirm
                             title='Отключить Т-Банк?'
@@ -56,7 +54,11 @@ const Portfolio: React.FC<PortfolioProps> = ({}) => {
                             okButtonProps={{ danger: true }}
                             onConfirm={() => disconnect.mutate()}
                         >
-                            <Button danger icon={<DisconnectOutlined />} loading={disconnect.isPending}>
+                            <Button
+                                danger
+                                icon={<DisconnectOutlined />}
+                                loading={disconnect.isPending}
+                            >
                                 Отключить Т-Банк
                             </Button>
                         </Popconfirm>

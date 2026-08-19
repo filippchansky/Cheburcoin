@@ -4,6 +4,7 @@ import { Alert, Button, Segmented, Skeleton } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { useSectors } from '@/hooks/useShares';
+import { useBondSectorMap } from '@/hooks/useBonds';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import { intToRub, formatPercent } from '@/utils/formatCurrency';
@@ -69,6 +70,7 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     const [view, setView] = React.useState<View>('overview');
     const [allocMode, setAllocMode] = React.useState<AllocationMode>('type');
     const { data: sectorMap = {} } = useSectors();
+    const { data: bondSectorMap = {} } = useBondSectorMap();
     const {
         byAccount: breakdownByAccount,
         all: breakdownAll,
@@ -151,7 +153,9 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     );
 
     // Срезы пончика для выбранного режима (классы/сектора/бумаги).
-    const allocationSlices = scopeData ? buildAllocation(allocMode, scopeData, sectorMap) : [];
+    const allocationSlices = scopeData
+        ? buildAllocation(allocMode, scopeData, sectorMap, bondSectorMap)
+        : [];
 
     // Диагностика крипты: если Trezor подключён, но позиций нет — объясняем почему
     // (ошибка получения баланса/цены или реально нулевые балансы), иначе «пусто»

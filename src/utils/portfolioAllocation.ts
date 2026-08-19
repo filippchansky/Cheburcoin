@@ -1,4 +1,5 @@
 import { IPosition } from '@models/tinkoffData';
+import { BondSectorInfo } from '@models/bond';
 import { BOND_SECTOR_OTHER, sectorByShortName } from '@api/moex/bonds/bondSectors';
 import { instrumentTypeLabel } from './instrumentType';
 import { AllocationSlice, PortfolioScope } from './portfolioScope';
@@ -33,8 +34,9 @@ const CATEGORICAL = [
 const MUTED = '#8a8f99';
 const OTHER_LABEL = 'Прочее';
 const CASH_LABEL = 'Валюта';
-/** Максимум именованных срезов в режиме «Бумаги»; остальное — «Прочее». */
-const ASSET_MAX_SLICES = 8;
+/** Метки срезов для гос/муни облигаций (отрасль к ним неприменима). */
+const OFZ_LABEL = 'ОФЗ';
+const MUNI_LABEL = 'Муниципальные';
 
 const round2 = (n: number) => Number(n.toFixed(2));
 
@@ -56,29 +58,23 @@ const allocationByType = (slices: AllocationSlice[]): AllocSlice[] =>
             color: TYPE_COLOR[slice.type] ?? MUTED
         }));
 
-/** «Бумаги»: топ-N позиций по стоимости, хвост схлопывается в «Прочее», кэш — отдельный срез. */
+/** «Бумаги»: каждая позиция — отдельный срез (без «Прочего»), кэш — отдельный срез. */
 const allocationByAsset = (positions: IPosition[], cash: number): AllocSlice[] => {
-    const sorted = positions
+    const slices: AllocSlice[] = positions
         .filter((p) => (p.priceInPorfolio ?? 0) > 0)
         .map((p) => ({
             key: p.instrumentUid || p.figi,
             label: p.ticker || p.name || '—',
             value: p.priceInPorfolio ?? 0
         }))
-        .sort((a, b) => b.value - a.value);
+        .sort((a, b) => b.value - a.value)
+        .map((item, index) => ({
+            key: item.key,
+            label: item.label,
+            value: round2(item.value),
+            color: CATEGORICAL[index % CATEGORICAL.length]
+        }));
 
-    const head = sorted.slice(0, ASSET_MAX_SLICES);
-    const tailSum = sorted.slice(ASSET_MAX_SLICES).reduce((sum, item) => sum + item.value, 0);
-
-    const slices: AllocSlice[] = head.map((item, index) => ({
-        key: item.key,
-        label: item.label,
-        value: round2(item.value),
-        color: CATEGORICAL[index % CATEGORICAL.length]
-    }));
-    if (tailSum > 0) {
-        slices.push({ key: '__other__', label: OTHER_LABEL, value: round2(tailSum), color: MUTED });
-    }
     if (cash > 0) {
         slices.push({ key: '__cash__', label: CASH_LABEL, value: round2(cash), color: TYPE_COLOR.currency });
     }
@@ -86,14 +82,36 @@ const allocationByAsset = (positions: IPosition[], cash: number): AllocSlice[] =
 };
 
 /**
+ * Сектор облигации через джойн с MOEX-справочником по ISIN (запасной ключ — тикер):
+ * ОФЗ → «ОФЗ», субфедеральные/муниципальные → «Муниципальные», корпораты → готовый
+ * отраслевой сектор. Бумаги нет в справочнике (внебиржа/делистинг) → откат на
+ * эвристику по имени (sectorByShortName). Ничего не нашли → «Прочее».
+ */
+const resolveBondSector = (
+    position: IPosition,
+    bondSectorMap: Record<string, BondSectorInfo>
+): string => {
+    const key = (position.isin || position.ticker || '').toUpperCase();
+    const info = key ? bondSectorMap[key] : undefined;
+    if (info) {
+        if (info.issuerType === 'government') return OFZ_LABEL;
+        if (info.issuerType === 'municipal') return MUNI_LABEL;
+        return info.sector || OTHER_LABEL;
+    }
+    const resolved = sectorByShortName(position.name ?? position.ticker ?? '');
+    return resolved === BOND_SECTOR_OTHER ? OTHER_LABEL : resolved;
+};
+
+/**
  * «Сектора» (Вариант 1 — джойн с MOEX-справочниками):
- * акции/фонды → карта useSectors по тикеру, облигации → sectorByShortName по имени.
+ * акции/фонды → карта useSectors по тикеру, облигации → useBondSectorMap по ISIN.
  * Незнакомые эмитенты и прочие типы → «Прочее»; кэш → «Валюта».
  */
 const allocationBySector = (
     positions: IPosition[],
     cash: number,
-    shareSectorMap: Record<string, string>
+    shareSectorMap: Record<string, string>,
+    bondSectorMap: Record<string, BondSectorInfo>
 ): AllocSlice[] => {
     const bucket = new Map<string, number>();
     positions.forEach((position) => {
@@ -104,8 +122,7 @@ const allocationBySector = (
         if (position.instrumentType === 'crypto') {
             sector = 'Криптовалюта';
         } else if (position.instrumentType === 'bond') {
-            const resolved = sectorByShortName(position.name ?? position.ticker ?? '');
-            sector = resolved === BOND_SECTOR_OTHER ? OTHER_LABEL : resolved;
+            sector = resolveBondSector(position, bondSectorMap);
         } else if (position.instrumentType === 'share' || position.instrumentType === 'etf') {
             sector = (position.ticker && shareSectorMap[position.ticker]) || OTHER_LABEL;
         }
@@ -128,9 +145,11 @@ const allocationBySector = (
 export const buildAllocation = (
     mode: AllocationMode,
     scope: PortfolioScope,
-    shareSectorMap: Record<string, string>
+    shareSectorMap: Record<string, string>,
+    bondSectorMap: Record<string, BondSectorInfo>
 ): AllocSlice[] => {
     if (mode === 'asset') return allocationByAsset(scope.positions, scope.cash);
-    if (mode === 'sector') return allocationBySector(scope.positions, scope.cash, shareSectorMap);
+    if (mode === 'sector')
+        return allocationBySector(scope.positions, scope.cash, shareSectorMap, bondSectorMap);
     return allocationByType(scope.allocation);
 };

@@ -1,9 +1,11 @@
-import AboutCurrency from '@/components/Cryptocurrency/About/AboutCurrency';
+import CoinDetail from '@/components/Cryptocurrency/CoinDetail/CoinDetail';
 import React from 'react';
 
-interface PageProps {}
-
-const Page = ({ params }: { params: { slug: string } }) => {
-    return <AboutCurrency />;
+const Page = () => {
+    return (
+        <main>
+            <CoinDetail />
+        </main>
+    );
 };
 export default Page;

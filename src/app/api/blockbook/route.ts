@@ -18,6 +18,12 @@ const BACKENDS: Record<string, { base: string; path: 'address' | 'xpub' }> = {
     btc: { base: process.env.BTC_BLOCKBOOK || 'https://btc1.trezor.io', path: 'xpub' }
 };
 
+// Публичный Blockbook Trezor (btc1/eth1.trezor.io) за Cloudflare режет облачные IP
+// (403 → 502) — с Vercel не работает. Провайдеры (NOWNodes/GetBlock) отдают ТОТ ЖЕ
+// Blockbook по api-key. Кладём base-URL в *_BLOCKBOOK, а ключ — в BLOCKBOOK_API_KEY
+// (один на все сети). Если ключа нет — заголовок не шлём (дефолт на trezor.io для локалки).
+const BLOCKBOOK_API_KEY = process.env.BLOCKBOOK_API_KEY;
+
 const BROWSER_UA =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36';
 
@@ -38,7 +44,11 @@ export async function POST(req: NextRequest) {
 
         const url = `${backend.base}/api/v2/${backend.path}/${descriptor}?details=basic`;
         const res = await fetch(url, {
-            headers: { accept: 'application/json', 'User-Agent': BROWSER_UA },
+            headers: {
+                accept: 'application/json',
+                'User-Agent': BROWSER_UA,
+                ...(BLOCKBOOK_API_KEY ? { 'api-key': BLOCKBOOK_API_KEY } : {})
+            },
             cache: 'no-store'
         });
         if (!res.ok) {

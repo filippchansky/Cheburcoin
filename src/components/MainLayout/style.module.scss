@@ -24,4 +24,9 @@
 .content {
     min-height: calc(100vh - 64px) !important;
     padding: 24px 0 64px;
+
+    // Место под фиксированную нижнюю панель на мобилке (высота бара + safe-area).
+    @media (max-width: 767px) {
+        padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    }
 }

@@ -4,6 +4,7 @@ import { Layout } from 'antd';
 import Header from '../Header/Header';
 import style from './style.module.scss';
 import NavStepper from '../NavStepper/NavStepper';
+import BottomNav from '../BottomNav/BottomNav';
 
 const { Header: HeaderLayout, Content } = Layout;
 
@@ -23,6 +24,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     {children}
                 </div>
             </Content>
+            <BottomNav />
         </Layout>
     );
 };

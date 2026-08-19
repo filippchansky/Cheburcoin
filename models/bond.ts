@@ -10,6 +10,13 @@ export type CouponType = 'fixed' | 'floating' | 'inflation' | 'discount';
 /** Класс эмитента — основа для оценки надёжности бумаги. */
 export type IssuerType = 'government' | 'municipal' | 'corporate';
 
+/** Сектор и класс эмитента облигации — для джойна с позициями портфеля по ISIN. */
+export interface BondSectorInfo {
+    /** Отраслевой сектор корпоративного эмитента ('' для гос/муни). */
+    sector: string;
+    issuerType: IssuerType;
+}
+
 export interface IBond {
     id: string;
     secid: string;

@@ -4,7 +4,7 @@ import { getBondCandles } from '@api/moex/bonds/getBondCandles';
 import { getBondCoupons } from '@api/moex/bonds/getBondCoupons';
 import { getAllBonds } from '@api/moex/bonds/getBonds';
 import { mapBonds } from '@api/moex/bonds/mapBonds';
-import { BondFlagsMap, BondRatingsData, IBond, IBondsRaw } from '@models/bond';
+import { BondFlagsMap, BondRatingsData, BondSectorInfo, IBond, IBondsRaw } from '@models/bond';
 import { IKeyRate } from '@models/bondDetail';
 import { useQuery } from '@tanstack/react-query';
 
@@ -22,6 +22,33 @@ export const useBonds = () =>
         queryKey: ['bonds', 'all'],
         queryFn: getAllBonds,
         select: mapAllBonds
+    });
+
+/**
+ * Карта «ISIN → {сектор, тип эмитента}» по всему рынку облигаций — для джойна с
+ * позициями портфеля (у позиции Т-Банка есть isin, но нет отрасли). В отличие от
+ * useBonds здесь НЕ отсекаем неликвид: сектор от наличия котировки не зависит, а
+ * портфельная бумага вполне может сегодня не торговаться. Ключуем по ISIN и
+ * запасным ключом SECID (оба в верхнем регистре). Переиспользует запрос
+ * ['bonds','all'] (дедуп react-query), лишь другой select.
+ */
+const selectBondSectorMap = (raws: IBondsRaw[]): Record<string, BondSectorInfo> => {
+    const map: Record<string, BondSectorInfo> = {};
+    raws.flatMap(mapBonds).forEach((bond) => {
+        const info: BondSectorInfo = { sector: bond.sector, issuerType: bond.issuerType };
+        if (bond.isin) map[bond.isin.toUpperCase()] = info;
+        if (bond.secid) map[bond.secid.toUpperCase()] = info;
+    });
+    return map;
+};
+
+/** Справочник секторов облигаций для разбивки портфеля по секторам. */
+export const useBondSectorMap = () =>
+    useQuery({
+        queryKey: ['bonds', 'all'],
+        queryFn: getAllBonds,
+        select: selectBondSectorMap,
+        staleTime: 1000 * 60 * 60
     });
 
 /** Данные одной облигации по secid. */

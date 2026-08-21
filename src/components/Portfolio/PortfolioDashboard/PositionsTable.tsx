@@ -14,6 +14,7 @@ import {
     instrumentTypeLabel,
     PORTFOLIO_INSTRUMENT_TYPES
 } from '@/utils/instrumentType';
+import { trezorCoinByKey } from '@/lib/trezor/coins';
 import style from './style.module.scss';
 
 interface PositionsTableProps {
@@ -45,8 +46,13 @@ const formatCoins = (v: number) =>
 /** Доллары: без копеек от $100, с копейками для мелких сумм. */
 const formatUsd = (v: number) => formatAmount(v, 'USD', { digits: Math.abs(v) >= 100 ? 0 : 2 });
 
-/** Куда ведёт клик по строке (страница есть только у акций/фондов и облигаций). */
+/** Куда ведёт клик по строке (акции/фонды, облигации и крипта Trezor). */
 const positionHref = (position: IPosition): string | null => {
+    if (position.instrumentType === 'crypto') {
+        // Тикер позиции (BTC/ETH/SOL) → id монеты в CoinGecko → страница монеты.
+        const coingeckoId = trezorCoinByKey(position.ticker ?? '')?.coingeckoId;
+        return coingeckoId ? `/cryptocurrency/${coingeckoId}` : null;
+    }
     if (!position.ticker) return null;
     if (position.instrumentType === 'bond') return `/bonds/${position.ticker}`;
     if (position.instrumentType === 'share' || position.instrumentType === 'etf') {
@@ -84,9 +90,14 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
             title: 'Наименование',
             dataIndex: 'name',
             key: 'name',
-            render: (_, { ticker, name, isin, stakedQuantity }) => (
+            render: (_, { ticker, name, isin, stakedQuantity, logoUrl }) => (
                 <div className='flex flex-col gap-1'>
-                    <TableName icon={isin ?? ''} ticker={ticker ?? ''} title={name ?? ''} />
+                    <TableName
+                        icon={isin ?? ''}
+                        ticker={ticker ?? ''}
+                        title={name ?? ''}
+                        logoSrc={logoUrl}
+                    />
                     {stakedQuantity ? (
                         <Tag color='gold' style={{ width: 'fit-content' }}>
                             🔒 В стейкинге: {formatCoins(stakedQuantity)} {ticker}
@@ -249,6 +260,7 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
                                 icon={position.isin ?? ''}
                                 ticker={position.ticker ?? ''}
                                 size={40}
+                                src={position.logoUrl}
                             />
                             <div className={style.posMain}>
                                 <span className={style.posName}>

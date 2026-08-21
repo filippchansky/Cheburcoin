@@ -8,13 +8,15 @@ interface ShareLogoProps {
     icon: string;
     ticker: string;
     size?: number;
+    /** Прямой URL логотипа (крипта: локальная иконка). Имеет приоритет над icon/BCS. */
+    src?: string;
 }
 
 /** Логотип бумаги с фолбэком на инициалы тикера, если картинка не загрузилась. */
-const ShareLogo: React.FC<ShareLogoProps> = ({ icon, ticker, size = 40 }) => {
+const ShareLogo: React.FC<ShareLogoProps> = ({ icon, ticker, size = 40, src }) => {
     const [errored, setErrored] = useState(false);
 
-    if (!icon || errored) {
+    if ((!icon && !src) || errored) {
         return (
             <div
                 className={style.fallback}
@@ -22,6 +24,21 @@ const ShareLogo: React.FC<ShareLogoProps> = ({ icon, ticker, size = 40 }) => {
             >
                 {ticker.slice(0, 2)}
             </div>
+        );
+    }
+
+    // Прямой URL (крипта) — обычный <img>, чтобы не заводить хост в next/image.
+    if (src) {
+        // eslint-disable-next-line @next/next/no-img-element
+        return (
+            <img
+                className={style.logo}
+                src={src}
+                alt={ticker}
+                width={size}
+                height={size}
+                onError={() => setErrored(true)}
+            />
         );
     }
 

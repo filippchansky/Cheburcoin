@@ -44,7 +44,10 @@ export interface MarketFutures {
 
 export interface CbrRates {
     usd: number | null;
+    eur: number | null;
     cny: number | null;
+    /** Карта «код валюты (USD/EUR/…) → рублёвый курс за 1 ед.». */
+    rates: Record<string, number>;
     date: string | null;
 }
 

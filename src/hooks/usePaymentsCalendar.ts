@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getCoupons } from '@api/tinkoff/getCoupons/getCoupons';
 import { getDividends } from '@api/tinkoff/getDividends/getDividends';
 import { IDividendEvent, IPosition } from '@models/tinkoffData';
+import { useCbrRates } from './useMarketOverview';
 import { useTbank } from './useTbank';
 
 /** Тип события календаря выплат. */
@@ -24,6 +25,11 @@ export interface CalendarEvent {
     /** Сумма выплаты по позиции (ДО налога у купонов; объявленная/прогнозная у дивидендов). */
     amount: number;
     currency: string | null;
+    /**
+     * Рублёвый эквивалент суммы: для рублёвых выплат == amount; для валютных —
+     * пересчёт по курсу ЦБ. 0, если курс валюты неизвестен (в итог не входит).
+     */
+    amountRub: number;
     ticker?: string;
     name?: string;
     isin?: string;
@@ -51,7 +57,12 @@ export interface UsePaymentsCalendarResult {
     dividendTotal: number;
     /** Итог прогнозных дивидендов за окно (рублёвые). */
     dividendProjectedTotal: number;
+    /** Есть валютные выплаты, пересчитанные в рубли по курсу ЦБ. */
     hasNonRub: boolean;
+    /** Есть валютные выплаты, курс которых неизвестен — они не вошли в итог. */
+    hasUnconvertible: boolean;
+    /** Дата курса ЦБ, по которому пересчитаны валютные выплаты. */
+    ratesDate: string | null;
     status: CalendarStatus;
     isFetching: boolean;
     refetch: () => void;
@@ -107,6 +118,15 @@ export const usePaymentsCalendar = (
 ): UsePaymentsCalendarResult => {
     const { data: tbank } = useTbank();
     const token = tbank?.token;
+    const { data: cbr } = useCbrRates();
+
+    // Рублёвый эквивалент суммы по курсу ЦБ. Рубли — как есть; валюта с известным
+    // курсом — пересчёт; неизвестная валюта — 0 (в итог не входит, но помечается).
+    const toRub = (amount: number, currency: string | null): number => {
+        if (isRub(currency)) return round2(amount);
+        const rate = cbr?.rates?.[currency!.toUpperCase()];
+        return rate ? round2(amount * rate) : 0;
+    };
 
     const bonds = bondPositions
         .filter((p) => p.instrumentUid && (p.quantity ?? 0) > 0)
@@ -157,6 +177,7 @@ export const usePaymentsCalendar = (
         quantity: event.quantity,
         amount: event.amount,
         currency: event.currency,
+        amountRub: toRub(event.amount, event.currency),
         ...enrich(event.instrumentId)
     }));
 
@@ -181,6 +202,7 @@ export const usePaymentsCalendar = (
         quantity: event.quantity,
         amount: event.amount,
         currency: event.currency,
+        amountRub: toRub(event.amount, event.currency),
         ...enrich(event.instrumentId)
     }));
 
@@ -215,6 +237,7 @@ export const usePaymentsCalendar = (
             // «Как в прошлом году»: сумма = прошлая выплата (на акцию × текущее кол-во).
             amount: event.amount,
             currency: event.currency,
+            amountRub: toRub(event.amount, event.currency),
             ...enrich(event.instrumentId)
         });
     });
@@ -228,19 +251,27 @@ export const usePaymentsCalendar = (
     let dividendTotal = 0;
     let dividendProjectedTotal = 0;
     let hasNonRub = false;
+    let hasUnconvertible = false;
     const monthMap = new Map<string, CalendarMonthBucket>();
 
     events.forEach((event) => {
-        if (!isRub(event.currency)) {
-            hasNonRub = true;
-            return;
+        const foreign = !isRub(event.currency);
+        if (foreign) {
+            // Валюту с известным курсом считаем пересчитанной; без курса —
+            // помечаем как «не вошло» и в рублёвый итог не берём.
+            if (event.amountRub > 0) hasNonRub = true;
+            else {
+                hasUnconvertible = true;
+                return;
+            }
         }
         const date = new Date(event.date);
         if (Number.isNaN(date.getTime())) return;
 
-        if (event.kind === 'coupon') couponTotal += event.amount;
-        else if (event.projected) dividendProjectedTotal += event.amount;
-        else dividendTotal += event.amount;
+        const rub = event.amountRub;
+        if (event.kind === 'coupon') couponTotal += rub;
+        else if (event.projected) dividendProjectedTotal += rub;
+        else dividendTotal += rub;
 
         const key = monthKey(date);
         const bucket = monthMap.get(key) ?? {
@@ -252,7 +283,7 @@ export const usePaymentsCalendar = (
         };
         const field =
             event.kind === 'coupon' ? 'coupon' : event.projected ? 'dividendProjected' : 'dividend';
-        bucket[field] = round2(bucket[field] + event.amount);
+        bucket[field] = round2(bucket[field] + rub);
         monthMap.set(key, bucket);
     });
 
@@ -279,6 +310,8 @@ export const usePaymentsCalendar = (
         dividendTotal: round2(dividendTotal),
         dividendProjectedTotal: round2(dividendProjectedTotal),
         hasNonRub,
+        hasUnconvertible,
+        ratesDate: cbr?.date ?? null,
         status,
         isFetching: active.some((q) => q.isFetching),
         refetch: () => active.forEach((q) => q.refetch())

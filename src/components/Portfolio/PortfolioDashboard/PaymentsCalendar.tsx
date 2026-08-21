@@ -1,9 +1,10 @@
 'use client';
 import React from 'react';
-import { Alert, Button, Empty, Grid, Segmented, Skeleton, Switch, Table, TableProps, Tag, Tooltip } from 'antd';
+import { Alert, Button, Checkbox, Empty, Grid, Segmented, Skeleton, Switch, Table, TableProps, Tag, Tooltip } from 'antd';
 import { InfoCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { IPosition } from '@models/tinkoffData';
+import { AccountPortfolio, mergePositions } from '@/hooks/usePortfolio';
 import { CalendarEvent, CalendarKind, usePaymentsCalendar } from '@/hooks/usePaymentsCalendar';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
@@ -19,8 +20,24 @@ const MOBILE_PAGE = 20;
 const isRubCurrency = (currency: string | null) =>
     !currency || ['rub', 'sur', 'RUB', 'SUR'].includes(currency);
 
-const formatEventAmount = (amount: number, currency: string | null) =>
-    isRubCurrency(currency) ? intToRub(amount) : `${amount.toFixed(2)} ${currency!.toUpperCase()}`;
+/** Оригинальная сумма в валюте выплаты, напр. «12.00 USD». */
+const formatForeign = (amount: number, currency: string | null) =>
+    `${amount.toFixed(2)} ${(currency ?? '').toUpperCase()}`;
+
+/**
+ * Основная сумма строкой: рубли (в т.ч. пересчёт валюты по курсу ЦБ); для
+ * валюты с неизвестным курсом (amountRub == 0) — показываем оригинал.
+ */
+const formatEventAmount = (event: CalendarEvent) =>
+    isRubCurrency(event.currency) || event.amountRub > 0
+        ? intToRub(event.amountRub)
+        : formatForeign(event.amount, event.currency);
+
+/** Подпись с оригинальной валютой — только для пересчитанных валютных выплат. */
+const foreignHint = (event: CalendarEvent) =>
+    !isRubCurrency(event.currency) && event.amountRub > 0
+        ? formatForeign(event.amount, event.currency)
+        : null;
 
 /** Группирует отсортированные события по месяцу с рублёвым итогом группы. */
 const groupByMonth = (events: CalendarEvent[]) => {
@@ -35,15 +52,15 @@ const groupByMonth = (events: CalendarEvent[]) => {
             groups.push({ key, total: 0, items: [] });
         }
         groups[gi].items.push(event);
-        if (isRubCurrency(event.currency)) groups[gi].total += event.amount;
+        groups[gi].total += event.amountRub;
     });
     return groups;
 };
 
-interface PaymentsCalendarProps {
-    /** Облигационные позиции (агрегат по всем счетам) — источник купонов. */
+interface CalendarBodyProps {
+    /** Облигационные позиции выбранных счетов — источник купонов. */
     bondPositions: IPosition[];
-    /** Акции (агрегат по всем счетам) — источник дивидендов (объявленных + прогноз). */
+    /** Акции/фонды выбранных счетов — источник дивидендов (объявленных + прогноз). */
     sharePositions: IPosition[];
 }
 
@@ -73,7 +90,7 @@ const TotalTile: React.FC<TotalTileProps> = ({ label, value, color, bg, border, 
     </div>
 );
 
-const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, sharePositions }) => {
+const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositions }) => {
     const {
         events,
         byMonth,
@@ -81,6 +98,8 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
         dividendTotal,
         dividendProjectedTotal,
         hasNonRub,
+        hasUnconvertible,
+        ratesDate,
         status,
         isFetching,
         refetch
@@ -131,6 +150,9 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
         (e) => (showForecast || !e.projected) && (kindFilter === 'all' || e.kind === kindFilter)
     );
     const dividendTileTotal = showForecast ? round(dividendTotal + dividendProjectedTotal) : dividendTotal;
+    // Сводный итог за окно (12 мес) — купоны + дивиденды (с учётом прогноза, если включён).
+    const yearlyTotal = round(couponTotal + dividendTileTotal);
+    const monthlyAvg = round(yearlyTotal / 12);
 
     const forecastSeriesData = byMonth.map((bucket) => (showForecast ? bucket.dividendProjected : 0));
 
@@ -293,8 +315,20 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
             title: 'Сумма',
             key: 'amount',
             align: 'right',
-            render: (_, { amount, currency }) => formatEventAmount(amount, currency),
-            sorter: (a, b) => a.amount - b.amount
+            render: (_, record) => {
+                const hint = foreignHint(record);
+                return (
+                    <span>
+                        {formatEventAmount(record)}
+                        {hint ? (
+                            <span style={{ color: palette.textMuted, fontSize: 12, marginLeft: 6 }}>
+                                {hint}
+                            </span>
+                        ) : null}
+                    </span>
+                );
+            },
+            sorter: (a, b) => a.amountRub - b.amountRub
         }
     ];
 
@@ -305,6 +339,15 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
                     className='grid gap-3'
                     style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', flex: 1, minWidth: 260 }}
                 >
+                    <TotalTile
+                        label='Всего за 12 мес'
+                        value={intToRub(yearlyTotal)}
+                        color={palette.primary}
+                        bg={`${palette.primary}14`}
+                        border={`${palette.primary}40`}
+                        muted={palette.textMuted}
+                        sub={`≈ ${intToRub(monthlyAvg)} в месяц`}
+                    />
                     <TotalTile
                         label='Купоны за 12 мес · до налога'
                         value={intToRub(couponTotal)}
@@ -359,7 +402,18 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
                     type='info'
                     showIcon
                     className='mb-4'
-                    message='Есть выплаты в иностранной валюте — они не вошли в рублёвый итог и график.'
+                    message={`Валютные выплаты пересчитаны в рубли по курсу ЦБ${
+                        ratesDate ? ` на ${ratesDate}` : ''
+                    } и включены в итог.`}
+                />
+            ) : null}
+
+            {hasUnconvertible ? (
+                <Alert
+                    type='warning'
+                    showIcon
+                    className='mb-4'
+                    message='Часть выплат в валюте без известного курса ЦБ — они не вошли в рублёвый итог и график.'
                 />
             ) : null}
 
@@ -443,8 +497,18 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
                                                         className={cardStyle.payAmountValue}
                                                         style={{ color: '#1baf7a' }}
                                                     >
-                                                        +{formatEventAmount(event.amount, event.currency)}
+                                                        +{formatEventAmount(event)}
                                                     </span>
+                                                    {foreignHint(event) ? (
+                                                        <span
+                                                            style={{
+                                                                fontSize: 11,
+                                                                color: palette.textMuted
+                                                            }}
+                                                        >
+                                                            {foreignHint(event)}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                         </div>
@@ -479,5 +543,101 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ bondPositions, shar
 };
 
 const round = (n: number) => Number(n.toFixed(2));
+
+interface PaymentsCalendarProps {
+    /** Счета портфеля — из них строим фильтр и позиции для календаря. */
+    accounts: AccountPortfolio[];
+}
+
+/**
+ * Обёртка календаря: мультивыбор счетов + сводка «деньги на выбранных счетах».
+ * Позиции выбранных счетов схлопываем и отдаём в тело календаря — так статистика
+ * выплат считается точечно по нужным счетам.
+ */
+const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ accounts }) => {
+    const { darkTheme } = useDarkTheme();
+    const palette = getPalette(darkTheme);
+
+    // Кандидаты фильтра — счета с уже загруженным портфелем.
+    const loaded = accounts.filter((a) => a.portfolio);
+    const allIds = loaded.map((a) => a.account.id);
+
+    // null = «все счета» (дефолт). Явный выбор храним массивом id.
+    const [selected, setSelected] = React.useState<string[] | null>(null);
+    const selectedIds = (selected ?? allIds).filter((id) => allIds.includes(id));
+    const selectedAccounts = loaded.filter((a) => selectedIds.includes(a.account.id));
+
+    // Один инструмент на нескольких выбранных счетах схлопываем (иначе задвоятся
+    // события и ключи строк в календаре).
+    const positions = mergePositions(selectedAccounts.flatMap((a) => a.portfolio?.positions ?? []));
+    const bondPositions = positions.filter((p) => p.instrumentType === 'bond');
+    const sharePositions = positions.filter(
+        (p) => p.instrumentType === 'share' || p.instrumentType === 'etf'
+    );
+    const accountsMoney = selectedAccounts.reduce(
+        (sum, a) => sum + (a.portfolio?.totalAmountPortfolio ?? 0),
+        0
+    );
+
+    const allSelected = selectedIds.length === loaded.length;
+
+    return (
+        <div>
+            {loaded.length > 1 ? (
+                <div
+                    className='mb-4'
+                    style={{
+                        background: palette.containerBg,
+                        border: `1px solid ${palette.border}`,
+                        borderRadius: 12,
+                        padding: '12px 16px'
+                    }}
+                >
+                    <div className='flex items-center justify-between gap-3 flex-wrap mb-2'>
+                        <span style={{ fontSize: 13, color: palette.textMuted }}>Счета</span>
+                        <div className='flex items-center gap-3'>
+                            <span style={{ fontSize: 13, color: palette.textMuted }}>
+                                Выбрано {selectedIds.length} из {loaded.length}
+                            </span>
+                            <Button
+                                type='link'
+                                size='small'
+                                style={{ padding: 0 }}
+                                onClick={() => setSelected(allSelected ? [] : allIds)}
+                            >
+                                {allSelected ? 'Снять все' : 'Выбрать все'}
+                            </Button>
+                        </div>
+                    </div>
+                    <Checkbox.Group value={selectedIds} onChange={(v) => setSelected(v as string[])}>
+                        <div className='flex flex-wrap gap-x-5 gap-y-2'>
+                            {loaded.map((a) => (
+                                <Checkbox key={a.account.id} value={a.account.id}>
+                                    <span>{a.account.name}</span>
+                                    <span style={{ color: palette.textMuted, marginLeft: 6 }}>
+                                        {intToRub(a.portfolio?.totalAmountPortfolio ?? 0)}
+                                    </span>
+                                </Checkbox>
+                            ))}
+                        </div>
+                    </Checkbox.Group>
+                    <div
+                        style={{
+                            marginTop: 12,
+                            paddingTop: 12,
+                            borderTop: `1px solid ${palette.border}`,
+                            fontSize: 14
+                        }}
+                    >
+                        <span style={{ color: palette.textMuted }}>Деньги на выбранных счетах: </span>
+                        <b style={{ color: palette.primary }}>{intToRub(accountsMoney)}</b>
+                    </div>
+                </div>
+            ) : null}
+
+            <CalendarBody bondPositions={bondPositions} sharePositions={sharePositions} />
+        </div>
+    );
+};
 
 export default PaymentsCalendar;

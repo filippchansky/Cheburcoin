@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import style from './style.module.scss';
+import Image from 'next/image';
 
 /**
  * Превью новости: внешняя картинка поверх градиента-заглушки. Если картинка не
@@ -18,7 +19,7 @@ const NewsThumb: React.FC<{ src: string | null; source: string; className?: stri
     return (
         <div className={`${style.thumb} ${className ?? ''}`} data-source={source}>
             {show ? (
-                <img
+                <Image
                     src={src}
                     alt=''
                     loading='lazy'

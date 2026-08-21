@@ -3,6 +3,7 @@ import { getPortfolio } from '@api/tinkoff/getPortfolio/getPortfolio';
 import { IAccount, IPortfolio, IPosition } from '@models/tinkoffData';
 import { useTbank } from './useTbank';
 import { useCryptoPositions } from './useCryptoPositions';
+import { useBybitPositions } from './useBybitPositions';
 
 export interface AccountPortfolio {
     account: IAccount;
@@ -44,6 +45,35 @@ const TYPE_TOTAL_FIELDS: Record<keyof Pick<IPortfolio,
 
 /** id синтетического счёта, под которым крипта Trezor встаёт в список счетов. */
 export const TREZOR_ACCOUNT_ID = 'trezor';
+/** id синтетического счёта для крипты с биржи Bybit. */
+export const BYBIT_ACCOUNT_ID = 'bybit';
+
+/** Псевдо-IPortfolio из крипто-позиций (стоимость/дневная доходность уже в ₽). */
+const buildCryptoPortfolio = (
+    id: string,
+    name: string,
+    positions: IPosition[],
+    total: number,
+    dailyTotal: number
+): IPortfolio => ({
+    totalAmountShares: 0,
+    totalAmountBonds: 0,
+    totalAmountEtf: 0,
+    totalAmountCurrencies: 0,
+    totalAmountFutures: 0,
+    totalAmountCrypto: total,
+    totalAmountOptions: 0,
+    totalAmountSp: 0,
+    totalAmountPortfolio: total,
+    expectedYield: 0,
+    expectedYieldInt: 0,
+    positions,
+    accountId: id,
+    virtualPositions: [],
+    dailyYield: dailyTotal,
+    dailyYieldRelative: 0,
+    name
+});
 
 const round = (n: number, digits = 2) => Number(n.toFixed(digits));
 
@@ -122,34 +152,42 @@ export const usePortfolio = (): UsePortfolioResult => {
     const cryptoAccount: AccountPortfolio | null = crypto.positions.length
         ? {
               account: { id: TREZOR_ACCOUNT_ID, name: 'Trezor' },
-              portfolio: {
-                  totalAmountShares: 0,
-                  totalAmountBonds: 0,
-                  totalAmountEtf: 0,
-                  totalAmountCurrencies: 0,
-                  totalAmountFutures: 0,
-                  totalAmountCrypto: crypto.total,
-                  totalAmountOptions: 0,
-                  totalAmountSp: 0,
-                  totalAmountPortfolio: crypto.total,
-                  expectedYield: 0,
-                  expectedYieldInt: 0,
-                  positions: crypto.positions,
-                  accountId: TREZOR_ACCOUNT_ID,
-                  virtualPositions: [],
-                  dailyYield: crypto.dailyTotal,
-                  dailyYieldRelative: 0,
-                  name: 'Trezor'
-              },
+              portfolio: buildCryptoPortfolio(
+                  TREZOR_ACCOUNT_ID,
+                  'Trezor',
+                  crypto.positions,
+                  crypto.total,
+                  crypto.dailyTotal
+              ),
               isLoading: crypto.isLoading,
               isError: crypto.isError,
               refetch: crypto.refetch
           }
         : null;
 
-    const accountPortfolios: AccountPortfolio[] = cryptoAccount
-        ? [...tbankPortfolios, cryptoAccount]
-        : tbankPortfolios;
+    // Крипта Bybit — такой же синтетический счёт (балансы биржи через подписанный прокси).
+    const bybit = useBybitPositions();
+    const bybitAccount: AccountPortfolio | null = bybit.positions.length
+        ? {
+              account: { id: BYBIT_ACCOUNT_ID, name: 'Bybit' },
+              portfolio: buildCryptoPortfolio(
+                  BYBIT_ACCOUNT_ID,
+                  'Bybit',
+                  bybit.positions,
+                  bybit.total,
+                  bybit.dailyTotal
+              ),
+              isLoading: bybit.isLoading,
+              isError: bybit.isError,
+              refetch: bybit.refetch
+          }
+        : null;
+
+    const accountPortfolios: AccountPortfolio[] = [
+        ...tbankPortfolios,
+        ...(cryptoAccount ? [cryptoAccount] : []),
+        ...(bybitAccount ? [bybitAccount] : [])
+    ];
 
     const loaded = accountPortfolios.filter((item) => item.portfolio);
 
@@ -184,8 +222,8 @@ export const usePortfolio = (): UsePortfolioResult => {
         : null;
 
     // Портфель пуст только если нет НИ одного источника: ни счетов Т-Банка, ни
-    // подключённой крипты (Trezor может быть единственным источником).
-    const hasCrypto = crypto.positions.length > 0;
+    // подключённой крипты (Trezor/Bybit может быть единственным источником).
+    const hasCrypto = crypto.positions.length > 0 || bybit.positions.length > 0;
     const noSource = (!token || accounts.length === 0) && !hasCrypto;
     const status: PortfolioStatus = noSource
         ? 'empty'
@@ -199,10 +237,11 @@ export const usePortfolio = (): UsePortfolioResult => {
         accounts: accountPortfolios,
         aggregate,
         status,
-        isFetching: queries.some((query) => query.isFetching) || crypto.isLoading,
+        isFetching: queries.some((query) => query.isFetching) || crypto.isLoading || bybit.isLoading,
         refetchAll: () => {
             queries.forEach((query) => query.refetch());
             crypto.refetch();
+            bybit.refetch();
         }
     };
 };

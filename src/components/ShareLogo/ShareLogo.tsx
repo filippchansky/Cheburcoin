@@ -29,9 +29,8 @@ const ShareLogo: React.FC<ShareLogoProps> = ({ icon, ticker, size = 40, src }) =
 
     // Прямой URL (крипта) — обычный <img>, чтобы не заводить хост в next/image.
     if (src) {
-        // eslint-disable-next-line @next/next/no-img-element
         return (
-            <img
+            <Image
                 className={style.logo}
                 src={src}
                 alt={ticker}

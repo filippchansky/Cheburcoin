@@ -1,10 +1,12 @@
 import { useTbank, useDisconnectTbank } from '@/hooks/useTbank';
 import { useTrezor } from '@/hooks/useTrezor';
+import { useBybit } from '@/hooks/useBybit';
 import { Button, Popconfirm, Space, Spin } from 'antd';
 import { SettingOutlined, DisconnectOutlined } from '@ant-design/icons';
 import React from 'react';
 import TinkoffSteper from '../TinkoffStepper/TinkoffSteper';
 import TrezorConnectCard from '../Trezor/TrezorConnectCard';
+import BybitConnectCard from '../Bybit/BybitConnectCard';
 import PortfolioDashboard from './PortfolioDashboard/PortfolioDashboard';
 
 interface PortfolioProps {}
@@ -12,10 +14,11 @@ interface PortfolioProps {}
 const Portfolio: React.FC<PortfolioProps> = ({}) => {
     const { data, isLoading } = useTbank();
     const { data: trezorAccounts, isLoading: isTrezorLoading } = useTrezor();
+    const { data: bybitCreds, isLoading: isBybitLoading } = useBybit();
     const disconnect = useDisconnectTbank();
     const [settingsOpen, setSettingsOpen] = React.useState(false);
 
-    if (isLoading || isTrezorLoading) {
+    if (isLoading || isTrezorLoading || isBybitLoading) {
         return (
             <div className='text-center'>
                 <Spin />
@@ -25,8 +28,9 @@ const Portfolio: React.FC<PortfolioProps> = ({}) => {
 
     const isTbankConnected = Boolean(data?.token && data.accounts.length);
     const hasTrezor = Boolean(trezorAccounts?.length);
-    // Дашборд показываем, если подключён ХОТЬ ОДИН источник: Т-Банк или Trezor.
-    const isConnected = isTbankConnected || hasTrezor;
+    const hasBybit = Boolean(bybitCreds?.apiKey && bybitCreds?.apiSecret);
+    // Дашборд показываем, если подключён ХОТЬ ОДИН источник: Т-Банк, Trezor или Bybit.
+    const isConnected = isTbankConnected || hasTrezor || hasBybit;
 
     // Мастер подключения: при первом входе (нет токена/счетов) или когда
     // пользователь открыл настройки, чтобы сменить токен/счета.
@@ -36,6 +40,7 @@ const Portfolio: React.FC<PortfolioProps> = ({}) => {
                 <h2 className='text-xl font-medium m-0'>Источники данных</h2>
                 <TinkoffSteper onClose={settingsOpen ? () => setSettingsOpen(false) : undefined} />
                 <TrezorConnectCard />
+                <BybitConnectCard />
             </div>
         );
     }

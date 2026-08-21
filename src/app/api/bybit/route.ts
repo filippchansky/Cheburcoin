@@ -41,6 +41,11 @@ export async function POST(req: NextRequest) {
         const message = error instanceof Error ? error.message : 'bybit proxy failed';
         // Ошибка биржи/подписи → 502 (upstream), прочее (битый body) → 400.
         const status = error instanceof BybitError ? 502 : 400;
-        return NextResponse.json({ error: message }, { status });
+        // Регион исполнения функции — чтобы видеть, применился ли preferredRegion
+        // (при гео-403 сразу ясно: всё ещё iad1/США или уже fra1).
+        return NextResponse.json(
+            { error: message, region: process.env.VERCEL_REGION ?? 'unknown' },
+            { status }
+        );
     }
 }

@@ -67,7 +67,9 @@ export const cryptoToPositions = (
                 // Пометка «в стейкинге»: показываем, только если что-то застейкано.
                 stakedQuantity: b.staked > 0 ? b.staked : undefined,
                 // Двухвалютное отображение крипты: $ основной, ₽ снизу.
-                usd: { price: priceUsd, value: Number((priceUsd * b.amount).toFixed(2)) }
+                usd: { price: priceUsd, value: Number((priceUsd * b.amount).toFixed(2)) },
+                // Локальная иконка монеты (у крипты нет ISIN для лого по бумагам).
+                logoUrl: config?.icon
             };
             return position;
         });

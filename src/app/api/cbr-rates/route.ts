@@ -3,21 +3,22 @@ import { NextResponse } from 'next/server';
 const CBR_URL = 'https://www.cbr.ru/scripts/XML_daily.asp';
 
 /**
- * Официальный курс валюты из дневного XML ЦБ. Значение делим на номинал
- * (для некоторых валют номинал > 1). Кириллицу из ответа не читаем, поэтому
- * кодировка windows-1251 не мешает — коды валют и числа это ASCII.
+ * Разбирает весь дневной XML ЦБ в карту «код валюты → рублёвый курс за 1 ед.»
+ * (значение делим на номинал, т.к. для части валют номинал > 1). Кириллицу из
+ * <Name> не читаем — regex её пропускает, поэтому кодировка windows-1251 не
+ * мешает: коды валют и числа это ASCII.
  */
-const parseValute = (xml: string, code: string): number | null => {
-    const match = xml.match(
-        new RegExp(
-            `<CharCode>${code}</CharCode>[\\s\\S]*?<Nominal>(\\d+)</Nominal>[\\s\\S]*?<Value>([\\d,]+)</Value>`
-        )
-    );
-    if (!match) return null;
-    const nominal = Number(match[1]);
-    const value = Number(match[2].replace(',', '.'));
-    if (!Number.isFinite(value)) return null;
-    return nominal ? value / nominal : value;
+const parseRates = (xml: string): Record<string, number> => {
+    const rates: Record<string, number> = {};
+    const re =
+        /<CharCode>([A-Z]{3})<\/CharCode>[\s\S]*?<Nominal>(\d+)<\/Nominal>[\s\S]*?<Value>([\d,]+)<\/Value>/g;
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(xml)) !== null) {
+        const nominal = Number(match[2]);
+        const value = Number(match[3].replace(',', '.'));
+        if (Number.isFinite(value) && nominal) rates[match[1]] = value / nominal;
+    }
+    return rates;
 };
 
 export async function GET() {
@@ -29,10 +30,15 @@ export async function GET() {
 
         const xml = await response.text();
         const date = xml.match(/Date="([^"]+)"/)?.[1] ?? null;
+        const rates = parseRates(xml);
 
         return NextResponse.json({
-            usd: parseValute(xml, 'USD'),
-            cny: parseValute(xml, 'CNY'),
+            // Плоские поля — для обратной совместимости с потребителями ленты.
+            usd: rates.USD ?? null,
+            eur: rates.EUR ?? null,
+            cny: rates.CNY ?? null,
+            // Полная карта «код → курс за 1 ед.» — для пересчёта любых валют.
+            rates,
             date
         });
     } catch {

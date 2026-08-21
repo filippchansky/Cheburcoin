@@ -48,7 +48,7 @@ export const TREZOR_ACCOUNT_ID = 'trezor';
 const round = (n: number, digits = 2) => Number(n.toFixed(digits));
 
 /** Схлопывает одинаковые инструменты (один и тот же на разных счетах) в одну позицию. */
-const mergePositions = (positions: IPosition[]): IPosition[] => {
+export const mergePositions = (positions: IPosition[]): IPosition[] => {
     const map = new Map<string, IPosition>();
     positions.forEach((pos) => {
         const key = pos.instrumentUid || pos.positionUid || pos.figi;

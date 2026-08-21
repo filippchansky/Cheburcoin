@@ -182,4 +182,9 @@ export interface IPosition {
      * при этом остаются в рублях (priceInPorfolio).
      */
     usd?: { price: number; value: number }
+    /**
+     * Прямой URL логотипа (крипта Trezor: локальная иконка монеты). У бумаг лого
+     * берётся по ISIN, поэтому здесь undefined.
+     */
+    logoUrl?: string
 }

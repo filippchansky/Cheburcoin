@@ -24,6 +24,8 @@ export interface TrezorCoinConfig {
     currency: string;
     /** id монеты в CoinGecko (для цены в ₽ одним запросом). */
     coingeckoId: string;
+    /** Локальная иконка монеты (public/crypto/*.svg) для таблицы портфеля. */
+    icon: string;
     /** Человекочитаемое имя. */
     name: string;
     /** Кол-во знаков в базовой единице → монеты (BTC 8, ETH 18, SOL 9). */
@@ -40,6 +42,7 @@ export const TREZOR_COINS: TrezorCoinConfig[] = [
         adapter: 'utxo',
         currency: 'BTC',
         coingeckoId: 'bitcoin',
+        icon: '/crypto/bitcoin.svg',
         name: 'Bitcoin',
         decimals: 8
     },
@@ -48,6 +51,7 @@ export const TREZOR_COINS: TrezorCoinConfig[] = [
         adapter: 'evm',
         currency: 'ETH',
         coingeckoId: 'ethereum',
+        icon: '/crypto/ethereum.svg',
         name: 'Ethereum',
         decimals: 18
     },
@@ -56,6 +60,7 @@ export const TREZOR_COINS: TrezorCoinConfig[] = [
         adapter: 'solana',
         currency: 'SOL',
         coingeckoId: 'solana',
+        icon: '/crypto/solana.svg',
         name: 'Solana',
         decimals: 9,
         rpcUrl: SOLANA_RPC

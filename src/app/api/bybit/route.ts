@@ -13,6 +13,12 @@ import { getWalletBalance, BybitError } from '@/lib/bybit/client';
 // HMAC-подпись использует Node crypto — Edge-рантайм его не даёт, форсим Node.
 export const runtime = 'nodejs';
 
+// Bybit не обслуживает США (и UK/SG/JP): из дефолтного региона Vercel (iad1, США)
+// Cloudflare биржи отдаёт 403 ДО API. Просим гонять функцию из Франкфурта (EU) —
+// там Bybit доступен. На Hobby-плане per-function регион игнорируется: тогда смени
+// дефолтный регион проекта на fra1 в Vercel → Settings → Functions.
+export const preferredRegion = 'fra1';
+
 export async function POST(req: NextRequest) {
     try {
         const { op, apiKey, apiSecret } = (await req.json()) as {

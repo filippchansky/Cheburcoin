@@ -66,7 +66,12 @@ const privateGet = async <T>(
         },
         cache: 'no-store'
     });
-    if (!res.ok) throw new BybitError(`Bybit HTTP ${res.status}`);
+    if (!res.ok) {
+        // 403 обычно = гео/CDN-блок биржи (Cloudflare/CloudFront) ДО API, не подпись.
+        // Кладём краткий срез тела в сообщение — по нему видно, кто и за что режет.
+        const snippet = (await res.text().catch(() => '')).replace(/\s+/g, ' ').slice(0, 160);
+        throw new BybitError(`Bybit HTTP ${res.status}${snippet ? `: ${snippet}` : ''}`);
+    }
 
     const json = (await res.json()) as BybitEnvelope<T>;
     if (json.retCode !== 0) {

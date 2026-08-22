@@ -1,6 +1,6 @@
 import { Button, Checkbox, CheckboxProps, Divider } from 'antd';
 import React from 'react';
-import { IPlainOptions } from '../TinkoffSteper';
+import { IPlainOptions } from '../types';
 
 const CheckboxGroup = Checkbox.Group;
 

@@ -88,18 +88,53 @@ interface WalletBalanceResult {
     }>;
 }
 
+interface TickersResult {
+    list: Array<{ symbol: string; price24hPcnt: string }>;
+}
+
 /**
- * Балансы UNIFIED-аккаунта: только ненулевые монеты, приведённые к числам.
- * usdValue отдаёт сам Bybit — в ₽ переводим уже на фронте общим курсом (Этап 2).
+ * 24h-изменение по спотовым парам (публичный эндпоинт, БЕЗ подписи). Возвращает
+ * карту базовая-монета → % за сутки (по паре COINUSDT). price24hPcnt — это доля
+ * (0.05 = +5%), поэтому ×100. Сбой не критичен — вернём пустую карту (за день = 0).
+ */
+const getSpotChange24h = async (): Promise<Record<string, number>> => {
+    try {
+        const res = await fetch(`${BASE}/v5/market/tickers?category=spot`, {
+            headers: { accept: 'application/json' },
+            cache: 'no-store'
+        });
+        if (!res.ok) return {};
+        const json = (await res.json()) as BybitEnvelope<TickersResult>;
+        if (json.retCode !== 0) return {};
+
+        const out: Record<string, number> = {};
+        for (const t of json.result.list) {
+            if (!t.symbol.endsWith('USDT')) continue;
+            const base = t.symbol.slice(0, -4); // BTCUSDT → BTC
+            out[base] = (Number(t.price24hPcnt) || 0) * 100;
+        }
+        return out;
+    } catch {
+        return {};
+    }
+};
+
+/**
+ * Балансы UNIFIED-аккаунта: только ненулевые монеты, приведённые к числам, с
+ * привязкой 24h-изменения из public tickers. usdValue отдаёт сам Bybit — в ₽
+ * переводим уже на фронте общим курсом (Этап 2).
  */
 export const getWalletBalance = async (
     creds?: Partial<BybitCreds>
 ): Promise<BybitCoinBalance[]> => {
-    const result = await privateGet<WalletBalanceResult>(
-        '/v5/account/wallet-balance',
-        { accountType: 'UNIFIED' },
-        creds
-    );
+    const [result, changes] = await Promise.all([
+        privateGet<WalletBalanceResult>(
+            '/v5/account/wallet-balance',
+            { accountType: 'UNIFIED' },
+            creds
+        ),
+        getSpotChange24h()
+    ]);
     const account = result.list?.[0];
     if (!account?.coin) return [];
 
@@ -107,7 +142,8 @@ export const getWalletBalance = async (
         .map((c) => ({
             coin: c.coin,
             qty: Number(c.walletBalance) || 0,
-            usdValue: Number(c.usdValue) || 0
+            usdValue: Number(c.usdValue) || 0,
+            change24hPct: changes[c.coin] ?? 0
         }))
         .filter((c) => c.qty > 0);
 };

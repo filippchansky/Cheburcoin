@@ -3,7 +3,9 @@ import { IPosition } from '@models/tinkoffData';
 import { readBalances, BalanceError, CryptoBalance } from '@/lib/trezor/balances';
 import { fetchCryptoPricesRub } from '@/lib/trezor/prices';
 import { cryptoToPositions } from '@/lib/trezor/toPositions';
+import { lotsToAvgPrices } from '@/lib/portfolio/cryptoLots';
 import { useTrezor } from './useTrezor';
+import { useCryptoLots } from './useCryptoLots';
 
 const MINUTE = 60_000;
 
@@ -31,6 +33,7 @@ export interface CryptoPortfolio {
  */
 export const useCryptoPositions = (): CryptoPortfolio => {
     const { data: accounts = [] } = useTrezor();
+    const { data: lots } = useCryptoLots();
 
     const coinKeys = Array.from(new Set(accounts.map((a) => a.coin)));
     const descriptors = accounts.map((a) => `${a.coin}:${a.descriptor}`).join(',');
@@ -54,7 +57,8 @@ export const useCryptoPositions = (): CryptoPortfolio => {
     const balanceResult = balancesQuery.data ?? { balances: [], errors: [] };
     const prices = pricesQuery.data ?? {};
 
-    const positions = cryptoToPositions(balanceResult.balances, prices);
+    const avgPrices = lotsToAvgPrices(lots ?? {});
+    const positions = cryptoToPositions(balanceResult.balances, prices, avgPrices);
     const total = positions.reduce((sum, p) => sum + (p.priceInPorfolio ?? 0), 0);
     const dailyTotal = positions.reduce((sum, p) => sum + (p.dailyYield ?? 0), 0);
 

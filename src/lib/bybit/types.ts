@@ -17,4 +17,6 @@ export interface BybitCoinBalance {
     qty: number;
     /** Оценка позиции в USD (usdValue от Bybit). */
     usdValue: number;
+    /** Изменение цены за 24ч, % (из public tickers по паре COINUSDT). 0, если нет пары. */
+    change24hPct: number;
 }

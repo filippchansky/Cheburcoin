@@ -81,7 +81,13 @@ const round = (n: number, digits = 2) => Number(n.toFixed(digits));
 export const mergePositions = (positions: IPosition[]): IPosition[] => {
     const map = new Map<string, IPosition>();
     positions.forEach((pos) => {
-        const key = pos.instrumentUid || pos.positionUid || pos.figi;
+        // Крипту схлопываем по монете (SOL с Trezor и Bybit → одна строка), у бумаг
+        // ключ — instrumentUid. Средняя/прибыль совпадают (единые лоты по монете),
+        // поэтому взвешивание в merge даёт корректную объединённую позицию.
+        const key =
+            pos.instrumentType === 'crypto'
+                ? `crypto:${pos.ticker}`
+                : pos.instrumentUid || pos.positionUid || pos.figi;
         const prev = map.get(key);
         if (!prev) {
             map.set(key, { ...pos });
@@ -97,11 +103,20 @@ export const mergePositions = (positions: IPosition[]): IPosition[] => {
                   4
               )
             : prev.averagePositionPrice;
+        // Двухвалютный блок ($): стоимость складываем, цену берём актуальную (обе ≈ равны).
+        const usd =
+            prev.usd || pos.usd
+                ? {
+                      price: pos.usd?.price ?? prev.usd?.price ?? 0,
+                      value: round((prev.usd?.value ?? 0) + (pos.usd?.value ?? 0))
+                  }
+                : undefined;
         map.set(key, {
             ...prev,
             quantity,
             currentPrice,
             averagePositionPrice,
+            usd,
             priceInPorfolio: round((prev.priceInPorfolio ?? 0) + (pos.priceInPorfolio ?? 0)),
             expectedYieldFifo: round((prev.expectedYieldFifo ?? 0) + (pos.expectedYieldFifo ?? 0)),
             dailyYield: round((prev.dailyYield ?? 0) + (pos.dailyYield ?? 0)),

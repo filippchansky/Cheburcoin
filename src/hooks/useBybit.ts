@@ -79,3 +79,6 @@ export const useDisconnectBybit = () => {
         }
     });
 };
+
+// Покупки крипты (лоты) переехали в useCryptoLots — они ЕДИНЫЕ по монете
+// (Trezor + Bybit), а не привязаны к Bybit.

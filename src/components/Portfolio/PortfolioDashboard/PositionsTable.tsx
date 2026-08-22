@@ -1,10 +1,12 @@
 'use client';
 import React from 'react';
 import { Button, Empty, Grid, Spin, Table, TableProps, Tag } from 'antd';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { IPosition } from '@models/tinkoffData';
 import TableName from '@/components/TableName/TableName';
 import ShareLogo from '@/components/ShareLogo/ShareLogo';
+import CryptoLotsDrawer from '@/components/Portfolio/CryptoLotsDrawer';
 import { formatAmount, formatPercent } from '@/utils/formatCurrency';
 import { currencySymbol } from '@/utils/currencyRegistry';
 import { useDarkTheme } from '@/store/darkTheme';
@@ -73,6 +75,11 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
     const screens = Grid.useBreakpoint();
     const isMobile = screens.md === false;
     const [visible, setVisible] = React.useState(MOBILE_PAGE);
+    // Открытый Drawer ввода покупок крипты (тикер монеты или null).
+    const [lotsCoin, setLotsCoin] = React.useState<string | null>(null);
+
+    // По крипте (Trezor/Bybit) себестоимость вводится вручную — показываем кнопку.
+    const isCrypto = (p: IPosition) => p.instrumentType === 'crypto';
 
     // Полная прибыль = курсовая (FIFO) + реализованный P/L проданных лотов +
     // начисления нетто (с учётом связки обычка↔префы). Совпадает с «Прибыль» на
@@ -148,21 +155,47 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
             key: 'pl',
             align: 'right',
             render: (_, record) => {
-                // У крипты (Trezor) нет себестоимости — прибыль не считаем.
-                if (record.instrumentType === 'crypto') {
-                    return <span style={{ color: palette.textMuted }}>—</span>;
+                const hasCost = (record.averagePositionPrice ?? 0) > 0;
+                // Крипта без введённых покупок — вместо прочерка кнопка «добавить».
+                if (isCrypto(record) && !hasCost) {
+                    return (
+                        <Button
+                            size='small'
+                            type='link'
+                            icon={<PlusOutlined />}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setLotsCoin(record.ticker ?? null);
+                            }}
+                        >
+                            покупки
+                        </Button>
+                    );
                 }
                 const value = totalProfit(record);
                 const positive = value >= 0;
                 const cls = positive ? style.gain : style.loss;
                 return (
-                    <div className='flex flex-col'>
-                        <span className={cls}>
-                            {formatAmount(value, record.currency, { signed: true })}
-                        </span>
-                        <span className={[cls, style.sub].join(' ')}>
-                            {formatPercent(totalProfitPercent(record))}
-                        </span>
+                    <div className='flex items-center justify-end gap-1'>
+                        <div className='flex flex-col'>
+                            <span className={cls}>
+                                {formatAmount(value, record.currency, { signed: true })}
+                            </span>
+                            <span className={[cls, style.sub].join(' ')}>
+                                {formatPercent(totalProfitPercent(record))}
+                            </span>
+                        </div>
+                        {isCrypto(record) && (
+                            <Button
+                                size='small'
+                                type='text'
+                                icon={<EditOutlined />}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setLotsCoin(record.ticker ?? null);
+                                }}
+                            />
+                        )}
                     </div>
                 );
             },
@@ -291,18 +324,36 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
                                               position.currency
                                           )}
                                 </span>
-                                {position.instrumentType === 'crypto' ? (
-                                    <span className={`${style.posSub} ${style.posSubMuted}`}>
-                                        {position.usd
-                                            ? compactAmount(position.priceInPorfolio, 'RUB')
-                                            : '—'}
-                                    </span>
-                                ) : (
-                                    <span className={`${style.posSub} ${plCls}`}>
-                                        {signedCompactAmount(profit, position.currency)} ·{' '}
-                                        {Math.abs(totalProfitPercent(position)).toFixed(2)}%
-                                    </span>
-                                )}
+                                {(() => {
+                                    const hasCost = (position.averagePositionPrice ?? 0) > 0;
+                                    const cryptoRow = position.instrumentType === 'crypto';
+                                    // Крипта: тап по строке прибыли открывает ввод покупок.
+                                    const openLots = (e: React.MouseEvent) => {
+                                        e.stopPropagation();
+                                        setLotsCoin(position.ticker ?? null);
+                                    };
+                                    if (cryptoRow && !hasCost) {
+                                        return (
+                                            <span
+                                                className={`${style.posSub}`}
+                                                style={{ color: palette.primary }}
+                                                onClick={openLots}
+                                            >
+                                                + покупки
+                                            </span>
+                                        );
+                                    }
+                                    return (
+                                        <span
+                                            className={`${style.posSub} ${plCls}`}
+                                            onClick={cryptoRow ? openLots : undefined}
+                                        >
+                                            {signedCompactAmount(profit, position.currency)} ·{' '}
+                                            {Math.abs(totalProfitPercent(position)).toFixed(2)}%
+                                            {cryptoRow ? ' ✎' : ''}
+                                        </span>
+                                    );
+                                })()}
                             </div>
                         </div>
                     );
@@ -316,26 +367,38 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
                         Показать ещё
                     </Button>
                 ) : null}
+                <CryptoLotsDrawer
+                    coin={lotsCoin}
+                    open={!!lotsCoin}
+                    onClose={() => setLotsCoin(null)}
+                />
             </div>
         );
     }
 
     return (
-        <Table<IPosition>
-            loading={loading}
-            columns={columns}
-            dataSource={positions}
-            rowKey='positionUid'
-            scroll={{ x: 'max-content' }}
-            pagination={{ pageSize: 15, showSizeChanger: false, hideOnSinglePage: true }}
-            rowClassName={(record) => (positionHref(record) ? style.clickableRow : '')}
-            onRow={(record) => ({
-                onClick: () => {
-                    const href = positionHref(record);
-                    if (href) router.push(href);
-                }
-            })}
-        />
+        <>
+            <Table<IPosition>
+                loading={loading}
+                columns={columns}
+                dataSource={positions}
+                rowKey='positionUid'
+                scroll={{ x: 'max-content' }}
+                pagination={{ pageSize: 15, showSizeChanger: false, hideOnSinglePage: true }}
+                rowClassName={(record) => (positionHref(record) ? style.clickableRow : '')}
+                onRow={(record) => ({
+                    onClick: () => {
+                        const href = positionHref(record);
+                        if (href) router.push(href);
+                    }
+                })}
+            />
+            <CryptoLotsDrawer
+                coin={lotsCoin}
+                open={!!lotsCoin}
+                onClose={() => setLotsCoin(null)}
+            />
+        </>
     );
 };
 export default PositionsTable;

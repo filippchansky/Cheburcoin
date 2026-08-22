@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/react';
 import './globals.scss';
 import Providers from '@/components/Providers/Providers';
 import MainLayout from '@/components/MainLayout/MainLayout';
+import SplashHider from '@/components/SplashScreen/SplashHider';
 
 export const metadata: Metadata = {
     applicationName: 'CHEBURCOIN',
@@ -34,12 +35,18 @@ export default function RootLayout({
     return (
         <html lang='ru'>
             <body className=''>
+                <div id='app-splash' aria-hidden='true'>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src='/icons/icon-192.png' alt='' width={96} height={96} />
+                    <div className='app-splash__spinner' />
+                </div>
                 <Providers>
                     <MainLayout>
                         {children}
                         <Analytics />
                     </MainLayout>
                 </Providers>
+                <SplashHider />
             </body>
         </html>
     );

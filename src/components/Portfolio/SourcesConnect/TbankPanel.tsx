@@ -1,24 +1,25 @@
+'use client';
 import * as React from 'react';
-import FirstStep from './FirstStep/FirstStep';
-import SecondStep from './SecondStep/SecondStep';
+import { Steps, notification } from 'antd';
+import FirstStep from '../../TinkoffStepper/FirstStep/FirstStep';
+import SecondStep from '../../TinkoffStepper/SecondStep/SecondStep';
+import { IPlainOptions } from '../../TinkoffStepper/types';
 import { useTbank, useSetTbankToken, useSetTbankAccounts } from '@/hooks/useTbank';
 import { getAccounts } from '@api/tinkoff/getAccounts/getAccounts';
-import { Card, notification, Space, Steps } from 'antd';
-import { BankOutlined } from '@ant-design/icons';
 
-export interface IPlainOptions {
-    value: string;
-    label: string;
-}
-
-interface TinkoffSteperProps {
-    /** Вызывается после успешного завершения (режим настроек). */
-    onClose?: () => void;
+interface TbankPanelProps {
+    /** Вызывается после успешного сохранения счетов (чтобы свернуть панель). */
+    onDone?: () => void;
 }
 
 const steps = ['Токен Т-Банка', 'Выбор счетов'];
 
-const TinkoffSteper: React.FC<TinkoffSteperProps> = ({ onClose }) => {
+/**
+ * Тело источника «Брокерский счёт (Т-Банк)» для аккордеона SourcesConnect.
+ * Логика 1:1 со старым TinkoffSteper, только без внешней Card — заголовок и
+ * контейнер даёт строка аккордеона.
+ */
+const TbankPanel: React.FC<TbankPanelProps> = ({ onDone }) => {
     const { data: tbank } = useTbank();
     const setTbankToken = useSetTbankToken();
     const setTbankAccounts = useSetTbankAccounts();
@@ -67,7 +68,7 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({ onClose }) => {
                 .filter((item) => checkedList.includes(item.value))
                 .map((item) => ({ id: item.value, name: item.label }));
             await setTbankAccounts.mutateAsync(selectedAccounts);
-            onClose?.();
+            onDone?.();
         } finally {
             setLoading(false);
         }
@@ -76,16 +77,13 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({ onClose }) => {
     const handleBack = () => setActiveStep((prev) => prev - 1);
 
     return (
-        <Card
-            title={
-                <Space>
-                    <BankOutlined />
-                    Брокерский счёт (Т-Банк)
-                </Space>
-            }
-        >
+        <div>
             {contextHolder}
-            <Steps current={activeStep} items={steps.map((label) => ({ title: label }))} />
+            <Steps
+                size='small'
+                current={activeStep}
+                items={steps.map((label) => ({ title: label }))}
+            />
             {activeStep === 0 && (
                 <FirstStep
                     handleNext={handleTokenNext}
@@ -104,7 +102,8 @@ const TinkoffSteper: React.FC<TinkoffSteperProps> = ({ onClose }) => {
                     loading={loading}
                 />
             )}
-        </Card>
+        </div>
     );
 };
-export default TinkoffSteper;
+
+export default TbankPanel;

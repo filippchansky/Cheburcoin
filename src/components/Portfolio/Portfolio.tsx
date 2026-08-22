@@ -4,9 +4,7 @@ import { useBybit } from '@/hooks/useBybit';
 import { Button, Popconfirm, Space, Spin } from 'antd';
 import { SettingOutlined, DisconnectOutlined } from '@ant-design/icons';
 import React from 'react';
-import TinkoffSteper from '../TinkoffStepper/TinkoffSteper';
-import TrezorConnectCard from '../Trezor/TrezorConnectCard';
-import BybitConnectCard from '../Bybit/BybitConnectCard';
+import SourcesConnect from './SourcesConnect/SourcesConnect';
 import PortfolioDashboard from './PortfolioDashboard/PortfolioDashboard';
 
 interface PortfolioProps {}
@@ -36,11 +34,8 @@ const Portfolio: React.FC<PortfolioProps> = ({}) => {
     // пользователь открыл настройки, чтобы сменить токен/счета.
     if (!isConnected || settingsOpen) {
         return (
-            <div className='max-w-[1000px] my-0 mx-[auto] flex flex-col gap-4'>
-                <h2 className='text-xl font-medium m-0'>Источники данных</h2>
-                <TinkoffSteper onClose={settingsOpen ? () => setSettingsOpen(false) : undefined} />
-                <TrezorConnectCard />
-                <BybitConnectCard />
+            <div className='max-w-[1000px] my-0 mx-[auto]'>
+                <SourcesConnect onClose={settingsOpen ? () => setSettingsOpen(false) : undefined} />
             </div>
         );
     }

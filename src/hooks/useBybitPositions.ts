@@ -3,7 +3,9 @@ import { IPosition } from '@models/tinkoffData';
 import { BybitCoinBalance } from '@/lib/bybit/types';
 import { bybitToPositions } from '@/lib/bybit/toPositions';
 import { fetchUsdRub } from '@/lib/bybit/prices';
+import { lotsToAvgPrices } from '@/lib/portfolio/cryptoLots';
 import { useBybit } from './useBybit';
+import { useCryptoLots } from './useCryptoLots';
 
 const MINUTE = 60_000;
 
@@ -11,7 +13,7 @@ export interface BybitPortfolio {
     positions: IPosition[];
     /** Суммарная стоимость крипты на Bybit, ₽. */
     total: number;
-    /** Суммарное изменение за день, ₽ (пока 0 — 24h-change в follow-up). */
+    /** Суммарное изменение за день, ₽ (из 24h-change public tickers Bybit). */
     dailyTotal: number;
     /** Подключён ли Bybit (заданы оба ключа). */
     hasCreds: boolean;
@@ -46,6 +48,7 @@ const fetchBybitBalances = async (
  */
 export const useBybitPositions = (): BybitPortfolio => {
     const { data: creds } = useBybit();
+    const { data: lots } = useCryptoLots();
     const apiKey = creds?.apiKey ?? null;
     const apiSecret = creds?.apiSecret ?? null;
     const hasCreds = Boolean(apiKey && apiSecret);
@@ -71,13 +74,15 @@ export const useBybitPositions = (): BybitPortfolio => {
     const balances = balancesQuery.data ?? [];
     const usdRub = rateQuery.data ?? 0;
 
-    const positions = usdRub ? bybitToPositions(balances, usdRub) : [];
+    const avgPrices = lotsToAvgPrices(lots ?? {});
+    const positions = usdRub ? bybitToPositions(balances, usdRub, avgPrices) : [];
     const total = positions.reduce((sum, p) => sum + (p.priceInPorfolio ?? 0), 0);
+    const dailyTotal = positions.reduce((sum, p) => sum + (p.dailyYield ?? 0), 0);
 
     return {
         positions,
         total: Number(total.toFixed(2)),
-        dailyTotal: 0,
+        dailyTotal: Number(dailyTotal.toFixed(2)),
         hasCreds,
         isLoading: balancesQuery.isLoading || rateQuery.isLoading,
         isError: balancesQuery.isError || rateQuery.isError,

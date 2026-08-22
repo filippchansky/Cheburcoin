@@ -6,49 +6,66 @@
  *  • Стоимость в ₽: Bybit сам оценивает каждую монету в USD (usdValue) → умножаем
  *    на курс USD→RUB (USDT/₽). Поэтому currency='RUB'.
  *  • usd-блок: цена/стоимость в $ прямо из данных Bybit (двухвалютное отображение).
- *  • «Прибыль» НЕ считаем: биржевой баланс не знает себестоимость → expectedYieldFifo=0
- *    (таблица покажет прочерк, как у крипты Trezor).
- *  • «За день» пока 0: 24h-изменение по монете тянуть отдельно (Bybit public
- *    tickers) — вынесено в follow-up, чтобы не раздувать Этап 2.
+ *  • «Прибыль»: Bybit НЕ отдаёт себестоимость по споту (в отличие от Т-Банка) и
+ *    считать её из истории сделок ненадёжно (глубина + заведённые извне монеты).
+ *    Поэтому средняя цену покупки вводит пользователь ВРУЧНУЮ, в USD (монета
+ *    котируется к USDT). Есть средняя по монете → считаем прибыль; нет → 0 (прочерк).
+ *  • «За день»: стоимость в ₽ × 24h-изменение цены (из public tickers Bybit).
  *  • positionUid = `bybit:<coin>` — отдельные строки от Trezor (разное хранение).
  */
 import { IPosition } from '@models/tinkoffData';
 import { BybitCoinBalance } from './types';
+import { MIN_DISPLAY_USD } from '@/lib/portfolio/cryptoLots';
+
+/** Ручные средние цены покупки по монетам, в USD (тикер → цена за 1 монету). */
+export type BybitAvgPrices = Record<string, number>;
 
 export const bybitToPositions = (
     balances: BybitCoinBalance[],
-    usdRub: number
+    usdRub: number,
+    avgPrices: BybitAvgPrices = {}
 ): IPosition[] =>
     balances
-        .filter((b) => b.qty > 0)
+        // Прячем пыль дешевле доллара (мелкие остатки на бирже).
+        .filter((b) => b.qty > 0 && b.usdValue >= MIN_DISPLAY_USD)
         .map((b) => {
             const valueRub = b.usdValue * usdRub;
             const priceUsd = b.qty ? b.usdValue / b.qty : 0;
             const priceRub = priceUsd * usdRub;
 
+            // Ручная средняя (USD). Если задана и валидна — считаем прибыль в ₽,
+            // всё в рублях, чтобы согласовалось с колонкой «Прибыль» портфеля.
+            const avgUsd = avgPrices[b.coin] > 0 ? avgPrices[b.coin] : 0;
+            const avgRub = avgUsd * usdRub;
+            const profitRub = avgUsd ? (priceUsd - avgUsd) * b.qty * usdRub : 0;
+            const profitPct = avgUsd ? ((priceUsd - avgUsd) / avgUsd) * 100 : 0;
+
+            // За день, ₽: текущая стоимость × суточное изменение цены.
+            const dayRub = (valueRub * b.change24hPct) / 100;
+
             const position: IPosition = {
                 figi: '',
                 instrumentType: 'crypto',
                 quantity: b.qty,
-                averagePositionPrice: 0,
+                averagePositionPrice: Number(avgRub.toFixed(2)),
                 expectedYield: 0,
                 averagePositionPricePt: 0,
                 currentPrice: Number(priceRub.toFixed(2)),
-                averagePositionPriceFifo: 0,
+                averagePositionPriceFifo: Number(avgRub.toFixed(2)),
                 quantityLots: b.qty,
                 blocked: false,
                 blockedLots: 0,
                 positionUid: `bybit:${b.coin}`,
                 instrumentUid: `bybit:${b.coin}`,
                 varMargin: 0,
-                expectedYieldFifo: 0,
-                dailyYield: 0,
+                expectedYieldFifo: Number(profitRub.toFixed(2)),
+                dailyYield: Number(dayRub.toFixed(2)),
                 ticker: b.coin,
                 name: b.coin,
                 sector: undefined,
                 isin: undefined,
                 priceInPorfolio: Number(valueRub.toFixed(2)),
-                expectedYieldPercent: 0,
+                expectedYieldPercent: Number(profitPct.toFixed(2)),
                 currency: 'RUB',
                 usd: { price: priceUsd, value: Number(b.usdValue.toFixed(2)) }
             };

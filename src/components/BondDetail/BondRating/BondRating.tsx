@@ -22,20 +22,21 @@ interface BondRatingProps {
     ratings?: IBondRatings;
 }
 
-/** Иконка по коду рейтингового действия ЦБ. */
+/** Иконка по коду рейтингового действия ЦБ (коды как в репозитарии: AF/DG/NWR/…). */
 const actionIcon = (code: string): React.ReactNode => {
     switch (code) {
         case 'UP':
             return <RiseOutlined />;
-        case 'DOWN':
+        case 'DG':
             return <FallOutlined />;
-        case 'AFF':
+        case 'AF':
             return <CheckOutlined />;
         case 'NW':
             return <PlusOutlined />;
         case 'RWR':
             return <EyeInvisibleOutlined />;
-        case 'RWN':
+        case 'NWR':
+        case 'EWR':
             return <EyeOutlined />;
         case 'WD':
             return <StopOutlined />;

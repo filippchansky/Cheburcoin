@@ -59,7 +59,7 @@ export const useShareDividends = (ticker: string): ShareDividendsData => {
         staleTime: 1000 * 60 * 60
     });
 
-    const rows = query.data ?? [];
+    const rows = useMemo(() => query.data ?? [], [query.data]);
 
     const dividends = useMemo<IShareDividend[]>(
         () => rows.map(({ date, value, currency }) => ({ date, value, currency })),

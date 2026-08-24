@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { Skeleton, Tag, Tooltip } from 'antd';
 import { InfoCircleOutlined, LeftOutlined } from '@ant-design/icons';
 import {
-    useDividendYields,
     useShareDetail,
     useShareDividends,
     useShareIndices
@@ -29,10 +28,14 @@ const listLevelHint = 'Уровень листинга MOEX: 1 — высшая 
 
 const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
     const { data: share, isLoading, isError } = useShareDetail(ticker);
-    const { data: dividends = [] } = useShareDividends(ticker);
+    const {
+        dividends,
+        yieldByDate,
+        isLoading: dividendsLoading,
+        noToken: dividendsNoToken
+    } = useShareDividends(ticker);
     const { data: indices = [] } = useShareIndices(ticker);
     const { data: sectors } = useSectors();
-    const { yieldByDate, isLoading: pricesLoading } = useDividendYields(ticker, dividends);
 
     if (isLoading) {
         return (
@@ -180,7 +183,8 @@ const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
                 dividends={dividends}
                 price={share.price}
                 yieldByDate={yieldByDate}
-                pricesLoading={pricesLoading}
+                loading={dividendsLoading}
+                noToken={dividendsNoToken}
             />
             <ShareCalculator share={share} annualDivPerShare={annualDiv} />
             <ShareProfile share={share} indices={indices} />

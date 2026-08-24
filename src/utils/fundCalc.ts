@@ -29,10 +29,10 @@ export const calcFundPosition = (
     price: number | null,
     lotSize: number | null
 ): FundPositionResult | null => {
-    if (!price || price <= 0 || amount <= 0) return null;
+    if (!price || price <= 0) return null;
 
     const lot = lotSize && lotSize > 0 ? lotSize : 1;
-    const lots = Math.floor(amount / (price * lot));
+    const lots = amount > 0 ? Math.floor(amount / (price * lot)) : 0;
     const quantity = lots * lot;
     const invested = quantity * price;
 

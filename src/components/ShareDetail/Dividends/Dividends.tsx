@@ -1,6 +1,7 @@
 'use client';
 import React, { useMemo } from 'react';
-import { Empty, Table, TableProps, Tag, Tooltip } from 'antd';
+import Link from 'next/link';
+import { Empty, Skeleton, Table, TableProps, Tag, Tooltip } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { IShareDividend } from '@models/shareDetail';
@@ -16,15 +17,23 @@ interface DividendsProps {
     price: number | null;
     /** Историческая доходность на дату отсечки: дата отсечки → %|null. */
     yieldByDate: Map<string, number | null>;
-    /** История цен ещё грузится — доходность на отсечку пока неизвестна. */
-    pricesLoading?: boolean;
+    /** История дивидендов ещё грузится. */
+    loading?: boolean;
+    /** Нет токена Т-Банка — источник дивидендов недоступен (не «нет выплат»). */
+    noToken?: boolean;
 }
 
 const yieldHint =
-    'Дивиденд к цене закрытия на дату отсечки (или ближайший торговый день раньше). ' +
-    'Историческая доходность, не к текущей цене. Прочерк — если бумага тогда не торговалась.';
+    'Историческая дивдоходность на момент выплаты по данным Т-Банка — к цене на ' +
+    'дату отсечки, а не к текущей. Прочерк — если Т-Банк её не приводит.';
 
-const Dividends: React.FC<DividendsProps> = ({ dividends, price, yieldByDate, pricesLoading }) => {
+const Dividends: React.FC<DividendsProps> = ({
+    dividends,
+    price,
+    yieldByDate,
+    loading,
+    noToken
+}) => {
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
 
@@ -37,6 +46,31 @@ const Dividends: React.FC<DividendsProps> = ({ dividends, price, yieldByDate, pr
         }
         return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
     }, [dividends]);
+
+    if (loading) {
+        return (
+            <section className={style.wrapper}>
+                <h2 className={style.title}>Дивиденды</h2>
+                <Skeleton active paragraph={{ rows: 4 }} />
+            </section>
+        );
+    }
+
+    if (noToken) {
+        return (
+            <section className={style.wrapper}>
+                <h2 className={style.title}>Дивиденды</h2>
+                <Empty
+                    description={
+                        <span>
+                            История дивидендов доступна после{' '}
+                            <Link href='/moex/portfolio'>подключения Т-Банка</Link>.
+                        </span>
+                    }
+                />
+            </section>
+        );
+    }
 
     if (!dividends.length) {
         return (
@@ -103,7 +137,6 @@ const Dividends: React.FC<DividendsProps> = ({ dividends, price, yieldByDate, pr
             key: 'yield',
             align: 'right',
             render: (_, row) => {
-                if (pricesLoading) return '…';
                 const y = yieldByDate.get(row.date);
                 return y == null ? '—' : `${y.toFixed(2)}%`;
             }

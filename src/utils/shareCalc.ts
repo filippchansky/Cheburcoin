@@ -1,4 +1,4 @@
-import { IShareCandle, IShareDividend } from '@models/shareDetail';
+import { IShareDividend } from '@models/shareDetail';
 
 const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
@@ -52,49 +52,6 @@ export const DIVIDEND_YIELD_OUTLIER = 40;
 /** Аномально высокая дивдоходность — вероятно сплит или разовая спецвыплата, не норма. */
 export const isDividendYieldOutlier = (dividendYield: number | null | undefined): boolean =>
     dividendYield != null && dividendYield > DIVIDEND_YIELD_OUTLIER;
-
-/**
- * Историческая дивдоходность на дату отсечки: дивиденд к цене закрытия на дату
- * закрытия реестра. Корректнее, чем доходность к текущей цене, и устойчивее к
- * сплитам — числитель и знаменатель в одних (досплитных) единицах.
- *
- * Отсечка может попасть на выходной/праздник, поэтому берём ближайшую свечу с
- * датой ≤ отсечки (бинарный поиск по возрастающему массиву дат). Если торгов до
- * отсечки нет (дивиденд старше истории котировок MOEX) — доходность неизвестна.
- *
- * `candles` ожидаются отсортированными по дате возр. (как отдаёт ISS).
- * Возвращает Map «дата отсечки → доходность в %|null».
- */
-export const historicalDividendYields = (
-    dividends: IShareDividend[],
-    candles: IShareCandle[]
-): Map<string, number | null> => {
-    const result = new Map<string, number | null>();
-    if (!candles.length) return result;
-
-    const dates = candles.map((c) => c.date);
-
-    for (const dividend of dividends) {
-        // Индекс последней свечи с датой ≤ отсечки.
-        let lo = 0;
-        let hi = dates.length - 1;
-        let idx = -1;
-        while (lo <= hi) {
-            const mid = (lo + hi) >> 1;
-            if (dates[mid] <= dividend.date) {
-                idx = mid;
-                lo = mid + 1;
-            } else {
-                hi = mid - 1;
-            }
-        }
-
-        const close = idx === -1 ? 0 : candles[idx].close;
-        result.set(dividend.date, dividendYield(dividend.value, close || null));
-    }
-
-    return result;
-};
 
 export interface SharePositionResult {
     /** Сколько лотов помещается в сумму. */

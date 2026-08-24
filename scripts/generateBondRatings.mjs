@@ -1,4 +1,4 @@
-// @ts-check
+// @ts-nocheck
 /**
  * Локальная генерация кредитных рейтингов облигаций из репозитария Банка России
  * (ratings.cbr.ru). Запускается ВРУЧНУЮ: `npm run ratings:sync` — результат
@@ -9,6 +9,17 @@
  * ВСЕМ выпускам эмитента → на ~1400 бумаг приходится ~300 эмитентов, кратно
  * меньше обращений. Но ИНН MOEX не отдаёт, поэтому ИНН по каждому ISIN узнаём
  * один раз запросом по ISIN (ISIN↔ИНН не меняется) и кэшируем навсегда.
+ *
+ * Проблема покрытия: поиск ЦБ по ISIN находит выпуск, ТОЛЬКО если у него есть
+ * СОБСТВЕННЫЙ рейтинг на этот ISIN. Рейтинги же в РФ эмитентские — у многих
+ * выпусков (в т.ч. голубых фишек: МТС, ВЭБ, Роснефть) своего рейтинга на ISIN
+ * нет, и ИНН эмитента так не добывается → рейтинг терялся. Добираем двумя мостами:
+ *   1) EMITTER_ID из карточки MOEX (общий код эмитента для всех его выпусков):
+ *      узнаём ИНН по выпускам, у кого он есть, и переносим на «братьев» того же
+ *      EMITTER_ID (шаг 1.5 + мост на шаге 3);
+ *   2) если у эмитента НИ ОДНОГО выпуска с рейтингом на ISIN нет (мосту не за что
+ *      зацепиться) — ищем ИНН эмитента в ЦБ ПО ИМЕНИ из карточки MOEX, с защитой
+ *      от неверного матча (шаг 1.7). Так добирается длинный хвост ВДО.
  *
  * Эндпоинт ЦБ — служебный AJAX формы поиска (не публичный API): нужен Bitrix
  * CSRF-токен (первый POST возвращает его в ошибке, повторяем с заголовком).
@@ -33,6 +44,8 @@ const CACHE_PATH = join(ROOT, 'scripts', 'data', 'ratings-cache.json');
 
 /** Пауза между «живыми» запросами к ЦБ, мс (вежливый троттлинг). */
 const THROTTLE_MS = 250;
+/** Пауза между запросами карточек MOEX, мс (MOEX терпит темп бодрее ЦБ). */
+const MOEX_THROTTLE_MS = 80;
 /** Сколько дней рейтинги эмитента считаются свежими (не перезапрашиваем). */
 const ISSUER_TTL_DAYS = 14;
 
@@ -41,14 +54,20 @@ const UA = 'Mozilla/5.0 (Cheburcoin ratings sync; +https://github.com/) Chrome/1
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const colIndex = (columns, name) => columns.indexOf(name);
 
-/** Человеко-понятная метка и «тон» по коду рейтингового действия ЦБ. */
+/**
+ * Человеко-понятная метка по коду рейтингового действия ЦБ. Коды — как их реально
+ * отдаёт репозитарий: NW/AF/UP/DG/NWR/EWR/RWR/OT/WD (NB: подтверждение = AF, не AFF;
+ * понижение = DG, не DOWN; «под наблюдением» = NWR/EWR).
+ */
 const ACTION_LABELS = {
     NW: 'присвоен',
-    AFF: 'подтверждён',
+    AF: 'подтверждён',
     UP: 'повышен',
-    DOWN: 'понижен',
-    RWN: 'под наблюдением',
+    DG: 'понижен',
+    NWR: 'под наблюдением',
+    EWR: 'под наблюдением',
     RWR: 'снят с наблюдения',
+    OT: 'изменён прогноз',
     WD: 'отозван',
     DEF: 'дефолт'
 };
@@ -102,7 +121,13 @@ const isinFromObjectName = (objectName) => {
 
 // ── кэш ──────────────────────────────────────────────────────────────────────
 
-const emptyCache = () => ({ isinToInn: {}, issuers: {} });
+const emptyCache = () => ({
+    isinToInn: {}, // ISIN → ИНН (по собственному рейтингу выпуска), '' — проверено, нет
+    issuers: {}, // ИНН → { fetchedAt, items } сырьё рейтингов эмитента
+    emitterByIsin: {}, // ISIN → EMITTER_ID (код эмитента MOEX), '' — карточки нет
+    emitterName: {}, // EMITTER_ID → полное наименование из карточки MOEX (для поиска по имени)
+    emitterInnByName: {} // EMITTER_ID → ИНН, найденный поиском ЦБ по имени, '' — не нашли
+});
 
 const loadCache = async () => {
     try {
@@ -151,6 +176,95 @@ const getLiquidBonds = async (board) => {
         .filter((b) => b.isin);
 };
 
+/**
+ * Из карточки MOEX: EMITTER_ID (внутренний код эмитента, ОБЩИЙ для всех его
+ * выпусков — в списке борда его нет, только в карточке) и полное наименование
+ * (NAME, вида «Мобильные ТелеСистемы ПАО БО-2»). EMITTER_ID нужен, чтобы «сиротский»
+ * выпуск без собственного рейтинга на ISIN подхватить по ИНН «брата»; наименование —
+ * чтобы найти ИНН эмитента поиском ЦБ по имени, если братьев с рейтингом нет вовсе.
+ */
+const getEmitterInfo = async (secid) => {
+    const res = await fetch(`${MOEX_BASE}iss/securities/${secid}.json?iss.meta=off`);
+    if (!res.ok) return { id: '', name: '' };
+    const json = await res.json();
+    const cols = json?.description?.columns ?? [];
+    const nameIdx = colIndex(cols, 'name');
+    const valIdx = colIndex(cols, 'value');
+    const rows = json?.description?.data ?? [];
+    const field = (n) => String((rows.find((r) => r[nameIdx] === n) ?? [])[valIdx] ?? '');
+    return { id: field('EMITTER_ID'), name: field('NAME') };
+};
+
+// ── сопоставление по имени эмитента (для поиска ИНН в ЦБ) ─────────────────────
+
+/** Орг-правовые формы — не несут смысла при сравнении имён. */
+const LEGAL_FORM = /^(ПАО|АО|ООО|ОАО|ЗАО|ПК|НКО|КБ|АКБ|УК|НПФ)$/i;
+
+/**
+ * Строка запроса к ЦБ из полного имени MOEX: обрезаем всё от серии/выпуска (первый
+ * токен с цифрой или «БО/СО/серии/выпуск») и хвостовые голые орг-формы. Слишком
+ * подробный запрос («… БО-П06») ЦБ не находит; короткое ядро имени — находит.
+ */
+const issuerQuery = (moexName) => {
+    const tokens = String(moexName ?? '').replace(/["«»“”]/g, ' ').split(/\s+/).filter(Boolean);
+    const kept = [];
+    for (const t of tokens) {
+        if (/\d/.test(t) || /^(БО|СО|сер\.?|серии|выпуск)$/i.test(t)) break;
+        kept.push(t);
+    }
+    while (kept.length > 1 && LEGAL_FORM.test(kept[kept.length - 1])) kept.pop();
+    return kept.join(' ').trim();
+};
+
+/** Значимые токены имени (без цифр, орг-форм и общих слов) — для оценки совпадения. */
+const GENERIC_WORD = /^(публичное|акционерное|общество|ограниченной|ответственностью|коммерческий|организация|группа|холдинг)$/i;
+const nameTokens = (s) =>
+    String(s ?? '')
+        .toLowerCase()
+        .replace(/ё/g, 'е')
+        .replace(/[«»“”"().,]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length >= 3 && !/\d/.test(w) && !LEGAL_FORM.test(w) && !GENERIC_WORD.test(w));
+
+/**
+ * Родовые «отраслевые» слова: сами по себе НЕ опознают эмитента (много одноимённых
+ * ломбардов/лизингов/МФК). Матч, где совпало только такое слово, отвергаем.
+ */
+const INDUSTRY_WORD = /^(ломбард|лизинг|лизинговая|финанс|финансы|финансовая|финансовые|микрофинансовая|мфк|мкк|мфо|капитал|инвест|инвестиции|инвестиционная|факторинг|банк|девелопмент|ритейл|агро|технологии)$/i;
+
+/**
+ * ИНН эмитента из результатов поиска ЦБ по имени. Защита от неверного матча:
+ *  (1) имя обязано содержать отличительный (не отраслевой) токен — иначе «Ломбард
+ *      888» схватит любой ломбард из реестра;
+ *  (2) берём ИНН с максимальным пересечением имени, требуем совпадения хотя бы
+ *      одного отличительного токена и уверенного отрыва от второго кандидата.
+ * Иначе лучше не показать рейтинг, чем показать чужой.
+ */
+const pickInnByName = (items, moexName) => {
+    const target = new Set(nameTokens(moexName));
+    if (target.size === 0) return '';
+    const distinctive = new Set([...target].filter((w) => !INDUSTRY_WORD.test(w)));
+    if (distinctive.size === 0) return ''; // имя чисто родовое — опознать нельзя
+
+    const byInn = new Map(); // inn → { score, distHit }
+    for (const it of items) {
+        if (!it.inn) continue;
+        const subj = nameTokens(it.subjectName || it.objectName || '');
+        const hit = subj.filter((w) => target.has(w)).length;
+        const score = hit / target.size; // доля токенов имени MOEX, найденных у кандидата
+        const distHit = subj.some((w) => distinctive.has(w));
+        const prev = byInn.get(it.inn);
+        if (!prev || score > prev.score) byInn.set(it.inn, { score, distHit });
+    }
+    const ranked = [...byInn.entries()].sort((a, b) => b[1].score - a[1].score);
+    if (!ranked.length) return '';
+    const [bestInn, best] = ranked[0];
+    const second = ranked[1]?.[1].score ?? 0;
+    if (!best.distHit) return ''; // должен совпасть хотя бы один отличительный токен
+    if (best.score >= 0.6 && (ranked.length === 1 || best.score - second >= 0.2)) return bestInn;
+    return '';
+};
+
 // ── ЦБ: сессия + поиск ───────────────────────────────────────────────────────
 
 /**
@@ -175,18 +289,19 @@ class CbrClient {
         this.cookie = jar.join('; ');
     }
 
-    async search({ isin = '', inn = '' }) {
+    async search({ isin = '', inn = '', ratingName = '' }) {
         // ВАЖНО: Bitrix ждёт литеральные скобки в именах полей (fields[isin]=…).
         // URLSearchParams их percent-энкодит (fields%5Bisin%5D) → бэкенд видит
         // пустой поиск и отвечает ошибкой валидации. Поэтому собираем тело вручную:
         // имена с литеральными скобками, значения — через encodeURIComponent.
+        // ratingName — поиск по наименованию (поле «Введите наименование» формы).
         const enc = (v) => encodeURIComponent(String(v));
         const body = [
             'fields[formSearh]=quick',
             'fields[captchaCode]=undefined',
             'fields[dateFrom]=',
             'fields[dateTo]=',
-            'fields[ratingName]=',
+            `fields[ratingName]=${enc(ratingName)}`,
             `fields[inn]=${enc(inn)}`,
             `fields[isin]=${enc(isin)}`,
             'fields[koNumber]='
@@ -327,8 +442,84 @@ const main = async () => {
     }
     await saveCache(cache);
 
-    // Шаг 2 — рейтинги+история по каждому уникальному ИНН (по TTL).
-    const inns = [...new Set(uniqueBonds.map((b) => cache.isinToInn[b.isin]).filter(Boolean))];
+    // Шаг 1.5 — EMITTER_ID и наименование каждой бумаги из карточки MOEX (кэш
+    // навсегда: EMITTER_ID эмитента не меняется). Ходим только в MOEX, не в ЦБ.
+    // Дёргаем карточку, если EMITTER_ID ещё не спрашивали ЛИБО есть id, но нет
+    // имени (миграция кэша, собранного до появления поиска по имени).
+    const needCard = uniqueBonds.filter((b) => {
+        const eid = cache.emitterByIsin[b.isin];
+        return eid === undefined || (eid && !cache.emitterName[eid]);
+    });
+    if (needCard.length) console.log(`[ratings] карточка MOEX нужна для ${needCard.length} бумаг, узнаём…`);
+    let moexCalls = 0;
+    for (const b of needCard) {
+        try {
+            const info = await getEmitterInfo(b.secid);
+            cache.emitterByIsin[b.isin] = info.id;
+            if (info.id && info.name) cache.emitterName[info.id] = info.name;
+        } catch {
+            cache.emitterByIsin[b.isin] = '';
+        }
+        if (++moexCalls % 100 === 0) await saveCache(cache);
+        await sleep(MOEX_THROTTLE_MS);
+    }
+    if (needCard.length) await saveCache(cache);
+
+    // Шаг 1.7 — поиск ИНН эмитента в ЦБ ПО ИМЕНИ для эмитентов, у которых ни один
+    // выпуск не рейтингован на ISIN (мост EMITTER_ID зацепиться не за что). Именно
+    // тут добираем длинный хвост ВДО. Найденный ИНН дальше проходит штатный путь
+    // (шаг 2 тянет по нему полный рейтинг+историю). Пусто ('') — искали, не нашли;
+    // перепроверяем пустые каждый прогон (эмитент мог получить рейтинг позже).
+    const knownByEmitter = {}; // EMITTER_ID → ИНН, известный по собственному рейтингу выпуска
+    for (const b of uniqueBonds) {
+        const inn = cache.isinToInn[b.isin];
+        const eid = cache.emitterByIsin[b.isin];
+        if (inn && eid && !knownByEmitter[eid]) knownByEmitter[eid] = inn;
+    }
+    // Кандидаты: эмитенты с именем, без ИНН по мосту и ещё не найденные по имени.
+    const nameCandidates = [
+        ...new Set(
+            uniqueBonds
+                .map((b) => cache.emitterByIsin[b.isin])
+                .filter((eid) => eid && cache.emitterName[eid] && !knownByEmitter[eid] && !cache.emitterInnByName[eid])
+        )
+    ];
+    if (nameCandidates.length) console.log(`[ratings] ищем ИНН по имени для ${nameCandidates.length} эмитентов…`);
+    let nameHits = 0;
+    for (const eid of nameCandidates) {
+        const moexName = cache.emitterName[eid];
+        const query = issuerQuery(moexName);
+        if (!query) {
+            cache.emitterInnByName[eid] = '';
+            continue;
+        }
+        try {
+            const items = await cbr.search({ ratingName: query });
+            liveCalls++;
+            const inn = pickInnByName(items, moexName);
+            cache.emitterInnByName[eid] = inn;
+            if (inn) nameHits++;
+        } catch {
+            cache.emitterInnByName[eid] = ''; // «нет материалов» ЦБ отдаёт ошибкой
+        }
+        if (liveCalls % 25 === 0) await saveCache(cache);
+        await sleep(THROTTLE_MS);
+    }
+    if (nameCandidates.length) {
+        await saveCache(cache);
+        console.log(`[ratings] по имени найдено ИНН у ${nameHits} эмитентов из ${nameCandidates.length}`);
+    }
+
+    // Шаг 2 — рейтинги+история по каждому уникальному ИНН (по TTL). Берём ИНН как
+    // из прямого поиска по ISIN, так и найденные по имени на шаге 1.7.
+    const inns = [
+        ...new Set(
+            [
+                ...uniqueBonds.map((b) => cache.isinToInn[b.isin]),
+                ...Object.values(cache.emitterInnByName)
+            ].filter(Boolean)
+        )
+    ];
     // Перезапрашиваем протухшие ИЛИ без сырья (миграция со старого формата кэша).
     const stale = inns.filter(
         (inn) => !isFresh(cache.issuers[inn]?.fetchedAt) || !cache.issuers[inn]?.items
@@ -370,13 +561,41 @@ const main = async () => {
     }
     await saveCache(cache);
 
+    // Мост EMITTER_ID → ИНН. По выпускам с уже известным ИНН учим ИНН эмитента,
+    // затем распространяем его на «братьев» того же EMITTER_ID, чей прямой поиск
+    // по ISIN ничего не дал (рейтинг у них эмитентский, а не на выпуск). Новых
+    // обращений к ЦБ не требует: берём только ИНН, уже запрошенные на шаге 2.
+    const emitterToInn = {}; // EMITTER_ID → ИНН
+    for (const b of uniqueBonds) {
+        const inn = cache.isinToInn[b.isin];
+        const eid = cache.emitterByIsin[b.isin];
+        if (inn && eid && !emitterToInn[eid]) emitterToInn[eid] = inn;
+    }
+    /**
+     * ИНН бумаги: прямой (по своему рейтингу) → «брат» по EMITTER_ID → найденный по
+     * имени (шаг 1.7). Два последних дают одинаковый ИНН для всех выпусков эмитента.
+     */
+    const resolveInn = (b) => {
+        const direct = cache.isinToInn[b.isin];
+        if (direct) return direct;
+        const eid = cache.emitterByIsin[b.isin];
+        return (eid && (emitterToInn[eid] || cache.emitterInnByName[eid])) || '';
+    };
+
     // Шаг 3 — выход для клиента. Рейтинг у нас эмитентский (одинаков для всех
     // выпусков эмитента), поэтому храним его ОДИН раз по ИНН + карту secid→ИНН —
     // без дублирования по каждой бумаге (иначе файл раздувается в разы).
     const issuersOut = {}; // inn → {current, history}
     const secids = {}; // secid → inn
+    let bridged = 0; // бумаг подхвачено «братом» по EMITTER_ID
+    let byName = 0; // бумаг подхвачено поиском ЦБ по имени (шаг 1.7)
     for (const b of uniqueBonds) {
-        const inn = cache.isinToInn[b.isin];
+        const inn = resolveInn(b);
+        const eid = cache.emitterByIsin[b.isin];
+        if (inn && !cache.isinToInn[b.isin]) {
+            if (eid && emitterToInn[eid]) bridged++;
+            else if (eid && cache.emitterInnByName[eid]) byName++;
+        }
         const issuer = inn && cache.issuers[inn];
         if (!issuer?.items?.length) continue;
         if (!issuersOut[inn]) {
@@ -394,10 +613,11 @@ const main = async () => {
     await writeFile(OUT_PATH, JSON.stringify({ issuers: issuersOut, secids }));
 
     console.log(
-        `[ratings] готово: ${Object.keys(secids).length} бумаг (${Object.keys(issuersOut).length} эмитентов) с рейтингом, ${liveCalls} живых запросов к ЦБ за ${(
-            (Date.now() - started) /
-            1000
-        ).toFixed(0)}с → public/bond-ratings.json`
+        `[ratings] готово: ${Object.keys(secids).length} бумаг (${Object.keys(issuersOut).length} эмитентов) с рейтингом` +
+            ` (+${bridged} через EMITTER_ID, +${byName} по имени); ${liveCalls} живых запросов к ЦБ за ${(
+                (Date.now() - started) /
+                1000
+            ).toFixed(0)}с → public/bond-ratings.json`
     );
 };
 

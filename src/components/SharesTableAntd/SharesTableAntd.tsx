@@ -19,6 +19,10 @@ interface SharesTableAntdProps {
     data: IFilteredShares[];
     loading?: boolean;
     error?: boolean;
+    /** Текущая страница (1-based), поднята в URL — чтобы «Назад» вернул то же место. */
+    page: number;
+    /** Смена страницы (десктоп-пагинация и мобильный «Показать ещё» пишут сюда). */
+    onPageChange: (page: number) => void;
 }
 
 const dayChangeClass = (percent: number) => {
@@ -31,13 +35,18 @@ const dayChangeClass = (percent: number) => {
 const dividendLabel = (dividendYield?: number | null) =>
     dividendYield && dividendYield > 0 ? `Див ${dividendYield.toFixed(2)}%` : 'Див —';
 
-const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error }) => {
+const SharesTableAntd: React.FC<SharesTableAntdProps> = ({
+    data,
+    loading,
+    error,
+    page,
+    onPageChange
+}) => {
     const router = useRouter();
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
     const screens = Grid.useBreakpoint();
     const isMobile = screens.md === false;
-    const [visible, setVisible] = React.useState(MOBILE_PAGE);
 
     const columns: TableProps<IFilteredShares>['columns'] = [
         {
@@ -143,6 +152,8 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
     if (isMobile) {
         // По убыванию капитализации — как defaultSortOrder колонки на десктопе.
         const sorted = [...data].sort((a, b) => b.capitalization - a.capitalization);
+        // На мобиле page работает как «сколько порций по MOBILE_PAGE подгружено».
+        const visible = page * MOBILE_PAGE;
         const shown = sorted.slice(0, visible);
         return (
             <div className={style.wrapper}>
@@ -183,7 +194,7 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
                         <Button
                             className={style.showMore}
                             block
-                            onClick={() => setVisible((v) => v + MOBILE_PAGE)}
+                            onClick={() => onPageChange(page + 1)}
                         >
                             Показать ещё
                         </Button>
@@ -203,7 +214,13 @@ const SharesTableAntd: React.FC<SharesTableAntdProps> = ({ data, loading, error 
                 loading={loading}
                 sticky
                 scroll={{ x: 'max-content' }}
-                pagination={{ pageSize: 25, showSizeChanger: false, hideOnSinglePage: true }}
+                pagination={{
+                    current: page,
+                    pageSize: 25,
+                    showSizeChanger: false,
+                    hideOnSinglePage: true,
+                    onChange: (next) => onPageChange(next)
+                }}
                 onRow={(record) => ({
                     onClick: () => router.push(`/moex/${record.ticker}`)
                 })}

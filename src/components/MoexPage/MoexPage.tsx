@@ -1,5 +1,7 @@
 'use client';
 import React, { useMemo, useState } from 'react';
+import { parseAsStringLiteral, useQueryState } from 'nuqs';
+import { useTableUrlState } from '@/hooks/useTableUrlState';
 import { Alert, Badge, Button, Checkbox, InputNumber, Segmented, Select, Tag } from 'antd';
 import {
     ArrowDownOutlined,
@@ -32,7 +34,8 @@ import {
 } from './shareFilters';
 import style from './style.module.scss';
 
-type Direction = 'all' | 'gainers' | 'losers';
+const DIRECTIONS = ['all', 'gainers', 'losers'] as const;
+type Direction = (typeof DIRECTIONS)[number];
 
 const directionOptions = [
     { label: 'Все', value: 'all' },
@@ -44,15 +47,24 @@ const MoexPage: React.FC = () => {
     const { data: shares = [], isLoading, isError } = useShares();
     const { data: sectorByTicker = {} } = useSectors();
     const { data: meta } = useSharesMeta();
-    const [search, setSearch] = useState('');
-    const [direction, setDirection] = useState<Direction>('all');
-    const [filters, setFilters] = useState<Record<string, FilterValue>>(defaultFilterValues);
-    const [showAll, setShowAll] = useState(false);
 
-    const setFilter = (key: string, value: FilterValue) =>
-        setFilters((prev) => ({ ...prev, [key]: value }));
-    const clearFilter = (key: string) => setFilter(key, defaultFilterValues[key]);
-    const resetAll = () => setFilters(defaultFilterValues);
+    // Поиск/фильтры/страница живут в URL — переход на бумагу и «Назад» возвращают
+    // ровно те же фильтры и позицию; свежий вход на /moex открывается с дефолтами.
+    const { search, setSearch, page, setPage, filters, setFilter, clearFilter, resetAll } =
+        useTableUrlState<ShareFilter, FilterValue>(
+            shareFilters,
+            defaultFilterValues,
+            isFilterActive
+        );
+    const [direction, setDirectionRaw] = useQueryState(
+        'dir',
+        parseAsStringLiteral(DIRECTIONS).withDefault('all')
+    );
+    const setDirection = (value: Direction) => {
+        setDirectionRaw(value === 'all' ? null : value);
+        setPage(1);
+    };
+    const [showAll, setShowAll] = useState(false);
 
     /** Разрешённые опции фильтра (динамические имеют приоритет над статичными). */
     const optionsOf = (filter: ShareFilter) =>
@@ -237,7 +249,7 @@ const MoexPage: React.FC = () => {
                             options={directionOptions}
                             value={direction}
                             onChange={(value) => setDirection(value as Direction)}
-                        />
+                        />{/* setDirection сам сбрасывает страницу */}
                         {primaryFilters.map(renderControl)}
                         <Badge count={hiddenActiveCount} size='small'>
                             <Button
@@ -293,7 +305,12 @@ const MoexPage: React.FC = () => {
                         </div>
                     )}
 
-                    <SharesTableAntd data={filtered} loading={isLoading} />
+                    <SharesTableAntd
+                        data={filtered}
+                        loading={isLoading}
+                        page={page}
+                        onPageChange={setPage}
+                    />
                 </>
             )}
         </div>

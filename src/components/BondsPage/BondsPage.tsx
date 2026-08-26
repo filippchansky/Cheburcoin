@@ -1,5 +1,6 @@
 'use client';
 import React, { useMemo, useState } from 'react';
+import { useTableUrlState } from '@/hooks/useTableUrlState';
 import { Alert, Badge, Button, Checkbox, Input, InputNumber, Select, Tag } from 'antd';
 import {
     ArrowDownOutlined,
@@ -27,14 +28,16 @@ const BondsPage: React.FC = () => {
     const { data: bonds = [], isLoading, isError } = useBonds();
     const { data: flags } = useBondFlags();
     const { data: keyRate } = useKeyRate();
-    const [search, setSearch] = useState('');
-    const [filters, setFilters] = useState<Record<string, FilterValue>>(defaultFilterValues);
-    const [showAll, setShowAll] = useState(false);
 
-    const setFilter = (key: string, value: FilterValue) =>
-        setFilters((prev) => ({ ...prev, [key]: value }));
-    const clearFilter = (key: string) => setFilter(key, defaultFilterValues[key]);
-    const resetAll = () => setFilters(defaultFilterValues);
+    // Поиск/фильтры/страница живут в URL — переход на бумагу и «Назад» возвращают
+    // ровно те же фильтры и позицию; свежий вход на /bonds открывается с дефолтами.
+    const { search, setSearch, page, setPage, filters, setFilter, clearFilter, resetAll } =
+        useTableUrlState<BondFilter, FilterValue>(
+            bondFilters,
+            defaultFilterValues,
+            isFilterActive
+        );
+    const [showAll, setShowAll] = useState(false);
 
     /** Разрешённые опции фильтра (динамические имеют приоритет над статичными). */
     const optionsOf = (filter: BondFilter) =>
@@ -300,7 +303,12 @@ const BondsPage: React.FC = () => {
                         </div>
                     )}
 
-                    <BondsTable data={filtered} loading={isLoading} />
+                    <BondsTable
+                        data={filtered}
+                        loading={isLoading}
+                        page={page}
+                        onPageChange={setPage}
+                    />
                 </>
             )}
         </div>

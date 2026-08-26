@@ -16,6 +16,10 @@ interface BondsTableProps {
     data: IBond[];
     loading?: boolean;
     error?: boolean;
+    /** Текущая страница (1-based), поднята в URL — чтобы «Назад» вернул то же место. */
+    page: number;
+    /** Смена страницы (десктоп-пагинация и мобильный «Показать ещё» пишут сюда). */
+    onPageChange: (page: number) => void;
 }
 
 /** Сколько карточек показываем на мобильных до нажатия «Показать ещё». */
@@ -60,7 +64,7 @@ const columns: TableProps<IBond>['columns'] = [
         width: 150,
         render: (_, bond) => (
             <div className={style.name}>
-                <Link target='_blank' href={`/bonds/${bond.secid}`} className={style.nameTitle}>{bond.shortName}</Link>
+                <Link href={`/bonds/${bond.secid}`} className={style.nameTitle}>{bond.shortName}</Link>
                 {bond.sector && <span className={style.sector}>{bond.sector}</span>}
                 <BondTags bond={bond} />
             </div>
@@ -175,13 +179,12 @@ const columns: TableProps<IBond>['columns'] = [
     }
 ];
 
-const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
+const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error, page, onPageChange }) => {
     const router = useRouter();
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
     const screens = Grid.useBreakpoint();
     const isMobile = screens.md === false;
-    const [visible, setVisible] = React.useState(MOBILE_PAGE);
 
     if (error) {
         return (
@@ -190,6 +193,8 @@ const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
     }
 
     if (isMobile) {
+        // На мобиле page работает как «сколько порций по MOBILE_PAGE подгружено».
+        const visible = page * MOBILE_PAGE;
         const shown = data.slice(0, visible);
         return (
             <div className={style.wrapper}>
@@ -232,7 +237,7 @@ const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
                         <Button
                             className={style.showMore}
                             block
-                            onClick={() => setVisible((v) => v + MOBILE_PAGE)}
+                            onClick={() => onPageChange(page + 1)}
                         >
                             Показать ещё
                         </Button>
@@ -251,7 +256,13 @@ const BondsTable: React.FC<BondsTableProps> = ({ data, loading, error }) => {
                 loading={loading}
                 sticky
                 scroll={{ x: 'max-content' }}
-                pagination={{ pageSize: 25, showSizeChanger: false, hideOnSinglePage: true }}
+                pagination={{
+                    current: page,
+                    pageSize: 25,
+                    showSizeChanger: false,
+                    hideOnSinglePage: true,
+                    onChange: (next) => onPageChange(next)
+                }}
                 // onRow={(bond) => ({ onClick: () => router.push(`/bonds/${bond.secid}`) })}
                 rowClassName={style.row}
             />

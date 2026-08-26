@@ -2,6 +2,7 @@
 import { useDarkTheme } from '@/store/darkTheme';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ConfigProvider, theme } from 'antd';
 import React, { useState } from 'react';
 import { getPalette } from '@/theme/palette';
@@ -16,8 +17,9 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
     const palette = getPalette(darkTheme);
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <AntdRegistry>
+        <NuqsAdapter>
+            <QueryClientProvider client={queryClient}>
+                <AntdRegistry>
                 <ConfigProvider
                     theme={{
                         algorithm: darkTheme ? theme.darkAlgorithm : theme.defaultAlgorithm,
@@ -49,6 +51,7 @@ const Providers: React.FC<ProvidersProps> = ({ children }) => {
                 </ConfigProvider>
             </AntdRegistry>
         </QueryClientProvider>
+        </NuqsAdapter>
     );
 };
 export default Providers;

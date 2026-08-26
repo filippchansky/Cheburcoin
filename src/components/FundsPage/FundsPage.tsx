@@ -1,5 +1,6 @@
 'use client';
 import React, { useMemo, useState } from 'react';
+import { useTableUrlState } from '@/hooks/useTableUrlState';
 import { Alert, Badge, Button, Checkbox, Input, InputNumber, Select, Tag } from 'antd';
 import {
     ArrowDownOutlined,
@@ -24,14 +25,16 @@ import style from './style.module.scss';
 
 const FundsPage: React.FC = () => {
     const { data: funds = [], isLoading, isError } = useFunds();
-    const [search, setSearch] = useState('');
-    const [filters, setFilters] = useState<Record<string, FilterValue>>(defaultFilterValues);
-    const [showAll, setShowAll] = useState(false);
 
-    const setFilter = (key: string, value: FilterValue) =>
-        setFilters((prev) => ({ ...prev, [key]: value }));
-    const clearFilter = (key: string) => setFilter(key, defaultFilterValues[key]);
-    const resetAll = () => setFilters(defaultFilterValues);
+    // Поиск/фильтры/страница живут в URL — переход на фонд и «Назад» возвращают
+    // ровно те же фильтры и позицию; свежий вход на /funds открывается с дефолтами.
+    const { search, setSearch, page, setPage, filters, setFilter, clearFilter, resetAll } =
+        useTableUrlState<FundFilter, FilterValue>(
+            fundFilters,
+            defaultFilterValues,
+            isFilterActive
+        );
+    const [showAll, setShowAll] = useState(false);
 
     /** Разрешённые опции фильтра (динамические имеют приоритет над статичными). */
     const optionsOf = (filter: FundFilter) =>
@@ -263,7 +266,12 @@ const FundsPage: React.FC = () => {
                         </div>
                     )}
 
-                    <FundsTable data={filtered} loading={isLoading} />
+                    <FundsTable
+                        data={filtered}
+                        loading={isLoading}
+                        page={page}
+                        onPageChange={setPage}
+                    />
                 </>
             )}
         </div>

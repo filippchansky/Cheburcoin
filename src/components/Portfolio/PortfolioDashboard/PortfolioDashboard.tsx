@@ -14,6 +14,7 @@ import {
     scopeFromPortfolio
 } from '@/utils/portfolioScope';
 import { AllocationMode, buildAllocation } from '@/utils/portfolioAllocation';
+import { usePortfolioPrefs } from '@/store/portfolioPrefs';
 import { usePaymentsBreakdown } from '@/hooks/usePaymentsBreakdown';
 import { useRealized } from '@/hooks/useRealized';
 import { usePositionsProfit } from '@/hooks/usePositionsProfit';
@@ -21,6 +22,7 @@ import { useCryptoPositions } from '@/hooks/useCryptoPositions';
 import { useCashflows } from '@/hooks/useCashflows';
 import { xirr } from '@/utils/xirr';
 import AllocationDonut from './AllocationDonut';
+import AccountSwitcher from './AccountSwitcher';
 import PositionsTable from './PositionsTable';
 import PaymentsView from './PaymentsView';
 import YieldBreakdownCard from './YieldBreakdownCard';
@@ -66,9 +68,7 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     const { accounts, aggregate, status, isFetching, refetchAll } = usePortfolio();
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
-    const [scope, setScope] = React.useState<string>(ALL);
-    const [view, setView] = React.useState<View>('overview');
-    const [allocMode, setAllocMode] = React.useState<AllocationMode>('type');
+    const { scope, setScope, view, setView, allocMode, setAllocMode } = usePortfolioPrefs();
     const { data: sectorMap = {} } = useSectors();
     const { data: bondSectorMap = {} } = useBondSectorMap();
     const {
@@ -138,11 +138,6 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
             ? scopeFromPortfolio(selectedAccount.portfolio)
             : null;
     }
-
-    const options = [
-        { label: 'Все счета', value: ALL },
-        ...accounts.map((item) => ({ label: item.account.name, value: item.account.id }))
-    ];
 
     // Срезы пончика для выбранного режима (классы/сектора/бумаги).
     const allocationSlices = scopeData
@@ -222,9 +217,14 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                 <PaymentsView accounts={accounts} />
             ) : (
                 <>
-            <div className='flex items-center justify-between gap-3 mb-4 flex-wrap'>
-                <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
-                    <Segmented options={options} value={effectiveScope} onChange={(v) => setScope(v as string)} />
+            <div className='flex items-center justify-between gap-3 mb-4'>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                    <AccountSwitcher
+                        accounts={accounts}
+                        value={effectiveScope}
+                        onChange={(v) => setScope(v)}
+                        aggregateTotal={aggregate?.totalAmountPortfolio ?? 0}
+                    />
                 </div>
                 <Button icon={<ReloadOutlined spin={isFetching} />} onClick={refetchAll}>
                     Обновить

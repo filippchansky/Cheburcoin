@@ -4,7 +4,9 @@ import { getShareDetail } from '@api/moex/shares/getShareDetail';
 import { getShareIndices } from '@api/moex/shares/getShareIndices';
 import { mapShareDetail } from '@api/moex/shares/mapShareDetail';
 import { getShareDividendsTinkoff } from '@api/tinkoff/getShareDividends/getShareDividends';
-import { IShareDividend } from '@models/shareDetail';
+import { getFundamentalsTinkoff } from '@api/tinkoff/getFundamentals/getFundamentals';
+import { getForecastTinkoff } from '@api/tinkoff/getForecast/getForecast';
+import { IShareDividend, IShareForecast, IShareFundamentals } from '@models/shareDetail';
 import { useQuery } from '@tanstack/react-query';
 import { useTbank } from './useTbank';
 
@@ -75,6 +77,73 @@ export const useShareDividends = (ticker: string): ShareDividendsData => {
     return {
         dividends,
         yieldByDate,
+        isLoading: tbankLoading || (query.isLoading && !!token),
+        noToken: !tbankLoading && !token
+    };
+};
+
+/** Результат хука фундаментала. */
+export interface ShareFundamentalsData {
+    /** Показатели бумаги (или null — фундаментала нет). */
+    fundamentals: IShareFundamentals | null;
+    /** Данные ещё грузятся (или ждём токен Т-Банка). */
+    isLoading: boolean;
+    /** Токена Т-Банка нет — источник фундаментала недоступен. */
+    noToken: boolean;
+}
+
+/**
+ * Фундаментальные показатели бумаги (P/E, ROE, маржа, долг, дивполитика…).
+ * Источник — Т-Банк (GetAssetFundamentals), поэтому нужен токен пользователя;
+ * без него отдаём `noToken` — блок покажет заглушку, а не пустоту. Данные
+ * меняются раз в квартал, поэтому кэшируем надолго.
+ */
+export const useShareFundamentals = (ticker: string): ShareFundamentalsData => {
+    const { data: tbank, isLoading: tbankLoading } = useTbank();
+    const token = tbank?.token ?? null;
+
+    const query = useQuery({
+        queryKey: ['share-fundamentals', ticker],
+        queryFn: () => getFundamentalsTinkoff(ticker, token as string),
+        enabled: !!ticker && !!token,
+        staleTime: 1000 * 60 * 60 * 12
+    });
+
+    return {
+        fundamentals: query.data ?? null,
+        isLoading: tbankLoading || (query.isLoading && !!token),
+        noToken: !tbankLoading && !token
+    };
+};
+
+/** Результат хука прогнозов аналитиков. */
+export interface ShareForecastData {
+    /** Прогноз (консенсус + таргеты) или null — прогноза нет. */
+    forecast: IShareForecast | null;
+    /** Данные ещё грузятся (или ждём токен Т-Банка). */
+    isLoading: boolean;
+    /** Токена Т-Банка нет — источник прогнозов недоступен. */
+    noToken: boolean;
+}
+
+/**
+ * Прогнозы аналитиков по бумаге (консенсус BUY/HOLD/SELL, целевая цена,
+ * потенциал, разбивка по инвестдомам). Источник — Т-Банк (GetForecastBy),
+ * поэтому нужен токен пользователя; без него отдаём `noToken`.
+ */
+export const useShareForecast = (ticker: string): ShareForecastData => {
+    const { data: tbank, isLoading: tbankLoading } = useTbank();
+    const token = tbank?.token ?? null;
+
+    const query = useQuery({
+        queryKey: ['share-forecast', ticker],
+        queryFn: () => getForecastTinkoff(ticker, token as string),
+        enabled: !!ticker && !!token,
+        staleTime: 1000 * 60 * 60 * 6
+    });
+
+    return {
+        forecast: query.data ?? null,
         isLoading: tbankLoading || (query.isLoading && !!token),
         noToken: !tbankLoading && !token
     };

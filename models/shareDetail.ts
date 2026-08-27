@@ -58,6 +58,90 @@ export interface IShareDividend {
     currency: string;
 }
 
+/**
+ * Фундаментальные показатели акции (Т-Банк GetAssetFundamentals).
+ * Все проценты — уже в процентах (roe=23.44 → «23.44%»), freeFloat нормализован
+ * бэком из доли в проценты. Коэффициенты (peRatio, evToEbitda, beta…) — «разы».
+ * marketCap/eps — в валюте `currency`. null = данных нет (прочерк).
+ */
+export interface IShareFundamentals {
+    currency: string | null;
+
+    // Оценка
+    peRatio: number | null;
+    priceToSales: number | null;
+    priceToBook: number | null;
+    evToEbitda: number | null;
+    marketCap: number | null;
+
+    // Рентабельность (%)
+    roe: number | null;
+    roa: number | null;
+    roic: number | null;
+    netMargin: number | null;
+
+    // Долг / устойчивость
+    netDebtToEbitda: number | null;
+    totalDebtToEbitda: number | null;
+    currentRatio: number | null;
+
+    // Рост (%)
+    revenueGrowth1y: number | null;
+    revenueGrowth5y: number | null;
+
+    // Дивиденды / выкуп (%)
+    dividendYield: number | null;
+    dividendPayoutRatio: number | null;
+    buyBack: number | null;
+
+    // Прочее
+    beta: number | null;
+    /** Free-float в процентах (0.48 доли → 48). */
+    freeFloat: number | null;
+    eps: number | null;
+    employees: number | null;
+    /** Дата ближайшей отсечки, ISO-строка. */
+    exDividendDate: string | null;
+}
+
+/** Рекомендация аналитика: покупать / держать / продавать. */
+export type Recommendation = 'BUY' | 'HOLD' | 'SELL';
+
+/** Консенсус-прогноз аналитиков по бумаге (агрегат). */
+export interface IShareForecastConsensus {
+    recommendation: Recommendation | null;
+    currency: string | null;
+    currentPrice: number | null;
+    /** Консенсус целевой цены. */
+    targetPrice: number | null;
+    minTarget: number | null;
+    maxTarget: number | null;
+    /** Потенциал к текущей цене, %. */
+    priceChangeRel: number | null;
+    prognosisDate: string | null;
+    /** Число инвестдомов с рекомендацией «покупать». */
+    buy: number;
+    hold: number;
+    sell: number;
+}
+
+/** Прогноз одного инвестдома. */
+export interface IShareForecastTarget {
+    company: string | null;
+    recommendation: Recommendation | null;
+    currency: string | null;
+    currentPrice: number | null;
+    targetPrice: number | null;
+    priceChangeRel: number | null;
+    date: string | null;
+}
+
+/** Прогнозы аналитиков по бумаге (Т-Банк GetForecastBy). */
+export interface IShareForecast {
+    consensus: IShareForecastConsensus | null;
+    targets: IShareForecastTarget[];
+}
+
 /** Индекс, в который входит бумага. */
 export interface IShareIndex {
     id: string;

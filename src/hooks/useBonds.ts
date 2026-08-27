@@ -4,9 +4,11 @@ import { getBondCandles } from '@api/moex/bonds/getBondCandles';
 import { getBondCoupons } from '@api/moex/bonds/getBondCoupons';
 import { getAllBonds } from '@api/moex/bonds/getBonds';
 import { mapBonds } from '@api/moex/bonds/mapBonds';
+import { getBondOffersTinkoff } from '@api/tinkoff/getBondEvents/getBondEvents';
 import { BondFlagsMap, BondRatingsData, BondSectorInfo, IBond, IBondsRaw } from '@models/bond';
-import { IKeyRate } from '@models/bondDetail';
+import { IBondOffer, IKeyRate } from '@models/bondDetail';
 import { useQuery } from '@tanstack/react-query';
+import { useTbank } from './useTbank';
 
 /**
  * Все облигации рынка (ОФЗ + корпоративные + муниципальные) одним списком.
@@ -82,6 +84,39 @@ export const useBondAmortizations = (secid: string) =>
         queryFn: () => getBondAmortizations(secid),
         enabled: !!secid
     });
+
+/** Результат хука оферт облигации. */
+export interface BondOffersData {
+    /** Оферты (пут/колл), свежие снизу — по возрастанию даты. */
+    offers: IBondOffer[];
+    /** Данные ещё грузятся (или ждём токен Т-Банка). */
+    isLoading: boolean;
+    /** Токена Т-Банка нет — источник оферт недоступен. */
+    noToken: boolean;
+}
+
+/**
+ * Оферты облигации (пут/колл с датами и ценами). Источник — Т-Банк
+ * (GetBondEvents), поэтому нужен токен пользователя; без него отдаём `noToken`.
+ * Резолв по ISIN на бэке (у облигаций класс-код разный).
+ */
+export const useBondOffers = (isin: string): BondOffersData => {
+    const { data: tbank, isLoading: tbankLoading } = useTbank();
+    const token = tbank?.token ?? null;
+
+    const query = useQuery({
+        queryKey: ['bond-offers', isin],
+        queryFn: () => getBondOffersTinkoff(isin, token as string),
+        enabled: !!isin && !!token,
+        staleTime: 1000 * 60 * 60 * 12
+    });
+
+    return {
+        offers: query.data ?? [],
+        isLoading: tbankLoading || (query.isLoading && !!token),
+        noToken: !tbankLoading && !token
+    };
+};
 
 /**
  * Признаки надёжности (квал/дефолт) по всем облигациям — статическая карта

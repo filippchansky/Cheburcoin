@@ -13,10 +13,13 @@ import ShareLogo from '@/components/ShareLogo/ShareLogo';
 import { formatMoney, formatPercent, intToCompact, intToRubCompact } from '@/utils/formatCurrency';
 import { annualDividendPerShare, dividendYield } from '@/utils/shareCalc';
 import PriceRange from './PriceRange/PriceRange';
+import Fundamentals from './Fundamentals/Fundamentals';
+import Forecast from './Forecast/Forecast';
 import ShareChart from './ShareChart/ShareChart';
 import Dividends from './Dividends/Dividends';
 import ShareCalculator from './ShareCalculator/ShareCalculator';
 import ShareProfile from './ShareProfile/ShareProfile';
+import InstrumentNews from '@/components/InstrumentNews/InstrumentNews';
 import PortfolioPosition from '@/components/PortfolioPosition/PortfolioPosition';
 import style from './style.module.scss';
 
@@ -178,6 +181,8 @@ const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
 
             <PortfolioPosition ticker={share.ticker} isin={share.isin} isPreferred={share.isPreferred} />
             <PriceRange ticker={share.ticker} price={share.price} currency={share.currency} />
+            <Fundamentals ticker={share.ticker} />
+            <Forecast ticker={share.ticker} currency={share.currency} />
             <ShareChart ticker={share.ticker} />
             <Dividends
                 dividends={dividends}
@@ -188,6 +193,7 @@ const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
             />
             <ShareCalculator share={share} annualDivPerShare={annualDiv} />
             <ShareProfile share={share} indices={indices} />
+            <InstrumentNews ticker={share.ticker} />
         </div>
     );
 };

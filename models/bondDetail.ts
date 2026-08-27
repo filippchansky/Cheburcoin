@@ -31,6 +31,19 @@ export interface IBondAmortization {
     isPaid: boolean;
 }
 
+/** Оферта облигации (пут/колл) из Т-Банк GetBondEvents. */
+export interface IBondOffer {
+    /** Дата оферты (YYYY-MM-DD). */
+    date: string;
+    /** Тип: PUT (пут — держатель вправе предъявить) / CALL (эмитент вправе выкупить). */
+    type: 'PUT' | 'CALL' | null;
+    /** Цена выкупа на 1 облигацию (если раскрыта). */
+    price: number | null;
+    currency: string | null;
+    /** Дата фиксации списка держателей (если есть). */
+    fixDate: string | null;
+}
+
 /** Ключевая ставка ЦБ РФ. */
 export interface IKeyRate {
     /** Ставка, % годовых. */

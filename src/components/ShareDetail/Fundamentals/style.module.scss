@@ -1,0 +1,87 @@
+@import '../../../app/_variables';
+
+.wrapper {
+    margin-top: 20px;
+    padding: 18px 22px 22px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.04);
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.sub {
+    font-size: 13px;
+    opacity: 0.55;
+}
+
+.empty {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+.group {
+    & + & {
+        margin-top: 22px;
+    }
+}
+
+.groupTitle {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.45;
+    margin-bottom: 12px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.tile {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+}
+
+.tileLabel {
+    font-size: 13px;
+    opacity: 0.5;
+}
+
+.hint {
+    margin-left: 5px;
+    font-size: 12px;
+    cursor: help;
+}
+
+.tileValue {
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

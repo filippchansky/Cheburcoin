@@ -1,0 +1,189 @@
+@import '../../app/_variables';
+
+.wrapper {
+    margin-top: 20px;
+    padding: 18px 22px 22px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.04);
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.sub {
+    font-size: 13px;
+    opacity: 0.55;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.row {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    padding: 12px 14px;
+    border: 1px solid rgba(128, 128, 128, 0.12);
+    border-radius: 10px;
+    background: transparent;
+    transition: border-color 0.15s ease, background 0.15s ease;
+
+    &:hover {
+        border-color: rgba(128, 128, 128, 0.35);
+        background: rgba(128, 128, 128, 0.06);
+    }
+}
+
+.rowMeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.author {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 45%;
+}
+
+.dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.35;
+    flex: none;
+}
+
+.time {
+    opacity: 0.55;
+    white-space: nowrap;
+}
+
+.stats {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    opacity: 0.55;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.statIcon {
+    margin-left: 8px;
+}
+
+.text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-line;
+    /* Обрезаем длинные посты до 4 строк — полный текст на странице Пульса. */
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.more {
+    margin-top: 12px;
+    width: 100%;
+    padding: 9px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: inherit;
+    background: transparent;
+    border: 1px solid rgba(128, 128, 128, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+
+    &:hover {
+        border-color: rgba(128, 128, 128, 0.4);
+        background: rgba(128, 128, 128, 0.06);
+    }
+}
+
+/* --- Модалка полного поста --- */
+.modalHead {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-right: 24px;
+}
+
+.modalAuthor {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.modalDate {
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.modalText {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-line;
+    word-break: break-word;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modalFoot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid;
+}
+
+.modalStats {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.modalLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}

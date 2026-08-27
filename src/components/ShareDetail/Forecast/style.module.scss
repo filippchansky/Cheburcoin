@@ -1,0 +1,180 @@
+@import '../../../app/_variables';
+
+.wrapper {
+    margin-top: 20px;
+    padding: 18px 22px 22px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+    background: rgba(128, 128, 128, 0.04);
+}
+
+.head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.sub {
+    font-size: 13px;
+    opacity: 0.55;
+}
+
+.empty {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+.muted {
+    opacity: 0.4;
+}
+
+.up {
+    color: $green;
+    font-weight: 600;
+}
+
+.down {
+    color: $red;
+    font-weight: 600;
+}
+
+/* --- Консенсус --- */
+.consensus {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 18px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+    margin-bottom: 18px;
+}
+
+.consMain {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.consLabel {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.45;
+}
+
+.consRec {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.consTarget {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.consPot {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.consRange {
+    font-size: 13px;
+    opacity: 0.6;
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- Разбивка голосов --- */
+.votes {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 200px;
+    flex: 1 1 200px;
+    max-width: 320px;
+}
+
+.voteBar {
+    height: 10px;
+    border-radius: 3px;
+    min-width: 4px;
+
+    &[data-kind='buy'] {
+        background: $green;
+    }
+    &[data-kind='hold'] {
+        background: #e0b000;
+    }
+    &[data-kind='sell'] {
+        background: $red;
+    }
+}
+
+.votesText {
+    margin-left: 8px;
+    font-size: 12px;
+    opacity: 0.55;
+    white-space: nowrap;
+}
+
+/* --- Таблица инвестдомов --- */
+.targets {
+    display: flex;
+    flex-direction: column;
+}
+
+.trow {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 4px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+    font-variant-numeric: tabular-nums;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.thead {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.45;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+}
+
+.company {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.right {
+    text-align: right;
+}
+
+@media (max-width: 640px) {
+    .trow {
+        grid-template-columns: 1.4fr 0.9fr 1fr;
+    }
+    /* На узком экране прячем колонку «Потенциал» (последняя) — цель важнее. */
+    .trow > :nth-child(4) {
+        display: none;
+    }
+}

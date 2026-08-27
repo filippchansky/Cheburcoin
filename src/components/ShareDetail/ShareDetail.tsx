@@ -19,6 +19,7 @@ import ShareChart from './ShareChart/ShareChart';
 import Dividends from './Dividends/Dividends';
 import ShareCalculator from './ShareCalculator/ShareCalculator';
 import ShareProfile from './ShareProfile/ShareProfile';
+import InstrumentNews from '@/components/InstrumentNews/InstrumentNews';
 import PortfolioPosition from '@/components/PortfolioPosition/PortfolioPosition';
 import style from './style.module.scss';
 
@@ -192,6 +193,7 @@ const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
             />
             <ShareCalculator share={share} annualDivPerShare={annualDiv} />
             <ShareProfile share={share} indices={indices} />
+            <InstrumentNews ticker={share.ticker} />
         </div>
     );
 };

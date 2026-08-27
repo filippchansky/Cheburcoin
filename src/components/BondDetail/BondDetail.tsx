@@ -14,6 +14,7 @@ import BondChart from './BondChart/BondChart';
 import CouponsTable from './CouponsTable/CouponsTable';
 import AmortizationTable from './AmortizationTable/AmortizationTable';
 import Offers from './Offers/Offers';
+import InstrumentNews from '@/components/InstrumentNews/InstrumentNews';
 import PortfolioPosition from '@/components/PortfolioPosition/PortfolioPosition';
 import style from './style.module.scss';
 
@@ -162,6 +163,7 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
             <CouponsTable secid={bond.secid} currency={bond.currency} />
             <Offers isin={bond.isin} currency={bond.currency} hasOffer={bond.hasOffer} />
             <AmortizationTable amortizations={amortizations} currency={bond.currency} />
+            <InstrumentNews ticker={bond.secid} />
         </div>
     );
 };

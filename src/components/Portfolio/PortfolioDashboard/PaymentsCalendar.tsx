@@ -62,7 +62,16 @@ interface CalendarBodyProps {
     bondPositions: IPosition[];
     /** Акции/фонды выбранных счетов — источник дивидендов (объявленных + прогноз). */
     sharePositions: IPosition[];
+    /** Полная стоимость выбранных счетов (₽, вкл. кэш/валюту/крипту) — база «ко всему счёту». */
+    accountsMoney: number;
 }
+
+/** Процент годовых в ru-формате: 19.28 → «19,28%». */
+const formatPct = (n: number) =>
+    `${n.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+
+/** Склонение «бумаге/бумагам» для дательного падежа («по N …»). */
+const plsBumag = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'бумаге' : 'бумагам');
 
 const COUPON_COLOR = '#1baf7a';
 const DIVIDEND_COLOR = '#4098fc';
@@ -90,13 +99,15 @@ const TotalTile: React.FC<TotalTileProps> = ({ label, value, color, bg, border, 
     </div>
 );
 
-const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositions }) => {
+const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositions, accountsMoney }) => {
     const {
         events,
         byMonth,
         couponTotal,
         dividendTotal,
         dividendProjectedTotal,
+        payingValue,
+        payingValueByUid,
         hasNonRub,
         hasUnconvertible,
         ratesDate,
@@ -109,6 +120,7 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositio
     const screens = Grid.useBreakpoint();
     const isMobile = screens.md === false;
     const [showForecast, setShowForecast] = React.useState(true);
+    const [onlyPaying, setOnlyPaying] = React.useState(false);
     const [kindFilter, setKindFilter] = React.useState<'all' | CalendarKind>('all');
     const [visible, setVisible] = React.useState(MOBILE_PAGE);
 
@@ -153,6 +165,20 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositio
     // Сводный итог за окно (12 мес) — купоны + дивиденды (с учётом прогноза, если включён).
     const yearlyTotal = round(couponTotal + dividendTileTotal);
     const monthlyAvg = round(yearlyTotal / 12);
+    // Доходность выплатами, % годовых. Основная база — стоимость платящих бумаг
+    // (как в Snowball); подпись — та же сумма к полной стоимости счетов.
+    // Чекбокс «только по платящим» сужает базу до бумаг, реально дающих выплаты в
+    // окне. Набор берём из тех же событий, что кормят числитель (с учётом тумблера
+    // прогноза) — иначе бумага с одним лишь прогнозным дивидендом завысила бы %.
+    const payingIds = new Set(
+        events.filter((e) => showForecast || !e.projected).map((e) => e.instrumentId)
+    );
+    const payingActiveValue = round(
+        Array.from(payingIds).reduce((sum, id) => sum + (payingValueByUid.get(id) ?? 0), 0)
+    );
+    const yieldBase = onlyPaying ? payingActiveValue : payingValue;
+    const yieldPct = yieldBase > 0 ? (yearlyTotal / yieldBase) * 100 : null;
+    const wholePct = accountsMoney > 0 ? (yearlyTotal / accountsMoney) * 100 : null;
 
     const forecastSeriesData = byMonth.map((bucket) => (showForecast ? bucket.dividendProjected : 0));
 
@@ -349,6 +375,21 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositio
                         sub={`≈ ${intToRub(monthlyAvg)} в месяц`}
                     />
                     <TotalTile
+                        label='Доходность выплатами · % годовых'
+                        value={yieldPct !== null ? formatPct(yieldPct) : '—'}
+                        color={palette.primary}
+                        bg={`${palette.primary}14`}
+                        border={`${palette.primary}40`}
+                        muted={palette.textMuted}
+                        sub={
+                            onlyPaying
+                                ? `по ${payingIds.size} ${plsBumag(payingIds.size)}`
+                                : wholePct !== null
+                                  ? `≈ ${formatPct(wholePct)} ко всему счёту`
+                                  : undefined
+                        }
+                    />
+                    <TotalTile
                         label='Купоны за 12 мес · до налога'
                         value={intToRub(couponTotal)}
                         color={COUPON_COLOR}
@@ -373,6 +414,17 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositio
                 <Button icon={<ReloadOutlined spin={isFetching} />} onClick={refetch}>
                     Обновить
                 </Button>
+            </div>
+
+            <div className='flex items-center gap-2 mb-4'>
+                <Checkbox checked={onlyPaying} onChange={(e) => setOnlyPaying(e.target.checked)}>
+                    <span style={{ color: palette.textMuted, fontSize: 13 }}>
+                        Доходность только по платящим бумагам
+                    </span>
+                </Checkbox>
+                <Tooltip title='База % считается только по бумагам, дающим купоны/дивиденды в ближайшие 12 мес — без «молчащих» акций и фондов. Иначе — по всем облигациям, акциям и фондам.'>
+                    <InfoCircleOutlined style={{ color: palette.textMuted }} />
+                </Tooltip>
             </div>
 
             <div className='mb-4'>
@@ -635,7 +687,11 @@ const PaymentsCalendar: React.FC<PaymentsCalendarProps> = ({ accounts }) => {
                 </div>
             ) : null}
 
-            <CalendarBody bondPositions={bondPositions} sharePositions={sharePositions} />
+            <CalendarBody
+                bondPositions={bondPositions}
+                sharePositions={sharePositions}
+                accountsMoney={accountsMoney}
+            />
         </div>
     );
 };

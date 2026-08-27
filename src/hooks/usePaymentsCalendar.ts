@@ -57,6 +57,17 @@ export interface UsePaymentsCalendarResult {
     dividendTotal: number;
     /** Итог прогнозных дивидендов за окно (рублёвые). */
     dividendProjectedTotal: number;
+    /**
+     * Рублёвая стоимость платящих бумаг (облигации + акции/фонды) — база для
+     * «доходности выплатами, % годовых». Валютные позиции пересчитаны по курсу ЦБ.
+     */
+    payingValue: number;
+    /**
+     * Рублёвая стоимость позиции по instrumentUid — чтобы сузить базу до бумаг,
+     * реально дающих выплаты в окне (чекбокс «только по платящим»). Валютные
+     * позиции пересчитаны по курсу ЦБ.
+     */
+    payingValueByUid: Map<string, number>;
     /** Есть валютные выплаты, пересчитанные в рубли по курсу ЦБ. */
     hasNonRub: boolean;
     /** Есть валютные выплаты, курс которых неизвестен — они не вошли в итог. */
@@ -134,6 +145,19 @@ export const usePaymentsCalendar = (
     const shares = sharePositions
         .filter((p) => p.instrumentUid && (p.quantity ?? 0) > 0)
         .map((p) => ({ instrumentId: p.instrumentUid, quantity: p.quantity }));
+
+    // База «доходности выплатами»: рублёвая стоимость платящих бумаг по instrumentUid.
+    // priceInPorfolio у Т-Банка — в родной валюте, приводим к рублю тем же курсом ЦБ,
+    // что и сами выплаты; неизвестный курс → 0 (позиция выпадает из базы).
+    const payingValueByUid = new Map<string, number>();
+    [...bondPositions, ...sharePositions].forEach((p) => {
+        if (!p.instrumentUid) return;
+        const rub = toRub(p.priceInPorfolio ?? 0, p.currency);
+        payingValueByUid.set(p.instrumentUid, round2((payingValueByUid.get(p.instrumentUid) ?? 0) + rub));
+    });
+    const payingValue = round2(
+        Array.from(payingValueByUid.values()).reduce((sum, v) => sum + v, 0)
+    );
 
     // Джойн тикера/имени по instrumentUid (бек их не резолвит — экономим N+1).
     const metaByUid = new Map(
@@ -309,6 +333,8 @@ export const usePaymentsCalendar = (
         couponTotal: round2(couponTotal),
         dividendTotal: round2(dividendTotal),
         dividendProjectedTotal: round2(dividendProjectedTotal),
+        payingValue,
+        payingValueByUid,
         hasNonRub,
         hasUnconvertible,
         ratesDate: cbr?.date ?? null,

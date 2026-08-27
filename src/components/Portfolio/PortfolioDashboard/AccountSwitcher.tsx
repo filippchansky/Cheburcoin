@@ -1,8 +1,19 @@
 'use client';
 import React from 'react';
-import { Segmented, Drawer, Grid } from 'antd';
-import { DownOutlined, CheckOutlined } from '@ant-design/icons';
-import { AccountPortfolio } from '@/hooks/usePortfolio';
+import { Segmented, Drawer, Grid, theme } from 'antd';
+import {
+    DownOutlined,
+    CheckOutlined,
+    BankOutlined,
+    WalletOutlined,
+    ApiOutlined,
+    AppstoreOutlined
+} from '@ant-design/icons';
+import {
+    AccountPortfolio,
+    TREZOR_ACCOUNT_ID,
+    BYBIT_ACCOUNT_ID
+} from '@/hooks/usePortfolio';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import { intToRub } from '@/utils/formatCurrency';
@@ -30,6 +41,14 @@ interface Row {
 /** Подписанный рубль дневной доходности (как `signed` в дашборде). */
 const signed = (n: number) => (n > 0 ? '+' : '') + intToRub(n);
 
+/** Иконка счёта по его источнику: банк (Т-Банк) / кошелёк (Trezor) / биржа (Bybit). */
+const accountIcon = (id: string): React.ReactNode => {
+    if (id === ALL) return <AppstoreOutlined />;
+    if (id === TREZOR_ACCOUNT_ID) return <WalletOutlined />;
+    if (id === BYBIT_ACCOUNT_ID) return <ApiOutlined />;
+    return <BankOutlined />;
+};
+
 /**
  * Переключатель счёта портфеля. На десктопе — привычный `Segmented`, на мобилке
  * (screens.md === false) горизонтальный скролл заменён нижней шторкой (`Drawer`)
@@ -46,6 +65,9 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
     const isMobile = screens.md === false;
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
+    // colorText берём из токена antd, а НЕ inherit: Drawer рендерится порталом в
+    // body, где по цепочке наследуется чёрный текст — на тёмной шторке нечитаемо.
+    const { token } = theme.useToken();
     const [open, setOpen] = React.useState(false);
 
     const options = [
@@ -95,23 +117,28 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
                     border: `1px solid ${palette.border}`,
                     borderRadius: 10,
                     padding: '10px 14px',
-                    color: 'inherit'
+                    color: token.colorText
                 }}
             >
-                <span style={{ minWidth: 0 }}>
-                    <span
-                        style={{
-                            display: 'block',
-                            fontWeight: 500,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                        }}
-                    >
-                        {current.name}
+                <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    <span style={{ color: palette.textMuted, fontSize: 18, display: 'inline-flex', flexShrink: 0 }}>
+                        {accountIcon(current.id)}
                     </span>
-                    <span style={{ display: 'block', fontSize: 12, color: palette.textMuted }}>
-                        {intToRub(current.total)}
+                    <span style={{ minWidth: 0 }}>
+                        <span
+                            style={{
+                                display: 'block',
+                                fontWeight: 500,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            {current.name}
+                        </span>
+                        <span style={{ display: 'block', fontSize: 12, color: palette.textMuted }}>
+                            {intToRub(current.total)}
+                        </span>
                     </span>
                 </span>
                 <DownOutlined style={{ color: palette.textMuted, flexShrink: 0 }} />
@@ -147,7 +174,7 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
                                     border: 'none',
                                     borderRadius: 10,
                                     padding: '12px',
-                                    color: 'inherit'
+                                    color: token.colorText
                                 }}
                             >
                                 <span style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
@@ -158,6 +185,16 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
                                             flexShrink: 0
                                         }}
                                     />
+                                    <span
+                                        style={{
+                                            color: selected ? palette.primary : palette.textMuted,
+                                            fontSize: 16,
+                                            display: 'inline-flex',
+                                            flexShrink: 0
+                                        }}
+                                    >
+                                        {accountIcon(r.id)}
+                                    </span>
                                     <span
                                         style={{
                                             fontWeight: 500,

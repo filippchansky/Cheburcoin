@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Skeleton, Tag, Tooltip } from 'antd';
-import { InfoCircleOutlined, LeftOutlined } from '@ant-design/icons';
+import { LeftOutlined } from '@ant-design/icons';
 import {
     useShareDetail,
     useShareDividends,
@@ -10,6 +10,10 @@ import {
 } from '@/hooks/useShareDetail';
 import { useSectors } from '@/hooks/useShares';
 import ShareLogo from '@/components/ShareLogo/ShareLogo';
+import InstrumentLayout, {
+    InstrumentMetric,
+    InstrumentTab
+} from '@/components/InstrumentLayout/InstrumentLayout';
 import { formatMoney, formatPercent, intToCompact, intToRubCompact } from '@/utils/formatCurrency';
 import { annualDividendPerShare, dividendYield } from '@/utils/shareCalc';
 import PriceRange from './PriceRange/PriceRange';
@@ -67,7 +71,7 @@ const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
     const annualDiv = annualDividendPerShare(dividends);
     const divYield = dividendYield(annualDiv, share.price);
 
-    const metrics: { label: string; value: React.ReactNode; hint?: string }[] = [
+    const metrics: InstrumentMetric[] = [
         {
             label: 'Капитализация',
             value: share.capitalization === null ? '—' : intToRubCompact(share.capitalization)
@@ -107,94 +111,121 @@ const ShareDetail: React.FC<ShareDetailProps> = ({ ticker }) => {
         }
     ];
 
+    const priceText = share.price === null ? '—' : formatMoney(share.price, share.currency);
+    const changeText = `${share.dayChange > 0 ? '+' : ''}${formatMoney(share.dayChange, share.currency)} · ${formatPercent(share.dayChangePercent)}`;
+
+    // Разделы: «Обзор» отдаёт цену и график сразу, остальное монтируется по клику,
+    // так что фундаментал, прогнозы и новости не дёргают Т-Банк на каждом заходе.
+    const tabs: InstrumentTab[] = [
+        {
+            key: 'overview',
+            label: 'Обзор',
+            children: (
+                <>
+                    <PortfolioPosition
+                        ticker={share.ticker}
+                        isin={share.isin}
+                        isPreferred={share.isPreferred}
+                    />
+                    <PriceRange
+                        ticker={share.ticker}
+                        price={share.price}
+                        currency={share.currency}
+                    />
+                    <ShareChart ticker={share.ticker} />
+                </>
+            )
+        },
+        {
+            key: 'fundamentals',
+            label: 'Фундаментал',
+            children: (
+                <>
+                    <Fundamentals ticker={share.ticker} />
+                    <ShareProfile share={share} indices={indices} />
+                </>
+            )
+        },
+        {
+            key: 'forecast',
+            label: 'Прогнозы',
+            children: <Forecast ticker={share.ticker} currency={share.currency} />
+        },
+        {
+            key: 'dividends',
+            label: 'Дивиденды',
+            children: (
+                <Dividends
+                    dividends={dividends}
+                    price={share.price}
+                    yieldByDate={yieldByDate}
+                    loading={dividendsLoading}
+                    noToken={dividendsNoToken}
+                />
+            )
+        },
+        {
+            key: 'news',
+            label: 'Новости',
+            children: <InstrumentNews ticker={share.ticker} />
+        }
+    ];
+
     return (
-        <div className={style.page}>
-            <Link href='/moex' className={style.back}>
-                <LeftOutlined /> К списку акций
-            </Link>
-
-            <header className={style.header}>
-                <div className={style.titleBlock}>
-                    <div className={style.titleRow}>
-                        <ShareLogo icon={share.isin} ticker={share.ticker} size={48} />
-                        <div>
-                            <h1 className={style.title}>{share.shortName}</h1>
-                            <span className={style.ticker}>
-                                {share.ticker} · {share.isin}
-                            </span>
-                        </div>
-                    </div>
-                    <div className={style.tags}>
-                        <Tag color={share.isPreferred ? 'gold' : 'blue'} bordered={false}>
-                            {share.isPreferred ? 'Привилегированная' : 'Обыкновенная'}
+        <InstrumentLayout
+            backHref='/moex'
+            backLabel='К списку акций'
+            logo={<ShareLogo icon={share.isin} ticker={share.ticker} size={48} />}
+            title={share.shortName}
+            subtitle={`${share.ticker} · ${share.isin}`}
+            tags={
+                <>
+                    <Tag color={share.isPreferred ? 'gold' : 'blue'} bordered={false}>
+                        {share.isPreferred ? 'Привилегированная' : 'Обыкновенная'}
+                    </Tag>
+                    {sector && (
+                        <Tag color='geekblue' bordered={false}>
+                            {sector}
                         </Tag>
-                        {sector && (
-                            <Tag color='geekblue' bordered={false}>
-                                {sector}
-                            </Tag>
-                        )}
-                        {isBlueChip && (
-                            <Tag color='purple' bordered={false}>
-                                Голубая фишка
-                            </Tag>
-                        )}
-                        {share.listLevel !== null && (
-                            <Tooltip title={listLevelHint}>
-                                <Tag bordered={false}>{share.listLevel} ур. листинга</Tag>
-                            </Tooltip>
-                        )}
-                        {share.forQualified && (
-                            <Tag color='volcano' bordered={false}>
-                                Только для квалов
-                            </Tag>
-                        )}
-                    </div>
-                </div>
-
-                <div className={style.priceBlock}>
-                    <span className={style.price}>
-                        {share.price === null ? '—' : formatMoney(share.price, share.currency)}
-                    </span>
-                    <span className={`${style.change} ${changeClass}`}>
-                        {share.dayChange > 0 ? '+' : ''}
-                        {formatMoney(share.dayChange, share.currency)} ·{' '}
+                    )}
+                    {isBlueChip && (
+                        <Tag color='purple' bordered={false}>
+                            Голубая фишка
+                        </Tag>
+                    )}
+                    {share.listLevel !== null && (
+                        <Tooltip title={listLevelHint}>
+                            <Tag bordered={false}>{share.listLevel} ур. листинга</Tag>
+                        </Tooltip>
+                    )}
+                    {share.forQualified && (
+                        <Tag color='volcano' bordered={false}>
+                            Только для квалов
+                        </Tag>
+                    )}
+                </>
+            }
+            price={
+                <>
+                    <span className={style.price}>{priceText}</span>
+                    <span className={`${style.change} ${changeClass}`}>{changeText}</span>
+                </>
+            }
+            stickyPrice={
+                <>
+                    <span className={style.stickyPriceValue}>{priceText}</span>
+                    <span className={`${style.stickyChange} ${changeClass}`}>
                         {formatPercent(share.dayChangePercent)}
                     </span>
-                </div>
-            </header>
-
-            <div className={style.metrics}>
-                {metrics.map((metric) => (
-                    <div key={metric.label} className={style.tile}>
-                        <span className={style.tileLabel}>
-                            {metric.label}
-                            {metric.hint && (
-                                <Tooltip title={metric.hint}>
-                                    <InfoCircleOutlined className={style.hint} />
-                                </Tooltip>
-                            )}
-                        </span>
-                        <span className={style.tileValue}>{metric.value}</span>
-                    </div>
-                ))}
-            </div>
-
-            <PortfolioPosition ticker={share.ticker} isin={share.isin} isPreferred={share.isPreferred} />
-            <PriceRange ticker={share.ticker} price={share.price} currency={share.currency} />
-            <Fundamentals ticker={share.ticker} />
-            <Forecast ticker={share.ticker} currency={share.currency} />
-            <ShareChart ticker={share.ticker} />
-            <Dividends
-                dividends={dividends}
-                price={share.price}
-                yieldByDate={yieldByDate}
-                loading={dividendsLoading}
-                noToken={dividendsNoToken}
-            />
-            <ShareCalculator share={share} annualDivPerShare={annualDiv} />
-            <ShareProfile share={share} indices={indices} />
-            <InstrumentNews ticker={share.ticker} />
-        </div>
+                </>
+            }
+            metrics={metrics}
+            tabs={tabs}
+            aside={{
+                title: 'Калькулятор',
+                content: <ShareCalculator share={share} annualDivPerShare={annualDiv} compact />
+            }}
+        />
     );
 };
 export default ShareDetail;

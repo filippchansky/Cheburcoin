@@ -1,9 +1,13 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
-import { Skeleton, Tag, Tooltip } from 'antd';
-import { InfoCircleOutlined, LeftOutlined } from '@ant-design/icons';
+import { Skeleton, Tag } from 'antd';
+import { LeftOutlined } from '@ant-design/icons';
 import { useBond, useBondAmortizations, useBondRatings } from '@/hooks/useBonds';
+import InstrumentLayout, {
+    InstrumentMetric,
+    InstrumentTab
+} from '@/components/InstrumentLayout/InstrumentLayout';
 import { formatMoney } from '@/utils/formatCurrency';
 import { formatDate, yearsUntil } from '@/utils/dateUtils';
 import { couponPeriodLabel, couponTag, reliabilityInfo } from '@/utils/bondLabels';
@@ -55,7 +59,7 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
     const topRating = ratings?.current.find((a) => !a.withdrawn)?.value ?? null;
     const reliability = reliabilityInfo({ ...bond, creditRating: topRating });
 
-    const metrics: { label: string; value: React.ReactNode; hint?: string }[] = [
+    const metrics: InstrumentMetric[] = [
         {
             label: 'Доходность',
             value: bond.yield === null ? '—' : `${bond.yield.toFixed(2)}%`,
@@ -97,74 +101,90 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
         }
     ];
 
+    const priceText = bond.priceValue === null ? null : formatMoney(bond.priceValue, bond.currency);
+    const percentText = bond.pricePercent === null ? '—' : `${bond.pricePercent.toFixed(2)}%`;
+
+    // Разделы: в «Обзоре» цена, сравнение со ставкой и график; купоны, оферты,
+    // амортизация и новости грузятся только при открытии своей вкладки.
+    const tabs: InstrumentTab[] = [
+        {
+            key: 'overview',
+            label: 'Обзор',
+            children: (
+                <>
+                    <PortfolioPosition ticker={bond.secid} isin={bond.isin} />
+                    <KeyRateCompare bondYield={bond.yield} />
+                    <BondChart secid={bond.secid} />
+                </>
+            )
+        },
+        {
+            key: 'payments',
+            label: 'Выплаты',
+            children: (
+                <>
+                    <CouponsTable secid={bond.secid} currency={bond.currency} />
+                    <Offers isin={bond.isin} currency={bond.currency} hasOffer={bond.hasOffer} />
+                    <AmortizationTable amortizations={amortizations} currency={bond.currency} />
+                </>
+            )
+        },
+        {
+            key: 'reliability',
+            label: 'Надёжность',
+            children: <BondRating ratings={ratings} />
+        },
+        {
+            key: 'news',
+            label: 'Новости',
+            children: <InstrumentNews ticker={bond.secid} />
+        }
+    ];
+
     return (
-        <div className={style.page}>
-            <Link href='/bonds' className={style.back}>
-                <LeftOutlined /> К списку облигаций
-            </Link>
-
-            <header className={style.header}>
-                <div className={style.titleBlock}>
-                    <div className={style.titleRow}>
-                        <h1 className={style.title}>{bond.shortName}</h1>
-                    </div>
-                    <div className={style.tags}>
-                        <Tag color={tag.color} bordered={false}>
-                            {tag.label}
+        <InstrumentLayout
+            backHref='/bonds'
+            backLabel='К списку облигаций'
+            title={bond.shortName}
+            tags={
+                <>
+                    <Tag color={tag.color} bordered={false}>
+                        {tag.label}
+                    </Tag>
+                    {amortizes && (
+                        <Tag color='purple' bordered={false}>
+                            Амортизация
                         </Tag>
-                        {amortizes && (
-                            <Tag color='purple' bordered={false}>
-                                Амортизация
-                            </Tag>
-                        )}
-                        {bond.hasOffer && (
-                            <Tag color='volcano' bordered={false}>
-                                Оферта
-                            </Tag>
-                        )}
-                        <span className={style.isin}>{bond.isin}</span>
-                    </div>
-                </div>
-
-                <div className={style.priceBlock}>
-                    {bond.priceValue !== null && (
-                        <span className={style.price}>
-                            {formatMoney(bond.priceValue, bond.currency)}
-                        </span>
                     )}
-                    <span className={style.priceRub}>
-                        {bond.pricePercent === null ? '—' : `${bond.pricePercent.toFixed(2)}%`}
-                    </span>
-                </div>
-            </header>
-
-            <div className={style.metrics}>
-                {metrics.map((metric) => (
-                    <div key={metric.label} className={style.tile}>
-                        <span className={style.tileLabel}>
-                            {metric.label}
-                            {metric.hint && (
-                                <Tooltip title={metric.hint}>
-                                    <InfoCircleOutlined className={style.hint} />
-                                </Tooltip>
-                            )}
-                        </span>
-                        <span className={style.tileValue}>{metric.value}</span>
-                    </div>
-                ))}
-            </div>
-
-            <BondRating ratings={ratings} />
-
-            <PortfolioPosition ticker={bond.secid} isin={bond.isin} />
-            <KeyRateCompare bondYield={bond.yield} />
-            <BondCalculator bond={bond} />
-            <BondChart secid={bond.secid} />
-            <CouponsTable secid={bond.secid} currency={bond.currency} />
-            <Offers isin={bond.isin} currency={bond.currency} hasOffer={bond.hasOffer} />
-            <AmortizationTable amortizations={amortizations} currency={bond.currency} />
-            <InstrumentNews ticker={bond.secid} />
-        </div>
+                    {bond.hasOffer && (
+                        <Tag color='volcano' bordered={false}>
+                            Оферта
+                        </Tag>
+                    )}
+                    <span className={style.isin}>{bond.isin}</span>
+                </>
+            }
+            price={
+                <>
+                    {priceText !== null && <span className={style.price}>{priceText}</span>}
+                    <span className={style.priceRub}>{percentText}</span>
+                </>
+            }
+            stickyPrice={
+                <>
+                    <span className={style.stickyPriceValue}>{priceText ?? percentText}</span>
+                    {priceText !== null && (
+                        <span className={style.stickyPercent}>{percentText}</span>
+                    )}
+                </>
+            }
+            metrics={metrics}
+            tabs={tabs}
+            aside={{
+                title: 'Калькулятор',
+                content: <BondCalculator bond={bond} compact />
+            }}
+        />
     );
 };
 export default BondDetail;

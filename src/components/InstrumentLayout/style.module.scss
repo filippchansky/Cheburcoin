@@ -1,0 +1,256 @@
+@import '../../app/_variables';
+
+.page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 0 48px;
+}
+
+.back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    opacity: 0.6;
+    margin-bottom: 20px;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.titleBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.title {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.subtitle {
+    font-size: 13px;
+    opacity: 0.45;
+    font-variant-numeric: tabular-nums;
+}
+
+.tags {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.priceBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+// Липкая мини-шапка: fixed, чтобы не занимать место в потоке и не дёргать вёрстку.
+.stickyBar {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    padding: 10px 16px;
+    opacity: 0;
+    transform: translateY(-100%);
+    pointer-events: none;
+    transition:
+        opacity ease-out 0.16s,
+        transform ease-out 0.16s;
+
+    &.pinned {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+    }
+
+    @media (max-width: 599px) {
+        top: 56px;
+    }
+}
+
+.stickyInner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.stickyTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.stickyName {
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+// Цена в мини-шапке: страницы отдают сюда компактный вариант блока цены.
+.stickyPrice {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.tile {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 18px;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    border-radius: 12px;
+}
+
+.tileLabel {
+    font-size: 13px;
+    opacity: 0.5;
+}
+
+.hint {
+    margin-left: 5px;
+    font-size: 12px;
+    cursor: help;
+}
+
+.tileValue {
+    font-size: 17px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.body {
+    margin-top: 8px;
+}
+
+.main {
+    min-width: 0;
+}
+
+// Полоса вкладок вместо antd-шной: непоместившиеся разделы не прячутся в «…»,
+// а доезжают горизонтальной прокруткой (пальцем на телефоне).
+.tabBar {
+    display: flex;
+    align-items: stretch;
+    gap: 24px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.tabItem {
+    flex: 0 0 auto;
+    padding: 12px 0;
+    // Подчёркивание активной вкладки перекрывает нижнюю линию полосы.
+    margin-bottom: -1px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font: inherit;
+    font-size: 15px;
+    line-height: 1.4;
+    white-space: nowrap;
+    cursor: pointer;
+    // Свайп по полосе не должен выделять подписи вкладок.
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color ease-out 0.15s;
+}
+
+.tabItemActive {
+    font-weight: 600;
+}
+
+// Первая секция внутри вкладки уже несёт свой верхний отступ — гасим двойной.
+.pane > :first-child {
+    margin-top: 0;
+}
+
+// Калькулятор сбоку — только на широких экранах; ниже он уходит в отдельную вкладку.
+.aside {
+    display: none;
+}
+
+.asideTitle {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+@media (min-width: 1200px) {
+    .body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 28px;
+        align-items: start;
+    }
+
+    .aside {
+        display: block;
+        position: sticky;
+        top: 96px;
+    }
+}
+
+@media (max-width: 900px) {
+    .metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    // Плотнее вкладки: на 375px иначе за раз видно только две с половиной.
+    .tabBar {
+        gap: 18px;
+    }
+
+    .title {
+        font-size: 24px;
+    }
+}

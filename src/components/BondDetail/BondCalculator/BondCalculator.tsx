@@ -10,14 +10,20 @@ import style from './style.module.scss';
 
 interface BondCalculatorProps {
     bond: IBond;
+    /**
+     * Встроен в панель (sticky-колонка или шторка): уже вёрстка, без своего
+     * заголовка — его рисует контейнер.
+     */
+    compact?: boolean;
 }
 
 const PRESETS = [10_000, 50_000, 100_000, 500_000];
 const SLIDER_MAX = 1_000_000;
 const SLIDER_STEP = 5_000;
 
-const BondCalculator: React.FC<BondCalculatorProps> = ({ bond }) => {
+const BondCalculator: React.FC<BondCalculatorProps> = ({ bond, compact }) => {
     const [amount, setAmount] = useState<number>(100_000);
+    const rootClass = `${style.calc} ${compact ? style.compact : ''}`;
 
     const result = useMemo(() => calcBondInvestment(bond, amount), [bond, amount]);
     const money = (value: number) => formatMoney(value, bond.currency);
@@ -25,8 +31,8 @@ const BondCalculator: React.FC<BondCalculatorProps> = ({ bond }) => {
 
     if (result === null) {
         return (
-            <section className={style.calc}>
-                <h2 className={style.title}>Калькулятор</h2>
+            <section className={rootClass}>
+                {!compact && <h2 className={style.title}>Калькулятор</h2>}
                 <p className={style.empty}>
                     Облигация сейчас не торгуется — рыночной цены нет, расчёт недоступен.
                 </p>
@@ -60,8 +66,8 @@ const BondCalculator: React.FC<BondCalculatorProps> = ({ bond }) => {
     ];
 
     return (
-        <section className={style.calc}>
-            <h2 className={style.title}>Калькулятор</h2>
+        <section className={rootClass}>
+            {!compact && <h2 className={style.title}>Калькулятор</h2>}
 
             <div className={style.controls}>
                 <label className={style.field}>

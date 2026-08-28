@@ -1,5 +1,8 @@
+@import '../../app/_variables';
+
+// Состояния загрузки/ошибки страницы (сам каркас живёт в InstrumentLayout).
 .page {
-    max-width: 1120px;
+    max-width: 1280px;
     margin: 0 auto;
     padding: 24px 0 48px;
 }
@@ -22,53 +25,10 @@
     opacity: 0.6;
 }
 
-.header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 24px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-}
-
-.titleBlock {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.titleRow {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.title {
-    font-size: 32px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-}
-
-.tags {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
 .isin {
     font-size: 13px;
     opacity: 0.4;
     font-variant-numeric: tabular-nums;
-}
-
-.priceBlock {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
 }
 
 .price {
@@ -83,46 +43,21 @@
     opacity: 0.5;
 }
 
-.metrics {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-}
-
-.tile {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 16px 18px;
-    border: 1px solid rgba(128, 128, 128, 0.15);
-    border-radius: 12px;
-}
-
-.tileLabel {
-    font-size: 13px;
-    opacity: 0.5;
-}
-
-.hint {
-    margin-left: 5px;
-    font-size: 12px;
-    cursor: help;
-}
-
-.tileValue {
-    font-size: 17px;
-    font-weight: 600;
+// Компактная цена для липкой мини-шапки.
+.stickyPriceValue {
+    font-size: 16px;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 900px) {
-    .metrics {
-        grid-template-columns: repeat(2, 1fr);
-    }
+.stickyPercent {
+    font-size: 14px;
+    opacity: 0.5;
+    font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 640px) {
-    .title {
+    .price {
         font-size: 26px;
     }
 }

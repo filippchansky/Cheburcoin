@@ -12,14 +12,24 @@ interface ShareCalculatorProps {
     share: IShareDetail;
     /** Дивиденды на акцию за последние 12 мес (для прогноза потока). */
     annualDivPerShare: number;
+    /**
+     * Встроен в панель (sticky-колонка или шторка): уже вёрстка, без своего
+     * заголовка — его рисует контейнер.
+     */
+    compact?: boolean;
 }
 
 const PRESETS = [10_000, 50_000, 100_000, 500_000];
 const SLIDER_MAX = 1_000_000;
 const SLIDER_STEP = 5_000;
 
-const ShareCalculator: React.FC<ShareCalculatorProps> = ({ share, annualDivPerShare }) => {
+const ShareCalculator: React.FC<ShareCalculatorProps> = ({
+    share,
+    annualDivPerShare,
+    compact
+}) => {
     const [amount, setAmount] = useState<number>(100_000);
+    const rootClass = `${style.calc} ${compact ? style.compact : ''}`;
 
     const result = useMemo(
         () => calcSharePosition(amount, share.price, share.lotSize, annualDivPerShare),
@@ -30,8 +40,8 @@ const ShareCalculator: React.FC<ShareCalculatorProps> = ({ share, annualDivPerSh
 
     if (result === null) {
         return (
-            <section className={style.calc}>
-                <h2 className={style.title}>Калькулятор</h2>
+            <section className={rootClass}>
+                {!compact && <h2 className={style.title}>Калькулятор</h2>}
                 <p className={style.empty}>
                     Акция сейчас не торгуется — рыночной цены нет, расчёт недоступен.
                 </p>
@@ -64,8 +74,8 @@ const ShareCalculator: React.FC<ShareCalculatorProps> = ({ share, annualDivPerSh
     ];
 
     return (
-        <section className={style.calc}>
-            <h2 className={style.title}>Калькулятор</h2>
+        <section className={rootClass}>
+            {!compact && <h2 className={style.title}>Калькулятор</h2>}
 
             <div className={style.controls}>
                 <label className={style.field}>

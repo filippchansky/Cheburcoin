@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Alert, Button, Checkbox, Empty, Grid, Segmented, Skeleton, Switch, Table, TableProps, Tag, Tooltip } from 'antd';
+import { Alert, Button, Checkbox, Empty, Grid, Segmented, Skeleton, Switch, Tooltip } from 'antd';
 import { InfoCircleOutlined, ReloadOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { IPosition } from '@models/tinkoffData';
@@ -9,53 +9,7 @@ import { CalendarEvent, CalendarKind, usePaymentsCalendar } from '@/hooks/usePay
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import { intToRub } from '@/utils/formatCurrency';
-import { formatDate, formatDayShort, formatDayWeekday, formatMonthTitle } from '@/utils/dateUtils';
-import TableName from '@/components/TableName/TableName';
-import ShareLogo from '@/components/ShareLogo/ShareLogo';
-import cardStyle from './style.module.scss';
-
-/** Сколько выплат показываем на мобильных до нажатия «Показать ещё». */
-const MOBILE_PAGE = 20;
-
-const isRubCurrency = (currency: string | null) =>
-    !currency || ['rub', 'sur', 'RUB', 'SUR'].includes(currency);
-
-/** Оригинальная сумма в валюте выплаты, напр. «12.00 USD». */
-const formatForeign = (amount: number, currency: string | null) =>
-    `${amount.toFixed(2)} ${(currency ?? '').toUpperCase()}`;
-
-/**
- * Основная сумма строкой: рубли (в т.ч. пересчёт валюты по курсу ЦБ); для
- * валюты с неизвестным курсом (amountRub == 0) — показываем оригинал.
- */
-const formatEventAmount = (event: CalendarEvent) =>
-    isRubCurrency(event.currency) || event.amountRub > 0
-        ? intToRub(event.amountRub)
-        : formatForeign(event.amount, event.currency);
-
-/** Подпись с оригинальной валютой — только для пересчитанных валютных выплат. */
-const foreignHint = (event: CalendarEvent) =>
-    !isRubCurrency(event.currency) && event.amountRub > 0
-        ? formatForeign(event.amount, event.currency)
-        : null;
-
-/** Группирует отсортированные события по месяцу с рублёвым итогом группы. */
-const groupByMonth = (events: CalendarEvent[]) => {
-    const groups: { key: string; total: number; items: CalendarEvent[] }[] = [];
-    const index = new Map<string, number>();
-    events.forEach((event) => {
-        const key = event.date.slice(0, 7);
-        let gi = index.get(key);
-        if (gi === undefined) {
-            gi = groups.length;
-            index.set(key, gi);
-            groups.push({ key, total: 0, items: [] });
-        }
-        groups[gi].items.push(event);
-        groups[gi].total += event.amountRub;
-    });
-    return groups;
-};
+import PaymentsList from './PaymentsList';
 
 interface CalendarBodyProps {
     /** Облигационные позиции выбранных счетов — источник купонов. */
@@ -75,11 +29,6 @@ const plsBumag = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'бумаге'
 
 const COUPON_COLOR = '#1baf7a';
 const DIVIDEND_COLOR = '#4098fc';
-
-const KIND_META: Record<CalendarKind, { label: string; color: string }> = {
-    coupon: { label: 'Купон', color: 'green' },
-    dividend: { label: 'Дивиденд', color: 'blue' }
-};
 
 interface TotalTileProps {
     label: string;
@@ -122,7 +71,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositio
     const [showForecast, setShowForecast] = React.useState(true);
     const [onlyPaying, setOnlyPaying] = React.useState(false);
     const [kindFilter, setKindFilter] = React.useState<'all' | CalendarKind>('all');
-    const [visible, setVisible] = React.useState(MOBILE_PAGE);
 
     if (status === 'empty') {
         return <Empty description='В портфеле нет облигаций и акций — предстоящих выплат не ожидается' />;
@@ -272,92 +220,6 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositio
         series: chartSeries
     };
 
-    const columns: TableProps<CalendarEvent>['columns'] = [
-        {
-            title: 'Дата выплаты',
-            key: 'date',
-            render: (_, { date }) => formatDate(date?.slice(0, 10)),
-            sorter: (a, b) => a.date.localeCompare(b.date),
-            defaultSortOrder: 'ascend'
-        },
-        {
-            title: 'Тип',
-            key: 'kind',
-            render: (_, { kind, projected }) => (
-                <span className='inline-flex items-center gap-1'>
-                    <Tag color={KIND_META[kind].color} style={{ marginInlineEnd: 0 }}>
-                        {KIND_META[kind].label}
-                    </Tag>
-                    {projected ? (
-                        <Tooltip title='Оценка по прошлым выплатам эмитента — не объявлена официально'>
-                            <span
-                                style={{
-                                    fontSize: 11,
-                                    lineHeight: '18px',
-                                    color: palette.textMuted,
-                                    border: `1px dashed ${palette.border}`,
-                                    borderRadius: 6,
-                                    padding: '0 6px'
-                                }}
-                            >
-                                прогноз
-                            </span>
-                        </Tooltip>
-                    ) : null}
-                </span>
-            ),
-            filters: (Object.keys(KIND_META) as CalendarKind[]).map((key) => ({
-                text: KIND_META[key].label,
-                value: key
-            })),
-            onFilter: (value, record) => record.kind === value
-        },
-        {
-            title: 'Инструмент',
-            key: 'name',
-            render: (_, { ticker, name, isin }) => (
-                <TableName icon={isin ?? ''} ticker={ticker ?? ''} title={name ?? ''} />
-            )
-        },
-        {
-            title: (
-                <span>
-                    Отсечка{' '}
-                    <Tooltip title='Держатель бумаги на эту дату получает выплату; после неё покупка права на неё уже не даёт'>
-                        <InfoCircleOutlined style={{ color: palette.textMuted }} />
-                    </Tooltip>
-                </span>
-            ),
-            key: 'fixDate',
-            render: (_, { fixDate }) => (fixDate ? formatDate(fixDate.slice(0, 10)) : '—')
-        },
-        {
-            title: 'Кол-во',
-            key: 'quantity',
-            align: 'right',
-            render: (_, { quantity }) => quantity
-        },
-        {
-            title: 'Сумма',
-            key: 'amount',
-            align: 'right',
-            render: (_, record) => {
-                const hint = foreignHint(record);
-                return (
-                    <span>
-                        {formatEventAmount(record)}
-                        {hint ? (
-                            <span style={{ color: palette.textMuted, fontSize: 12, marginLeft: 6 }}>
-                                {hint}
-                            </span>
-                        ) : null}
-                    </span>
-                );
-            },
-            sorter: (a, b) => a.amountRub - b.amountRub
-        }
-    ];
-
     return (
         <div>
             <div className='flex items-center justify-between gap-3 mb-4 flex-wrap'>
@@ -474,118 +336,10 @@ const CalendarBody: React.FC<CalendarBodyProps> = ({ bondPositions, sharePositio
                     <div className='mb-5'>
                         <ReactECharts option={chartOption} style={{ height: 240 }} notMerge lazyUpdate />
                     </div>
-                    {isMobile ? (
-                        <div
-                            className={cardStyle.payList}
-                            style={{
-                                ['--rowBorder' as string]: palette.border,
-                                ['--rowBg' as string]: palette.layoutBg
-                            }}
-                        >
-                            {groupByMonth(
-                                [...visibleEvents].sort((a, b) => a.date.localeCompare(b.date)).slice(0, visible)
-                            ).map((group) => (
-                                <React.Fragment key={group.key}>
-                                    <div className={cardStyle.monthHead}>
-                                        <span className={cardStyle.monthName}>{formatMonthTitle(group.key)}</span>
-                                        <span
-                                            className={cardStyle.monthTotal}
-                                            style={{ color: '#1baf7a', background: 'rgba(27,175,122,0.12)' }}
-                                        >
-                                            +{intToRub(group.total)}
-                                        </span>
-                                    </div>
-                                    {group.items.map((event) => (
-                                        <div
-                                            key={event.id}
-                                            className={cardStyle.payRow}
-                                        >
-                                            <div className={cardStyle.payHead}>
-                                                <span className={cardStyle.payDate}>
-                                                    📅 {formatDayWeekday(event.date)}
-                                                </span>
-                                                <span className='inline-flex items-center gap-1'>
-                                                    <Tag
-                                                        color={KIND_META[event.kind].color}
-                                                        style={{ marginInlineEnd: 0 }}
-                                                    >
-                                                        {KIND_META[event.kind].label}
-                                                    </Tag>
-                                                    {event.projected ? (
-                                                        <span
-                                                            style={{
-                                                                fontSize: 11,
-                                                                lineHeight: '18px',
-                                                                color: palette.textMuted,
-                                                                border: `1px dashed ${palette.border}`,
-                                                                borderRadius: 6,
-                                                                padding: '0 6px'
-                                                            }}
-                                                        >
-                                                            прогноз
-                                                        </span>
-                                                    ) : null}
-                                                </span>
-                                            </div>
-                                            <div className={cardStyle.payBody}>
-                                                <ShareLogo
-                                                    icon={event.isin ?? ''}
-                                                    ticker={event.ticker ?? ''}
-                                                    size={40}
-                                                />
-                                                <div className={cardStyle.payInfo}>
-                                                    <span className={cardStyle.payName}>
-                                                        {event.name ?? event.ticker ?? '—'}
-                                                    </span>
-                                                    <span className={cardStyle.paySub}>
-                                                        {event.fixDate
-                                                            ? `✂ ${formatDayShort(event.fixDate)} · `
-                                                            : ''}
-                                                        {event.quantity} шт
-                                                    </span>
-                                                </div>
-                                                <div className={cardStyle.payAmount}>
-                                                    <span
-                                                        className={cardStyle.payAmountValue}
-                                                        style={{ color: '#1baf7a' }}
-                                                    >
-                                                        +{formatEventAmount(event)}
-                                                    </span>
-                                                    {foreignHint(event) ? (
-                                                        <span
-                                                            style={{
-                                                                fontSize: 11,
-                                                                color: palette.textMuted
-                                                            }}
-                                                        >
-                                                            {foreignHint(event)}
-                                                        </span>
-                                                    ) : null}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </React.Fragment>
-                            ))}
-                            {visible < visibleEvents.length ? (
-                                <Button
-                                    className={cardStyle.showMore}
-                                    block
-                                    onClick={() => setVisible((v) => v + MOBILE_PAGE)}
-                                >
-                                    Показать ещё
-                                </Button>
-                            ) : null}
-                        </div>
-                    ) : (
-                        <Table<CalendarEvent>
-                            columns={columns}
-                            dataSource={visibleEvents}
-                            rowKey='id'
-                            scroll={{ x: 'max-content' }}
-                            pagination={{ pageSize: 15, showSizeChanger: false, hideOnSinglePage: true }}
-                        />
-                    )}
+                    <PaymentsList
+                        events={visibleEvents}
+                        resetKey={`${kindFilter}-${showForecast}`}
+                    />
                 </>
             ) : (
                 <Empty description='Нет предстоящих выплат в ближайшие 12 месяцев' />

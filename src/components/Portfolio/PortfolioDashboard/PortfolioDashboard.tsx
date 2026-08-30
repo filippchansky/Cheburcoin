@@ -1,10 +1,15 @@
 'use client';
 import React from 'react';
-import { Alert, Button, Segmented, Skeleton } from 'antd';
-import { ReloadOutlined } from '@ant-design/icons';
+import { Alert, Button, Segmented, Skeleton, Tabs } from 'antd';
+import {
+    ReloadOutlined,
+    DashboardOutlined,
+    PieChartOutlined,
+    DollarOutlined
+} from '@ant-design/icons';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { useSectors } from '@/hooks/useShares';
-import { useBondSectorMap } from '@/hooks/useBonds';
+import { useBondSectorMap, useBondRatings } from '@/hooks/useBonds';
 import { useDarkTheme } from '@/store/darkTheme';
 import { getPalette } from '@/theme/palette';
 import { intToRub, formatPercent } from '@/utils/formatCurrency';
@@ -19,45 +24,26 @@ import { usePaymentsBreakdown } from '@/hooks/usePaymentsBreakdown';
 import { useRealized } from '@/hooks/useRealized';
 import { usePositionsProfit } from '@/hooks/usePositionsProfit';
 import { useCryptoPositions } from '@/hooks/useCryptoPositions';
-import { useCashflows } from '@/hooks/useCashflows';
-import { xirr } from '@/utils/xirr';
 import AllocationDonut from './AllocationDonut';
 import AccountSwitcher from './AccountSwitcher';
+import AnalyticsMetrics from './AnalyticsMetrics';
+import StatCard from './StatCard';
 import PositionsTable from './PositionsTable';
+import PortfolioMovers from './PortfolioMovers';
 import PaymentsView from './PaymentsView';
 import YieldBreakdownCard from './YieldBreakdownCard';
 import style from './style.module.scss';
 
 const ALL = 'all';
-type View = 'overview' | 'payments';
+type View = 'overview' | 'analytics' | 'payments';
 
 const ALLOCATION_OPTIONS: { label: string; value: AllocationMode }[] = [
     { label: 'Классы', value: 'type' },
     { label: 'Сектора', value: 'sector' },
+    { label: 'Валюта', value: 'currency' },
+    { label: 'Рейтинг', value: 'rating' },
     { label: 'Бумаги', value: 'asset' }
 ];
-
-interface StatCardProps {
-    label: string;
-    value: string;
-    sub?: string;
-    tone?: 'up' | 'down' | 'neutral';
-    bg: string;
-    border: string;
-    muted: string;
-}
-
-const StatCard: React.FC<StatCardProps> = ({ label, value, sub, tone = 'neutral', bg, border, muted }) => {
-    const color =
-        tone === 'up' ? '#1baf7a' : tone === 'down' ? '#e24b4a' : 'inherit';
-    return (
-        <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: '14px 16px' }}>
-            <div style={{ fontSize: 13, color: muted, marginBottom: 6 }}>{label}</div>
-            <div style={{ fontSize: 22, fontWeight: 500, lineHeight: 1.2, color }}>{value}</div>
-            {sub ? <div style={{ fontSize: 13, color, marginTop: 2 }}>{sub}</div> : null}
-        </div>
-    );
-};
 
 const tone = (n: number): 'up' | 'down' | 'neutral' => (n > 0 ? 'up' : n < 0 ? 'down' : 'neutral');
 const signed = (n: number) => (n > 0 ? '+' : '') + intToRub(n);
@@ -71,6 +57,7 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     const { scope, setScope, view, setView, allocMode, setAllocMode } = usePortfolioPrefs();
     const { data: sectorMap = {} } = useSectors();
     const { data: bondSectorMap = {} } = useBondSectorMap();
+    const { data: bondRatings } = useBondRatings();
     const {
         byAccount: breakdownByAccount,
         all: breakdownAll,
@@ -84,11 +71,6 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     const { extraByUid: profitExtraByUid } = usePositionsProfit();
     // Диагностика крипты (Trezor): показать, почему баланс не виден, если подключён.
     const cryptoDiag = useCryptoPositions();
-    // const {
-    //     byAccount: cashflowsByAccount,
-    //     all: cashflowsAll,
-    //     status: cashflowsStatus
-    // } = useCashflows();
 
     if (status === 'loading') {
         return (
@@ -141,7 +123,7 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
 
     // Срезы пончика для выбранного режима (классы/сектора/бумаги).
     const allocationSlices = scopeData
-        ? buildAllocation(allocMode, scopeData, sectorMap, bondSectorMap)
+        ? buildAllocation(allocMode, scopeData, sectorMap, bondSectorMap, bondRatings)
         : [];
 
     // Диагностика крипты: если Trezor подключён, но позиций нет — объясняем почему
@@ -187,31 +169,20 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
         : null;
     const breakdownLoading = breakdownStatus === 'loading' || realizedStatus === 'loading';
 
-    // XIRR (годовая доходность с учётом дат/величины пополнений и выводов). К
-    // внешним потокам добавляем терминальную стоимость портфеля сегодня — как
-    // будто «продали всё». Считаем инлайн: hooks выше early-return нельзя.
-    // const xirrValue = (() => {
-    //     if (cashflowsStatus !== 'ready' || !scopeData || scopeData.total <= 0) return null;
-    //     const flows = effectiveScope === ALL
-    //         ? cashflowsAll.items
-    //         : cashflowsByAccount[effectiveScope]?.items ?? [];
-    //     if (!flows.length) return null;
-    //     const today = new Date().toISOString().slice(0, 10);
-    //     return xirr([...flows, { date: today, amount: scopeData.total }]);
-    // })();
-
     return (
         <div>
-            <div className='mb-4'>
-                <Segmented<View>
-                    options={[
-                        { label: 'Обзор', value: 'overview' },
-                        { label: 'Выплаты', value: 'payments' }
-                    ]}
-                    value={view}
-                    onChange={setView}
-                />
-            </div>
+            {/* L1 — навигация по разделам: вкладки (подчёркивание) читаются как
+                верхний уровень, в отличие от фильтра-Select (счёт) и мелкого
+                тумблера разбивки ниже. */}
+            <Tabs
+                activeKey={view}
+                onChange={(key) => setView(key as View)}
+                items={[
+                    { key: 'overview', label: 'Обзор', icon: <DashboardOutlined /> },
+                    { key: 'analytics', label: 'Аналитика', icon: <PieChartOutlined /> },
+                    { key: 'payments', label: 'Выплаты', icon: <DollarOutlined /> }
+                ]}
+            />
 
             {view === 'payments' ? (
                 <PaymentsView accounts={accounts} />
@@ -247,101 +218,116 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
 
             {cryptoNotice}
 
-            <div
-                className='grid gap-3 mb-5'
-                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', alignItems: 'start' }}
-            >
-                <StatCard
-                    label='Стоимость'
-                    value={intToRub(scopeData?.total ?? 0)}
-                    sub={scopeData?.cash ? `в т.ч. кэш ${intToRub(scopeData.cash)}` : undefined}
-                    bg={palette.containerBg}
-                    border={palette.border}
-                    muted={palette.textMuted}
-                />
-                <YieldBreakdownCard
-                    unrealized={scopeData?.plAbs ?? 0}
-                    breakdown={breakdown}
-                    realized={realizedScope}
-                    loading={breakdownLoading}
-                    bg={palette.containerBg}
-                    border={palette.border}
-                    muted={palette.textMuted}
-                />
-                <StatCard
-                    label='За день'
-                    value={signed(scopeData?.dayAbs ?? 0)}
-                    sub={formatPercent(scopeData?.dayPct ?? 0)}
-                    tone={tone(scopeData?.dayAbs ?? 0)}
-                    bg={palette.containerBg}
-                    border={palette.border}
-                    muted={palette.textMuted}
-                />
-                {/* <StatCard
-                    label='Годовых (XIRR)'
-                    value={xirrValue !== null ? formatPercent(xirrValue * 100) : '—'}
-                    sub={xirrValue !== null ? 'с учётом дат пополнений' : cashflowsStatus === 'loading' ? 'считаем…' : undefined}
-                    tone={xirrValue !== null ? tone(xirrValue) : 'neutral'}
-                    bg={palette.containerBg}
-                    border={palette.border}
-                    muted={palette.textMuted}
-                /> */}
-                {/* <StatCard
-                    label='Позиций'
-                    value={String(scopeData?.positions.length ?? 0)}
-                    bg={palette.containerBg}
-                    border={palette.border}
-                    muted={palette.textMuted}
-                /> */}
-            </div>
+            {view === 'analytics' ? (
+                <>
+                    {scopeData ? (
+                        <AnalyticsMetrics scope={scopeData} effectiveScope={effectiveScope} />
+                    ) : null}
 
-            {scopeData && allocationSlices.length ? (
-                <div className='mb-6'>
-                    <div className='mb-3'>
-                        <Segmented<AllocationMode>
-                            size='small'
-                            options={ALLOCATION_OPTIONS}
-                            value={allocMode}
-                            onChange={setAllocMode}
-                        />
-                    </div>
-                    <div
-                        className='grid gap-5 items-center'
-                        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
-                    >
-                        <AllocationDonut slices={allocationSlices} total={scopeData.total} />
-                        <div className='flex flex-col gap-2'>
-                            {allocationSlices.map((slice) => {
-                                const share = scopeData!.total > 0 ? (slice.value / scopeData!.total) * 100 : 0;
-                                return (
-                                    <div key={slice.key} className='flex items-center gap-2' style={{ fontSize: 13 }}>
-                                        <span
-                                            style={{
-                                                width: 10,
-                                                height: 10,
-                                                borderRadius: 2,
-                                                background: slice.color
-                                            }}
-                                        />
-                                        <span className='flex-1'>{slice.label}</span>
-                                        <span style={{ color: palette.textMuted }}>{share.toFixed(0)}%</span>
-                                        <span style={{ minWidth: 96, textAlign: 'right' }}>
-                                            {intToRub(slice.value)}
-                                        </span>
-                                    </div>
-                                );
-                            })}
+                    {scopeData && allocationSlices.length ? (
+                    <div className='mb-6'>
+                        <div className='mb-3 flex items-center gap-2'>
+                            <span style={{ fontSize: 13, color: palette.textMuted }}>Разбивка</span>
+                            <Segmented<AllocationMode>
+                                size='small'
+                                options={ALLOCATION_OPTIONS}
+                                value={allocMode}
+                                onChange={setAllocMode}
+                            />
+                        </div>
+                        <div
+                            className='grid gap-5 items-center'
+                            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
+                        >
+                            <AllocationDonut slices={allocationSlices} total={scopeData.total} />
+                            <div className='flex flex-col gap-2'>
+                                {allocationSlices.map((slice) => {
+                                    const share = scopeData!.total > 0 ? (slice.value / scopeData!.total) * 100 : 0;
+                                    return (
+                                        <div key={slice.key} className='flex items-center gap-2' style={{ fontSize: 13 }}>
+                                            <span
+                                                style={{
+                                                    width: 10,
+                                                    height: 10,
+                                                    borderRadius: 2,
+                                                    background: slice.color
+                                                }}
+                                            />
+                                            <span className='flex-1'>{slice.label}</span>
+                                            <span style={{ color: palette.textMuted }}>{share.toFixed(0)}%</span>
+                                            <span style={{ minWidth: 96, textAlign: 'right' }}>
+                                                {intToRub(slice.value)}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
-                </div>
-            ) : null}
+                    ) : null}
+                </>
+            ) : (
+                <>
+                    <div
+                        className='grid gap-3 mb-5'
+                        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', alignItems: 'start' }}
+                    >
+                        <StatCard
+                            label='Стоимость'
+                            value={intToRub(scopeData?.total ?? 0)}
+                            sub={scopeData?.cash ? `в т.ч. кэш ${intToRub(scopeData.cash)}` : undefined}
+                            bg={palette.containerBg}
+                            border={palette.border}
+                            muted={palette.textMuted}
+                        />
+                        <YieldBreakdownCard
+                            unrealized={scopeData?.plAbs ?? 0}
+                            breakdown={breakdown}
+                            realized={realizedScope}
+                            loading={breakdownLoading}
+                            bg={palette.containerBg}
+                            border={palette.border}
+                            muted={palette.textMuted}
+                        />
+                        <StatCard
+                            label='За день'
+                            value={signed(scopeData?.dayAbs ?? 0)}
+                            sub={formatPercent(scopeData?.dayPct ?? 0)}
+                            tone={tone(scopeData?.dayAbs ?? 0)}
+                            bg={palette.containerBg}
+                            border={palette.border}
+                            muted={palette.textMuted}
+                        />
+                    </div>
 
-            <PositionsTable
-                positions={scopeData?.positions ?? []}
-                total={scopeData?.total ?? 0}
-                loading={tableLoading}
-                profitExtraByUid={profitExtraByUid}
-            />
+                    <div
+                        className='grid gap-4 mb-6'
+                        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}
+                    >
+                        <PortfolioMovers
+                            positions={scopeData?.positions ?? []}
+                            loading={tableLoading}
+                            direction='up'
+                            borderless
+                            index={0}
+                        />
+                        <PortfolioMovers
+                            positions={scopeData?.positions ?? []}
+                            loading={tableLoading}
+                            direction='down'
+                            borderless
+                            index={1}
+                        />
+                    </div>
+
+                    <PositionsTable
+                        positions={scopeData?.positions ?? []}
+                        total={scopeData?.total ?? 0}
+                        loading={tableLoading}
+                        profitExtraByUid={profitExtraByUid}
+                    />
+                </>
+            )}
                 </>
             )}
         </div>

@@ -132,10 +132,10 @@ export const formatDayWeekday = (iso?: string | null) => {
     return `${dayMonthFmt.format(dt)}, ${wd.charAt(0).toUpperCase()}${wd.slice(1)}`;
 };
 
-/** Ключ месяца «2026-08» → «август 2026» (заголовок группы). */
+/** Ключ месяца «2026-08» → «август 2026» (заголовок группы, без хвоста « г.»). */
 export const formatMonthTitle = (monthKey: string) => {
     const dt = parseLocalDate(`${monthKey}-01`);
-    return Number.isNaN(dt.getTime()) ? monthKey : monthYearFmt.format(dt);
+    return Number.isNaN(dt.getTime()) ? monthKey : monthYearFmt.format(dt).replace(/\s*г\.$/, '');
 };
 
 /** Число полных лет от сегодня до указанной даты (для срока до погашения). */

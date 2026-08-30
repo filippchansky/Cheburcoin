@@ -30,6 +30,17 @@ export interface CalendarEvent {
      * пересчёт по курсу ЦБ. 0, если курс валюты неизвестен (в итог не входит).
      */
     amountRub: number;
+    /** Выплата на одну бумагу: купон на облигацию / дивиденд на акцию (в валюте выплаты). */
+    amountPerUnit: number;
+    /** Текущая цена бумаги в её валюте — база «доходности» выплаты. */
+    price: number | null;
+    /** Средняя цена позиции в её валюте — база «к средней». */
+    avgPrice: number | null;
+    /**
+     * Периодичность выплат по бумаге, дн (медиана разрывов между её событиями в
+     * окне). null — по одному событию период не определить.
+     */
+    periodDays: number | null;
     ticker?: string;
     name?: string;
     isin?: string;
@@ -68,6 +79,11 @@ export interface UsePaymentsCalendarResult {
      * позиции пересчитаны по курсу ЦБ.
      */
     payingValueByUid: Map<string, number>;
+    /**
+     * Рублёвая СЕБЕСТОИМОСТЬ платящих бумаг (средняя цена × количество) — база для
+     * «доходности на вложенное» (yield on cost). Валютные позиции по курсу ЦБ.
+     */
+    costValue: number;
     /** Есть валютные выплаты, пересчитанные в рубли по курсу ЦБ. */
     hasNonRub: boolean;
     /** Есть валютные выплаты, курс которых неизвестен — они не вошли в итог. */
@@ -93,6 +109,42 @@ const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).pad
 const plusOneYear = (iso: string) => {
     const d = new Date(iso);
     return new Date(d.getFullYear() + 1, d.getMonth(), d.getDate());
+};
+
+/** Типичные периоды выплат (дн) — к ним подтягиваем измеренный разрыв. */
+const COMMON_PERIODS = [7, 14, 30, 91, 182, 365];
+
+/**
+ * Проставляет periodDays: по каждой бумаге берём медиану разрывов между её
+ * событиями и подтягиваем к типичному периоду (31 → 30, 92 → 91). Так частоту
+ * получаем из самого расписания, без доп. поля от бека.
+ */
+const fillPeriods = (events: CalendarEvent[]) => {
+    const byInstrument = new Map<string, CalendarEvent[]>();
+    events.forEach((event) => {
+        const key = `${event.instrumentId}:${event.kind}`;
+        const list = byInstrument.get(key);
+        if (list) list.push(event);
+        else byInstrument.set(key, [event]);
+    });
+    byInstrument.forEach((list) => {
+        if (list.length < 2) return;
+        const ms = list
+            .map((event) => new Date(event.date).getTime())
+            .filter((v) => !Number.isNaN(v))
+            .sort((a, b) => a - b);
+        const gaps = ms
+            .slice(1)
+            .map((v, i) => Math.round((v - ms[i]) / DAY))
+            .filter((g) => g > 0)
+            .sort((a, b) => a - b);
+        if (!gaps.length) return;
+        const median = gaps[Math.floor(gaps.length / 2)];
+        const period = COMMON_PERIODS.find((p) => Math.abs(p - median) <= 2) ?? median;
+        list.forEach((event) => {
+            event.periodDays = period;
+        });
+    });
 };
 
 const buildWindow = () => {
@@ -159,6 +211,17 @@ export const usePaymentsCalendar = (
         Array.from(payingValueByUid.values()).reduce((sum, v) => sum + v, 0)
     );
 
+    // Себестоимость платящих бумаг: средняя цена × количество (в родной валюте
+    // позиции), приведённая к рублю тем же курсом ЦБ. База для yield on cost.
+    const costValueByUid = new Map<string, number>();
+    [...bondPositions, ...sharePositions].forEach((p) => {
+        if (!p.instrumentUid) return;
+        const costNative = (p.averagePositionPrice ?? 0) * (p.quantity ?? 0);
+        const rub = toRub(costNative, p.currency);
+        costValueByUid.set(p.instrumentUid, round2((costValueByUid.get(p.instrumentUid) ?? 0) + rub));
+    });
+    const costValue = round2(Array.from(costValueByUid.values()).reduce((sum, v) => sum + v, 0));
+
     // Джойн тикера/имени по instrumentUid (бек их не резолвит — экономим N+1).
     const metaByUid = new Map(
         [...bondPositions, ...sharePositions].map((p) => [p.instrumentUid, p])
@@ -187,7 +250,13 @@ export const usePaymentsCalendar = (
 
     const enrich = (instrumentId: string) => {
         const meta = metaByUid.get(instrumentId);
-        return { ticker: meta?.ticker, name: meta?.name, isin: meta?.isin };
+        return {
+            ticker: meta?.ticker,
+            name: meta?.name,
+            isin: meta?.isin,
+            price: meta?.currentPrice ?? null,
+            avgPrice: meta?.averagePositionPrice ?? null
+        };
     };
 
     // --- Купоны ---
@@ -200,6 +269,8 @@ export const usePaymentsCalendar = (
         fixDate: event.fixDate ?? null,
         quantity: event.quantity,
         amount: event.amount,
+        amountPerUnit: event.amountPerBond,
+        periodDays: null,
         currency: event.currency,
         amountRub: toRub(event.amount, event.currency),
         ...enrich(event.instrumentId)
@@ -225,6 +296,8 @@ export const usePaymentsCalendar = (
         fixDate: event.recordDate ?? null,
         quantity: event.quantity,
         amount: event.amount,
+        amountPerUnit: event.amountPerShare,
+        periodDays: null,
         currency: event.currency,
         amountRub: toRub(event.amount, event.currency),
         ...enrich(event.instrumentId)
@@ -260,6 +333,8 @@ export const usePaymentsCalendar = (
             quantity: event.quantity,
             // «Как в прошлом году»: сумма = прошлая выплата (на акцию × текущее кол-во).
             amount: event.amount,
+            amountPerUnit: event.amountPerShare,
+            periodDays: null,
             currency: event.currency,
             amountRub: toRub(event.amount, event.currency),
             ...enrich(event.instrumentId)
@@ -269,6 +344,7 @@ export const usePaymentsCalendar = (
     const events = [...couponEvents, ...confirmedEvents, ...projectedEvents].sort((a, b) =>
         a.date.localeCompare(b.date)
     );
+    fillPeriods(events);
 
     // --- Агрегаты ---
     let couponTotal = 0;
@@ -335,6 +411,7 @@ export const usePaymentsCalendar = (
         dividendProjectedTotal: round2(dividendProjectedTotal),
         payingValue,
         payingValueByUid,
+        costValue,
         hasNonRub,
         hasUnconvertible,
         ratesDate: cbr?.date ?? null,

@@ -1,0 +1,117 @@
+@import '../../app/variables';
+
+.card {
+    overflow: hidden;
+}
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+}
+
+.cardIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 16px;
+
+    .up & {
+        color: $green;
+        background: rgba(0, 163, 40, 0.12);
+    }
+    .down & {
+        color: $red;
+        background: rgba(229, 72, 77, 0.12);
+    }
+    .neutral & {
+        color: #d4a017;
+        background: rgba(212, 160, 23, 0.12);
+    }
+}
+
+.cardTitle {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+}
+
+.item {
+    list-style: none;
+}
+
+.itemLink {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 20px;
+    color: inherit;
+    transition: background 0.15s ease;
+
+    &:hover {
+        background: rgba(128, 128, 128, 0.08);
+    }
+}
+
+.skeletonRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 20px;
+    list-style: none;
+}
+
+.empty {
+    list-style: none;
+    padding: 14px 20px;
+    font-size: 13px;
+    opacity: 0.55;
+}
+
+.itemName {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.itemTicker {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.itemPrice {
+    font-size: 12px;
+    opacity: 0.5;
+    font-variant-numeric: tabular-nums;
+}
+
+.itemMetric {
+    margin-left: auto;
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+
+    &.up {
+        color: $green;
+    }
+    &.down {
+        color: $red;
+    }
+    &.neutral {
+        opacity: 0.75;
+    }
+}

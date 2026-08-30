@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Segmented, Drawer, Grid, theme } from 'antd';
+import { Select, Drawer, Grid, theme } from 'antd';
 import {
     DownOutlined,
     CheckOutlined,
@@ -50,10 +50,11 @@ const accountIcon = (id: string): React.ReactNode => {
 };
 
 /**
- * Переключатель счёта портфеля. На десктопе — привычный `Segmented`, на мобилке
- * (screens.md === false) горизонтальный скролл заменён нижней шторкой (`Drawer`)
- * со списком счетов и их балансами: крупные тап-цели, масштабируется на любое
- * число счетов и заодно показывает стоимость каждого.
+ * Переключатель счёта портфеля. На десктопе — выпадающий `Select` (читается как
+ * фильтр, а не навигация, и не переполняется при росте числа счетов), на мобилке
+ * (screens.md === false) — нижняя шторка (`Drawer`) со списком счетов и их
+ * балансами: крупные тап-цели, масштабируется на любое число счетов и заодно
+ * показывает стоимость каждого.
  */
 const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
     accounts,
@@ -70,16 +71,39 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
     const { token } = theme.useToken();
     const [open, setOpen] = React.useState(false);
 
-    const options = [
-        { label: 'Все счета', value: ALL },
-        ...accounts.map((item) => ({ label: item.account.name, value: item.account.id }))
-    ];
-
     if (!isMobile) {
+        // Десктоп: выпадающий список вместо ленты-Segmented — читается как фильтр
+        // (а не навигация), не переполняется при росте числа счетов и показывает
+        // источник иконкой. Иерархия контролов: вкладки → этот Select → мелкий
+        // тумблер разбивки.
+        const withIcon = (id: string, name: string) => (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <span style={{ color: palette.textMuted, display: 'inline-flex', flexShrink: 0 }}>
+                    {accountIcon(id)}
+                </span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {name}
+                </span>
+            </span>
+        );
+        const options = [
+            { value: ALL, label: withIcon(ALL, 'Все счета') },
+            ...accounts.map((item) => ({
+                value: item.account.id,
+                label: withIcon(item.account.id, item.account.name)
+            }))
+        ];
         return (
-            <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
-                <Segmented options={options} value={value} onChange={(v) => onChange(v as string)} />
-            </div>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, maxWidth: '100%' }}>
+                <span style={{ color: palette.textMuted, fontSize: 13, flexShrink: 0 }}>Счёт</span>
+                <Select
+                    value={value}
+                    onChange={(v) => onChange(v as string)}
+                    options={options}
+                    style={{ minWidth: 200, maxWidth: 280 }}
+                    popupMatchSelectWidth={false}
+                />
+            </span>
         );
     }
 

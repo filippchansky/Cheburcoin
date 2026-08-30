@@ -16,7 +16,7 @@ import {
     instrumentTypeLabel,
     PORTFOLIO_INSTRUMENT_TYPES
 } from '@/utils/instrumentType';
-import { trezorCoinByKey } from '@/lib/trezor/coins';
+import { positionHref } from '@/utils/positionHref';
 import style from './style.module.scss';
 
 interface PositionsTableProps {
@@ -47,21 +47,6 @@ const formatCoins = (v: number) =>
 
 /** Доллары: без копеек от $100, с копейками для мелких сумм. */
 const formatUsd = (v: number) => formatAmount(v, 'USD', { digits: Math.abs(v) >= 100 ? 0 : 2 });
-
-/** Куда ведёт клик по строке (акции/фонды, облигации и крипта Trezor). */
-const positionHref = (position: IPosition): string | null => {
-    if (position.instrumentType === 'crypto') {
-        // Тикер позиции (BTC/ETH/SOL) → id монеты в CoinGecko → страница монеты.
-        const coingeckoId = trezorCoinByKey(position.ticker ?? '')?.coingeckoId;
-        return coingeckoId ? `/cryptocurrency/${coingeckoId}` : null;
-    }
-    if (!position.ticker) return null;
-    if (position.instrumentType === 'bond') return `/bonds/${position.ticker}`;
-    if (position.instrumentType === 'share' || position.instrumentType === 'etf') {
-        return `/moex/${position.ticker}`;
-    }
-    return null;
-};
 
 const PositionsTable: React.FC<PositionsTableProps> = ({
     positions,

@@ -27,9 +27,6 @@ interface PositionsTableProps {
     profitExtraByUid?: Map<string, number>;
 }
 
-/** Сколько строк показываем на мобильных до нажатия «Показать ещё». */
-const MOBILE_PAGE = 20;
-
 /**
  * Сумма без принудительных копеек + символ валюты позиции: 38520/rub → «38 520 ₽»,
  * 161.78/usd → «161,78 $». currency=null (рублёвая/старый бек) → рубль.
@@ -59,7 +56,6 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
     const palette = getPalette(darkTheme);
     const screens = Grid.useBreakpoint();
     const isMobile = screens.md === false;
-    const [visible, setVisible] = React.useState(MOBILE_PAGE);
     // Открытый Drawer ввода покупок крипты (тикер монеты или null).
     const [lotsCoin, setLotsCoin] = React.useState<string | null>(null);
 
@@ -261,7 +257,7 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
     if (isMobile) {
         // По убыванию стоимости в портфеле — как defaultSortOrder таблицы на десктопе.
         const sorted = [...positions].sort((a, b) => b.priceInPorfolio - a.priceInPorfolio);
-        const shown = sorted.slice(0, visible);
+        const shown = sorted;
         return (
             <div className={style.posList} style={{ ['--rowBorder' as string]: palette.border }}>
                 {shown.map((position) => {
@@ -343,15 +339,6 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
                         </div>
                     );
                 })}
-                {visible < sorted.length ? (
-                    <Button
-                        className={style.showMore}
-                        block
-                        onClick={() => setVisible((v) => v + MOBILE_PAGE)}
-                    >
-                        Показать ещё
-                    </Button>
-                ) : null}
                 <CryptoLotsDrawer
                     coin={lotsCoin}
                     open={!!lotsCoin}
@@ -369,7 +356,7 @@ const PositionsTable: React.FC<PositionsTableProps> = ({
                 dataSource={positions}
                 rowKey='positionUid'
                 scroll={{ x: 'max-content' }}
-                pagination={{ pageSize: 15, showSizeChanger: false, hideOnSinglePage: true }}
+                pagination={false}
                 rowClassName={(record) => (positionHref(record) ? style.clickableRow : '')}
                 onRow={(record) => ({
                     onClick: () => {

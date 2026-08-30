@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { AllocationMode } from '@/utils/portfolioAllocation';
 
-/** Вид дашборда портфеля: сводка или выплаты. */
-export type PortfolioView = 'overview' | 'payments';
+/** Вид дашборда портфеля: сводка, аналитика (распределение) или выплаты. */
+export type PortfolioView = 'overview' | 'analytics' | 'payments';
 
 /** Вкладка внутри «Выплат»: будущее (календарь) или прошлое (история). */
 export type PaymentsTab = 'calendar' | 'history';

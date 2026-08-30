@@ -107,12 +107,17 @@
     opacity: 0.5;
 }
 
-/* ── Список выплат по месяцам (стиль календаря Т-Инвестиций) ───────────── */
+/* ── Список выплат по месяцам (в духе Snowball: карточка на месяц) ─────── */
 
 .payList {
     display: flex;
     flex-direction: column;
     width: 100%;
+}
+
+.monthBlock {
+    display: flex;
+    flex-direction: column;
 }
 
 .monthHead {
@@ -133,7 +138,7 @@
     }
 }
 
-.monthHead:first-child {
+.monthBlock:first-child .monthHead {
     padding-top: 4px;
 }
 
@@ -152,15 +157,33 @@
     font-variant-numeric: tabular-nums;
 }
 
-.payRow {
-    padding: 10px 2px;
+/* Карточка месяца — все выплаты месяца в одном контейнере. */
+.monthCard {
+    background: var(--cardBg);
+    border: 1px solid var(--rowBorder);
+    border-radius: 14px;
+    overflow: hidden;
 }
 
-.payRow:not(:last-child) {
+.payRow {
+    padding: 12px 14px;
+}
+
+.payRow:not(:last-child),
+.payGridRow:not(:last-child),
+.historyRow:not(:last-child) {
     border-bottom: 1px solid var(--rowBorder);
 }
 
-/* Верхняя строка блока выплаты: дата + день недели и статус/тип справа. */
+.payRowClickable {
+    cursor: pointer;
+}
+
+.payRowClickable:hover {
+    background: rgba(127, 127, 127, 0.07);
+}
+
+/* Верхняя строка карточки выплаты (мобильные): дата + тип выплаты справа. */
 .payHead {
     display: flex;
     align-items: center;
@@ -181,6 +204,69 @@
     gap: 12px;
 }
 
+/* ── Десктопная строка: колонки как в Snowball ─────────────────────────── */
+
+.payGridRow {
+    display: grid;
+    grid-template-columns: minmax(0, 2.4fr) 136px minmax(124px, 1.1fr) 120px 100px 100px 108px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+}
+
+/* Узкий десктоп: по очереди прячем наименее важные колонки. */
+@media (max-width: 1279px) {
+    .payGridRow {
+        grid-template-columns: minmax(0, 2.4fr) 136px minmax(124px, 1.1fr) 120px 100px 108px;
+    }
+
+    .payGridRow .colAvg {
+        display: none;
+    }
+}
+
+@media (max-width: 1099px) {
+    .payGridRow {
+        grid-template-columns: minmax(0, 2.4fr) 128px minmax(116px, 1.1fr) 100px 104px;
+    }
+
+    .payGridRow .colFreq {
+        display: none;
+    }
+}
+
+@media (max-width: 899px) {
+    .payGridRow {
+        grid-template-columns: minmax(0, 2.2fr) 124px minmax(112px, 1fr) 96px;
+    }
+
+    .payGridRow .colFix {
+        display: none;
+    }
+}
+
+/* Маячок подгрузки: ловит скролл до конца списка. */
+.sentinel {
+    height: 1px;
+}
+
+/* Десктопная строка истории выплат: инструмент / дата и тип / сумма. */
+.historyRow {
+    display: grid;
+    grid-template-columns: minmax(0, 2.4fr) 170px 170px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+}
+
+/* Левая колонка: лого + название и ISIN под ним. */
+.payInstrument {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
 .payInfo {
     flex: 1;
     min-width: 0;
@@ -191,6 +277,7 @@
 
 .payName {
     font-size: 15px;
+    font-weight: 600;
     line-height: 1.2;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -204,6 +291,54 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Ячейка «значение + подпись». */
+.payCell {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.payCellValue {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.payCellLabel {
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.payCellHinted {
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    cursor: help;
+}
+
+.payStatus {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.statusDot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .payAmount {

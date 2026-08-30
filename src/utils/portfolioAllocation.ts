@@ -1,12 +1,13 @@
 import { IPosition } from '@models/tinkoffData';
-import { BondSectorInfo } from '@models/bond';
+import { BondRatingsData, BondSectorInfo } from '@models/bond';
 import { BOND_SECTOR_OTHER, sectorByShortName } from '@api/moex/bonds/bondSectors';
 import { categorizeFund, FUND_CATEGORY_LABEL } from '@api/moex/funds/fundCategory';
 import { instrumentTypeLabel } from './instrumentType';
+import { ratingTier } from './bondLabels';
 import { AllocationSlice, PortfolioScope } from './portfolioScope';
 
-/** Режим разбивки пончика: классы инструментов / сектора / отдельные бумаги. */
-export type AllocationMode = 'type' | 'sector' | 'asset';
+/** Режим разбивки пончика: классы / сектора / валюта / кредитный рейтинг / отдельные бумаги. */
+export type AllocationMode = 'type' | 'sector' | 'currency' | 'rating' | 'asset';
 
 /** Обобщённый срез пончика — с готовыми меткой и цветом (в отличие от AllocationSlice). */
 export interface AllocSlice {
@@ -35,6 +36,50 @@ const CATEGORICAL = [
 const MUTED = '#8a8f99';
 const OTHER_LABEL = 'Прочее';
 const CASH_LABEL = 'Валюта';
+const CRYPTO_LABEL = 'Криптовалюта';
+/** Человекочитаемые названия валют по коду Т-Банка (нижний регистр). */
+const CURRENCY_LABEL: Record<string, string> = {
+    rub: 'Рубль ₽',
+    usd: 'Доллар $',
+    eur: 'Евро €',
+    cny: 'Юань ¥',
+    hkd: 'Гонконгский доллар',
+    gbp: 'Фунт £',
+    chf: 'Франк',
+    jpy: 'Иена ¥',
+    try: 'Лира',
+    kzt: 'Тенге'
+};
+const currencyLabel = (code: string) => CURRENCY_LABEL[code] ?? code.toUpperCase();
+
+// Кредитный рейтинг: буквенные тиры ЦБ + суверен/квазигос + не-облигационные
+// корзины. Порядок — по убыванию надёжности (для градиента в пончике/легенде).
+const RATING_OFZ = 'ОФЗ';
+const RATING_MUNI = 'Муниципальные';
+const RATING_NONE = 'Без рейтинга';
+const RATING_NONBOND = 'Акции и фонды';
+/** Метка корзины рейтинга по тиру буквенной шкалы (ratingTier). */
+const RATING_TIER_LABEL: Record<string, string> = {
+    high: 'AA–AAA',
+    good: 'A',
+    moderate: 'BBB',
+    speculative: 'BB и ниже'
+};
+/** Фиксированные цвет и порядок корзин рейтинга (зелёный→красный, прочее — нейтральное). */
+const RATING_STYLE: { label: string; color: string }[] = [
+    { label: RATING_OFZ, color: '#1baf7a' },
+    { label: RATING_MUNI, color: '#33b985' },
+    { label: 'AA–AAA', color: '#2a78d6' },
+    { label: 'A', color: '#4aa3df' },
+    { label: 'BBB', color: '#eda100' },
+    { label: 'BB и ниже', color: '#e24b4a' },
+    { label: RATING_NONE, color: MUTED },
+    { label: RATING_NONBOND, color: TYPE_COLOR.etf },
+    { label: CRYPTO_LABEL, color: TYPE_COLOR.crypto },
+    { label: CASH_LABEL, color: TYPE_COLOR.currency }
+];
+const RATING_ORDER = RATING_STYLE.map((entry) => entry.label);
+const RATING_COLOR = Object.fromEntries(RATING_STYLE.map((entry) => [entry.label, entry.color]));
 /** Метки срезов для гос/муни облигаций (отрасль к ним неприменима). */
 const OFZ_LABEL = 'ОФЗ';
 const MUNI_LABEL = 'Муниципальные';
@@ -151,14 +196,114 @@ const allocationBySector = (
         }));
 };
 
+/**
+ * «Валюта» — валютная структура АКТИВОВ: срезы по валюте номинала бумаги
+ * (position.currency, коды Т-Банка в нижнем регистре). Крипта (Trezor) — своим
+ * срезом, а не по расчётной валюте. Стоимости позиций Т-Банк отдаёт в рублях
+ * (priceInPorfolio), поэтому суммируем рублёвые величины по группам валют —
+ * получается доля портфеля в бумагах каждой валюты. Денежный остаток (cash) —
+ * агрегат в рублях, кладём в рубль (посчитать его валютный состав из scope нельзя).
+ */
+const allocationByCurrency = (positions: IPosition[], cash: number): AllocSlice[] => {
+    const bucket = new Map<string, number>();
+    const add = (code: string, value: number) => bucket.set(code, (bucket.get(code) ?? 0) + value);
+
+    positions.forEach((position) => {
+        const value = position.priceInPorfolio ?? 0;
+        if (value <= 0) return;
+        if (position.instrumentType === 'crypto') {
+            add('__crypto__', value);
+            return;
+        }
+        add((position.currency || 'rub').toLowerCase(), value);
+    });
+    if (cash > 0) add('rub', cash);
+
+    return Array.from(bucket.entries())
+        .map(([code, value]) => ({ code, value: round2(value) }))
+        .sort((a, b) => b.value - a.value)
+        .map((entry, index) => ({
+            key: entry.code,
+            label: entry.code === '__crypto__' ? CRYPTO_LABEL : currencyLabel(entry.code),
+            value: entry.value,
+            color: entry.code === '__crypto__' ? TYPE_COLOR.crypto : CATEGORICAL[index % CATEGORICAL.length]
+        }));
+};
+
+/**
+ * Корзина кредитного рейтинга одной облигации: сначала класс эмитента (ОФЗ/муни —
+ * у них нет агентского рейтинга ЦБ, но это высшее качество), затем джойн
+ * position→secid→ИНН→рейтинг (та же карта, что на странице бумаги) и буквенный
+ * тир. Корпорат без найденного рейтинга → «Без рейтинга».
+ */
+const resolveBondRating = (
+    position: IPosition,
+    bondSectorMap: Record<string, BondSectorInfo>,
+    bondRatings?: BondRatingsData
+): string => {
+    const key = (position.isin || position.ticker || '').toUpperCase();
+    const issuerType = key ? bondSectorMap[key]?.issuerType : undefined;
+    if (issuerType === 'government') return RATING_OFZ;
+    if (issuerType === 'municipal') return RATING_MUNI;
+
+    if (!bondRatings) return RATING_NONE;
+    // secid карты рейтингов = ISIN бумаги (запасной ключ — тикер).
+    const inn = bondRatings.secids[key] ?? bondRatings.secids[(position.ticker || '').toUpperCase()];
+    const action = inn ? bondRatings.issuers[inn]?.current.find((a) => !a.withdrawn) : undefined;
+    if (!action) return RATING_NONE;
+    return RATING_TIER_LABEL[ratingTier(action)] ?? RATING_NONE;
+};
+
+/**
+ * «Рейтинг» — кредитное качество портфеля. Облигации разложены по буквенным тирам
+ * ЦБ (+ ОФЗ/муни отдельными корзинами высшего качества), не-облигации собраны в
+ * «Акции и фонды», крипта и кэш — своими срезами. Так пончик по-прежнему = 100%
+ * портфеля, а порядок корзин отражает убывание надёжности.
+ */
+const allocationByRating = (
+    positions: IPosition[],
+    cash: number,
+    bondSectorMap: Record<string, BondSectorInfo>,
+    bondRatings?: BondRatingsData
+): AllocSlice[] => {
+    const bucket = new Map<string, number>();
+    const add = (label: string, value: number) => bucket.set(label, (bucket.get(label) ?? 0) + value);
+
+    positions.forEach((position) => {
+        const value = position.priceInPorfolio ?? 0;
+        if (value <= 0) return;
+        if (position.instrumentType === 'bond') {
+            add(resolveBondRating(position, bondSectorMap, bondRatings), value);
+        } else if (position.instrumentType === 'crypto') {
+            add(CRYPTO_LABEL, value);
+        } else {
+            add(RATING_NONBOND, value);
+        }
+    });
+    if (cash > 0) add(CASH_LABEL, cash);
+
+    return Array.from(bucket.entries())
+        .map(([label, value]) => ({ label, value: round2(value) }))
+        .sort((a, b) => RATING_ORDER.indexOf(a.label) - RATING_ORDER.indexOf(b.label))
+        .map((entry) => ({
+            key: entry.label,
+            label: entry.label,
+            value: entry.value,
+            color: RATING_COLOR[entry.label] ?? MUTED
+        }));
+};
+
 /** Единая точка входа: срезы пончика для выбранного режима. */
 export const buildAllocation = (
     mode: AllocationMode,
     scope: PortfolioScope,
     shareSectorMap: Record<string, string>,
-    bondSectorMap: Record<string, BondSectorInfo>
+    bondSectorMap: Record<string, BondSectorInfo>,
+    bondRatings?: BondRatingsData
 ): AllocSlice[] => {
     if (mode === 'asset') return allocationByAsset(scope.positions, scope.cash);
+    if (mode === 'currency') return allocationByCurrency(scope.positions, scope.cash);
+    if (mode === 'rating') return allocationByRating(scope.positions, scope.cash, bondSectorMap, bondRatings);
     if (mode === 'sector')
         return allocationBySector(scope.positions, scope.cash, shareSectorMap, bondSectorMap);
     return allocationByType(scope.allocation);

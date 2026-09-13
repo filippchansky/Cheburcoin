@@ -2,7 +2,7 @@
 import React from 'react';
 import { Segmented } from 'antd';
 import { AccountPortfolio } from '@/hooks/usePortfolio';
-import { PaymentsTab, usePortfolioPrefs } from '@/store/portfolioPrefs';
+import { PaymentsTab, usePortfolioNav } from '@/hooks/usePortfolioNav';
 import PaymentsCalendar from './PaymentsCalendar';
 import PaymentsHistory from './PaymentsHistory';
 
@@ -13,8 +13,7 @@ interface PaymentsViewProps {
 
 /** Вкладка «Выплаты»: будущее (календарь купонов+дивидендов) vs прошлое (история). */
 const PaymentsView: React.FC<PaymentsViewProps> = ({ accounts }) => {
-    const tab = usePortfolioPrefs((s) => s.paymentsTab);
-    const setTab = usePortfolioPrefs((s) => s.setPaymentsTab);
+    const { paymentsTab: tab, setPaymentsTab: setTab } = usePortfolioNav();
 
     return (
         <div>

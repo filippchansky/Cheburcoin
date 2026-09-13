@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Alert, Button, Card, InputNumber, Popover, Segmented, Slider, Switch } from 'antd';
+import { Alert, Button, Card, Grid, InputNumber, Popover, Segmented, Slider, Switch } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { useDarkTheme } from '@/store/darkTheme';
@@ -22,6 +22,8 @@ type ScenarioKey = 'conservative' | 'base' | 'optimistic';
 const SCENARIOS: {
     key: ScenarioKey;
     label: string;
+    /** Короткая подпись для узкого экрана (блочный Segmented иначе режет текст). */
+    shortLabel: string;
     priceGrowthPct: number;
     incomeGrowthPct: number;
     inflationPct: number;
@@ -30,6 +32,7 @@ const SCENARIOS: {
     {
         key: 'conservative',
         label: 'Консервативный',
+        shortLabel: 'Консерв.',
         priceGrowthPct: 0,
         incomeGrowthPct: 0,
         inflationPct: 8,
@@ -38,6 +41,7 @@ const SCENARIOS: {
     {
         key: 'base',
         label: 'Базовый',
+        shortLabel: 'Базовый',
         priceGrowthPct: 4,
         incomeGrowthPct: 5,
         inflationPct: 7,
@@ -46,6 +50,7 @@ const SCENARIOS: {
     {
         key: 'optimistic',
         label: 'Оптимистичный',
+        shortLabel: 'Оптим.',
         priceGrowthPct: 8,
         incomeGrowthPct: 8,
         inflationPct: 5,
@@ -70,6 +75,8 @@ const groupParse = (v: string | undefined) => (v ? Number(v.replace(/\s/g, '')) 
 const GoalView: React.FC<GoalViewProps> = ({ scope }) => {
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
+    const screens = Grid.useBreakpoint();
+    const isMobile = screens.md === false;
     const goal = usePortfolioPrefs((s) => s.goal);
     const setGoal = usePortfolioPrefs((s) => s.setGoal);
 
@@ -262,7 +269,7 @@ const GoalView: React.FC<GoalViewProps> = ({ scope }) => {
                 <Card
                     size='small'
                     title='Параметры'
-                    style={{ flex: '1 1 260px', maxWidth: 400 }}
+                    style={isMobile ? { flex: '1 1 100%', maxWidth: '100%' } : { flex: '1 1 260px', maxWidth: 400 }}
                     extra={
                         <Popover
                             trigger='click'
@@ -305,7 +312,10 @@ const GoalView: React.FC<GoalViewProps> = ({ scope }) => {
                                         inflationPct: s.inflationPct
                                     });
                             }}
-                            options={SCENARIOS.map((s) => ({ label: s.label, value: s.key }))}
+                            options={SCENARIOS.map((s) => ({
+                                label: isMobile ? s.shortLabel : s.label,
+                                value: s.key
+                            }))}
                         />
                         <span style={{ fontSize: 12, color: palette.textMuted }}>{scenarioHint}</span>
                     </div>
@@ -337,7 +347,7 @@ const GoalView: React.FC<GoalViewProps> = ({ scope }) => {
                     </label>
 
                     <div className='flex flex-col gap-1'>
-                        <div className='flex items-center justify-between'>
+                        <div className='flex items-center justify-between gap-2 flex-wrap'>
                             <span style={{ fontSize: 13, color: palette.textMuted }}>Доходность, % годовых</span>
                             <Segmented
                                 size='small'
@@ -421,7 +431,13 @@ const GoalView: React.FC<GoalViewProps> = ({ scope }) => {
                 {/* Правая колонка: график + годовая разбивка под ним (заполняет высоту
                     рядом с высокой формой параметров, на мобиле складывается вниз). */}
                 <div
-                    style={{ flex: '3 1 300px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 }}
+                    style={{
+                        flex: isMobile ? '1 1 100%' : '3 1 300px',
+                        minWidth: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 16
+                    }}
                 >
                 {/* График траектории дохода */}
                 <Card
@@ -430,7 +446,7 @@ const GoalView: React.FC<GoalViewProps> = ({ scope }) => {
                     extra={<span style={{ fontSize: 12, color: palette.textMuted }}>в сегодняшних рублях</span>}
                     styles={{ body: { padding: 8 } }}
                 >
-                    <ReactECharts option={chartOption} style={{ height: 320 }} notMerge lazyUpdate />
+                    <ReactECharts option={chartOption} style={{ height: isMobile ? 240 : 320 }} notMerge lazyUpdate />
                 </Card>
 
             {/* Годовая разбивка капитала и дохода */}

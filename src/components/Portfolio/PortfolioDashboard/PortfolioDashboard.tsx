@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Alert, Button, Segmented, Skeleton, Tabs } from 'antd';
+import { Alert, Button, Grid, Segmented, Skeleton, Tabs } from 'antd';
 import {
     ReloadOutlined,
     DashboardOutlined,
@@ -20,7 +20,7 @@ import {
     scopeFromPortfolio
 } from '@/utils/portfolioScope';
 import { AllocationMode, buildAllocation } from '@/utils/portfolioAllocation';
-import { usePortfolioPrefs } from '@/store/portfolioPrefs';
+import { usePortfolioNav, PortfolioView } from '@/hooks/usePortfolioNav';
 import { usePaymentsBreakdown } from '@/hooks/usePaymentsBreakdown';
 import { useRealized } from '@/hooks/useRealized';
 import { usePositionsProfit } from '@/hooks/usePositionsProfit';
@@ -37,7 +37,13 @@ import YieldBreakdownCard from './YieldBreakdownCard';
 import style from './style.module.scss';
 
 const ALL = 'all';
-type View = 'overview' | 'analytics' | 'payments';
+
+const VIEW_TABS: { key: PortfolioView; label: string; icon: React.ReactNode }[] = [
+    { key: 'overview', label: 'Обзор', icon: <DashboardOutlined /> },
+    { key: 'analytics', label: 'Аналитика', icon: <PieChartOutlined /> },
+    { key: 'payments', label: 'Выплаты', icon: <DollarOutlined /> },
+    { key: 'goal', label: 'Цель', icon: <AimOutlined /> }
+];
 
 const ALLOCATION_OPTIONS: { label: string; value: AllocationMode }[] = [
     { label: 'Классы', value: 'type' },
@@ -56,7 +62,9 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
     const { accounts, aggregate, status, isFetching, refetchAll } = usePortfolio();
     const { darkTheme } = useDarkTheme();
     const palette = getPalette(darkTheme);
-    const { scope, setScope, view, setView, allocMode, setAllocMode } = usePortfolioPrefs();
+    const { scope, setScope, view, setView, allocMode, setAllocMode } = usePortfolioNav();
+    const screens = Grid.useBreakpoint();
+    const isMobile = screens.md === false;
     const { data: sectorMap = {} } = useSectors();
     const { data: bondSectorMap = {} } = useBondSectorMap();
     const { data: bondRatings } = useBondRatings();
@@ -176,15 +184,26 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
             {/* L1 — навигация по разделам: вкладки (подчёркивание) читаются как
                 верхний уровень, в отличие от фильтра-Select (счёт) и мелкого
                 тумблера разбивки ниже. */}
+            {/* На мобиле горизонтальные подписи не влезают и antd прячет вкладки в
+                «…»-меню — там раскладываем иконку и подпись в столбик (как в нижней
+                навигации BottomNav), чтобы все четыре раздела помещались в ряд. */}
             <Tabs
                 activeKey={view}
-                onChange={(key) => setView(key as View)}
-                items={[
-                    { key: 'overview', label: 'Обзор', icon: <DashboardOutlined /> },
-                    { key: 'analytics', label: 'Аналитика', icon: <PieChartOutlined /> },
-                    { key: 'payments', label: 'Выплаты', icon: <DollarOutlined /> },
-                    { key: 'goal', label: 'Цель', icon: <AimOutlined /> }
-                ]}
+                onChange={(key) => setView(key as PortfolioView)}
+                centered={isMobile}
+                items={VIEW_TABS.map((t) =>
+                    isMobile
+                        ? {
+                              key: t.key,
+                              label: (
+                                  <span className='flex flex-col items-center' style={{ gap: 3, lineHeight: 1 }}>
+                                      <span style={{ fontSize: 19, lineHeight: 0 }}>{t.icon}</span>
+                                      <span style={{ fontSize: 11, lineHeight: 1 }}>{t.label}</span>
+                                  </span>
+                              )
+                          }
+                        : { key: t.key, label: t.label, icon: t.icon }
+                )}
             />
 
             {view === 'payments' ? (

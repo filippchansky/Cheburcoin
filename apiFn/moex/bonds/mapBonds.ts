@@ -28,9 +28,14 @@ const couponTypeByCode = (code: string): CouponType => {
 
 /**
  * Тип купона бумаги. Приоритет — «Вид облигации» (BONDTYPE) от биржи, который
- * заполнен для всего рынка и однозначен там, где касается природы купона:
- * «Флоатер» → floating, «Линкер…» → inflation, «Дисконтная» → discount, «Фикс …» → fixed.
- * Для видов, не говорящих о купоне (Структурная/Амортизируемые/Валютные/Конвертируемые
+ * заполнен для всего рынка и однозначен там, где касается природы купона.
+ * MOEX отдаёт полные формулировки, поэтому матчим по подстроке:
+ * «…с плавающим купоном» → floating, «Линкер…» → inflation, «Дисконтная…» → discount,
+ * «…с фиксированным (неизвестным) купоном» → variable (эмитент назначит купон позже,
+ * вперёд он неизвестен), «…с фиксированным (известным) купоном» → fixed (известен до
+ * погашения). Проверку «неизвестным» делаем ПЕРЕД «фиксированным», т.к. «известным» —
+ * подстрока «неизвестным».
+ * Для видов, не говорящих о купоне (Структурная/Амортизируемая/Валютная/Конвертируемая
  * или пусто), откатываемся на код ОФЗ из SECNAME, а затем на ставку купона.
  */
 const deriveCouponType = (
@@ -38,10 +43,11 @@ const deriveCouponType = (
     secName: string,
     couponPercent: number | null
 ): CouponType => {
-    if (bondType === 'Флоатер') return 'floating';
+    if (bondType.includes('плавающим')) return 'floating';
     if (bondType.startsWith('Линкер')) return 'inflation';
     if (bondType.startsWith('Дисконт')) return 'discount';
-    if (bondType.startsWith('Фикс')) return 'fixed';
+    if (bondType.includes('неизвестным')) return 'variable';
+    if (bondType.includes('фиксированным')) return 'fixed';
 
     const code = parseTypeCode(secName);
     if (code) return couponTypeByCode(code);
@@ -102,9 +108,9 @@ export const mapBonds = (raw: IBondsRaw): IBond[] => {
 
             couponType: deriveCouponType(bondType, name, couponPercent),
             bondType,
-            // «Амортизируемые» от биржи (для всего рынка) или код АД у ОФЗ.
-            // Оговорка: амортизирующие флоатеры MOEX метит «Флоатер» → ~10% не ловим.
-            hasAmortization: bondType === 'Амортизируемые облигации' || code === 'АД',
+            // «Амортизируемая облигация» от биржи (для всего рынка) или код АД у ОФЗ.
+            // Оговорка: амортизирующие флоатеры MOEX метит «…с плавающим купоном» → часть не ловим.
+            hasAmortization: bondType.startsWith('Амортизир') || code === 'АД',
             hasOffer,
 
             couponPercent,

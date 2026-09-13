@@ -4,8 +4,14 @@ export interface IBondsRaw {
     marketdata: { columns: string[]; data: unknown[][] };
 }
 
-/** Тип купона облигации. Определяется по BONDTYPE биржи, с откатом на эвристику. */
-export type CouponType = 'fixed' | 'floating' | 'inflation' | 'discount';
+/**
+ * Тип купона облигации. Определяется по BONDTYPE биржи, с откатом на эвристику.
+ * fixed — купоны известны до погашения; variable — купон назначается эмитентом по
+ * периодам и вперёд неизвестен (BONDTYPE «фиксированный (неизвестный)», часто к оферте);
+ * floating — купон считается по формуле от эталона (КС/RUONIA); inflation — линкер;
+ * discount — бескупонная с дисконтом.
+ */
+export type CouponType = 'fixed' | 'variable' | 'floating' | 'inflation' | 'discount';
 
 /** Класс эмитента — основа для оценки надёжности бумаги. */
 export type IssuerType = 'government' | 'municipal' | 'corporate';
@@ -25,7 +31,7 @@ export interface IBond {
     /** Полное название (SECNAME) — содержит код типа, напр. «ОФЗ-ПД …». */
     name: string;
 
-    /** Тип купона: фикс / плавающий / индексируемый номинал / дисконт. */
+    /** Тип купона: фикс / переменный / плавающий / индексируемый номинал / дисконт. */
     couponType: CouponType;
     /**
      * Сырой «Вид облигации» от MOEX (BONDTYPE): «Флоатер», «Структурная облигация»,

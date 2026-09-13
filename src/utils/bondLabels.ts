@@ -3,6 +3,7 @@ import { CouponType, IBond, IBondRatingAction } from '@models/bond';
 /** Подпись и цвет тега для типа купона. */
 export const couponTag: Record<CouponType, { label: string; color: string }> = {
     fixed: { label: 'Фикс', color: 'blue' },
+    variable: { label: 'Переменный', color: 'orange' },
     floating: { label: 'Плавающий', color: 'gold' },
     inflation: { label: 'Инфляционный', color: 'green' },
     discount: { label: 'Дисконт', color: 'geekblue' }

@@ -127,6 +127,7 @@ export const bondFilters: BondFilter[] = [
         options: [
             { label: 'Любой купон', value: ALL },
             { label: 'Фиксированный', value: 'fixed' },
+            { label: 'Переменный', value: 'variable' },
             { label: 'Плавающий', value: 'floating' },
             { label: 'Инфляционный', value: 'inflation' },
             { label: 'Дисконтный', value: 'discount' }

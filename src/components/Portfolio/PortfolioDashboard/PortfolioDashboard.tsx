@@ -227,7 +227,6 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                     {scopeData && allocationSlices.length ? (
                     <div className='mb-6'>
                         <div className='mb-3 flex items-center gap-2'>
-                            <span style={{ fontSize: 13, color: palette.textMuted }}>Разбивка</span>
                             <Segmented<AllocationMode>
                                 size='small'
                                 options={ALLOCATION_OPTIONS}

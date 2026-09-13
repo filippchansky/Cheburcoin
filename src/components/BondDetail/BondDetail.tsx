@@ -20,6 +20,7 @@ import AmortizationTable from './AmortizationTable/AmortizationTable';
 import Offers from './Offers/Offers';
 import InstrumentNews from '@/components/InstrumentNews/InstrumentNews';
 import PortfolioPosition from '@/components/PortfolioPosition/PortfolioPosition';
+import ShareLogo from '@/components/ShareLogo/ShareLogo';
 import style from './style.module.scss';
 
 interface BondDetailProps {
@@ -145,7 +146,9 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
         <InstrumentLayout
             backHref='/bonds'
             backLabel='К списку облигаций'
+            logo={<ShareLogo icon={bond.isin} ticker={bond.secid} size={48} />}
             title={bond.shortName}
+            subtitle={`${bond.isin}`}
             tags={
                 <>
                     <Tag color={tag.color} bordered={false}>
@@ -161,7 +164,6 @@ const BondDetail: React.FC<BondDetailProps> = ({ secid }) => {
                             Оферта
                         </Tag>
                     )}
-                    <span className={style.isin}>{bond.isin}</span>
                 </>
             }
             price={

@@ -5,7 +5,8 @@ import {
     ReloadOutlined,
     DashboardOutlined,
     PieChartOutlined,
-    DollarOutlined
+    DollarOutlined,
+    AimOutlined
 } from '@ant-design/icons';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { useSectors } from '@/hooks/useShares';
@@ -31,6 +32,7 @@ import StatCard from './StatCard';
 import PositionsTable from './PositionsTable';
 import PortfolioMovers from './PortfolioMovers';
 import PaymentsView from './PaymentsView';
+import GoalView from './GoalView';
 import YieldBreakdownCard from './YieldBreakdownCard';
 import style from './style.module.scss';
 
@@ -180,7 +182,8 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
                 items={[
                     { key: 'overview', label: 'Обзор', icon: <DashboardOutlined /> },
                     { key: 'analytics', label: 'Аналитика', icon: <PieChartOutlined /> },
-                    { key: 'payments', label: 'Выплаты', icon: <DollarOutlined /> }
+                    { key: 'payments', label: 'Выплаты', icon: <DollarOutlined /> },
+                    { key: 'goal', label: 'Цель', icon: <AimOutlined /> }
                 ]}
             />
 
@@ -218,7 +221,11 @@ const PortfolioDashboard: React.FC<PortfolioDashboardProps> = ({}) => {
 
             {cryptoNotice}
 
-            {view === 'analytics' ? (
+            {view === 'goal' ? (
+                scopeData ? (
+                    <GoalView scope={scopeData} />
+                ) : null
+            ) : view === 'analytics' ? (
                 <>
                     {scopeData ? (
                         <AnalyticsMetrics scope={scopeData} effectiveScope={effectiveScope} />

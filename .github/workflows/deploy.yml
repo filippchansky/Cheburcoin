@@ -1,0 +1,83 @@
+name: Deploy to VPS
+
+# Выкат на свой сервер. Запускается на пуш в master и вручную (кнопка в Actions).
+on:
+    push:
+        branches: [master]
+    workflow_dispatch:
+
+# Не даём двум деплоям идти одновременно (иначе гонка при переключении симлинка).
+# cancel-in-progress: false — не прерываем уже идущий выкат, ставим следующий в очередь.
+concurrency:
+    group: deploy-production
+    cancel-in-progress: false
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci
+
+            # Сборка. vercel-build = generateBondFlags + generateSharesMeta + next build.
+            # NEXT_PUBLIC_* "запекаются" в бандл ИМЕННО здесь, поэтому берём их из secrets.
+            - name: Build (standalone)
+              run: npm run vercel-build
+              env:
+                  NEXT_PUBLIC_MOEX_API: ${{ secrets.NEXT_PUBLIC_MOEX_API }}
+                  NEXT_PUBLIC_TINKOFF_API: ${{ secrets.NEXT_PUBLIC_TINKOFF_API }}
+                  NEXT_PUBLIC_COINGECKO_API: ${{ secrets.NEXT_PUBLIC_COINGECKO_API }}
+                  NEXT_PUBLIC_SOLANA_RPC: ${{ secrets.NEXT_PUBLIC_SOLANA_RPC }}
+                  NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+                  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+                  NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+                  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+                  NEXT_PUBLIC_FIREBASE_MESSAGINGSENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGINGSENDER_ID }}
+                  NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+
+            # standalone НЕ кладёт внутрь static-ассеты и public — Next оставляет это на нас.
+            # Докладываем их в бандл и архивируем в один файл для быстрой передачи.
+            - name: Assemble standalone bundle
+              run: |
+                  cp -r .next/static .next/standalone/.next/static
+                  cp -r public .next/standalone/public
+                  tar -czf bundle.tar.gz -C .next/standalone .
+
+            # Готовим SSH: приватный ключ из secrets + фиксируем отпечаток сервера
+            # (ssh-keyscan), чтобы не было интерактивного "yes/no" и MITM.
+            - name: Set up SSH
+              run: |
+                  mkdir -p ~/.ssh
+                  echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+                  chmod 600 ~/.ssh/id_ed25519
+                  ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+            - name: Ship & release
+              env:
+                  SSH_HOST: ${{ secrets.SSH_HOST }}
+                  SSH_USER: ${{ secrets.SSH_USER }}
+              run: |
+                  RELEASE="release-$(date +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}"
+                  APP="/home/$SSH_USER/cheburcoin"
+
+                  # 1) заливаем архив во временную папку
+                  scp -i ~/.ssh/id_ed25519 bundle.tar.gz "$SSH_USER@$SSH_HOST:/tmp/$RELEASE.tar.gz"
+
+                  # 2) на сервере: распаковать релиз → переключить симлинк → перезапустить
+                  ssh -i ~/.ssh/id_ed25519 "$SSH_USER@$SSH_HOST" bash -s <<EOF
+                    set -euo pipefail
+                    mkdir -p "$APP/releases/$RELEASE"
+                    tar -xzf "/tmp/$RELEASE.tar.gz" -C "$APP/releases/$RELEASE"
+                    rm -f "/tmp/$RELEASE.tar.gz"
+                    ln -sfn "$APP/releases/$RELEASE" "$APP/current"
+                    sudo systemctl restart cheburcoin
+                    # держим только 5 последних релизов, старые удаляем
+                    ls -1dt "$APP"/releases/*/ | tail -n +6 | xargs -r rm -rf
+                  EOF

@@ -1,0 +1,29 @@
+# systemd-юнит для Next standalone.
+# Кладётся на VPS в /etc/systemd/system/cheburcoin.service
+# После правок:  sudo systemctl daemon-reload && sudo systemctl restart cheburcoin
+# Логи:          journalctl -u cheburcoin -f
+
+[Unit]
+Description=Cheburcoin Next.js (standalone)
+After=network.target
+
+[Service]
+Type=simple
+# Непривилегированный пользователь — приложение НЕ должно ходить под root.
+User=deploy
+# current — симлинк на активный релиз, его переключает GitHub Actions при выкате.
+WorkingDirectory=/home/deploy/cheburcoin/current
+# Рантайм-секреты (COINGECKO_KEY, BYBIT_*, BLOCKBOOK* и т.д.). НЕ в git.
+EnvironmentFile=/home/deploy/cheburcoin/shared/.env
+Environment=NODE_ENV=production
+# HOSTNAME=127.0.0.1 — Node слушает ТОЛЬКО localhost, наружу его не видно;
+# доступ идёт исключительно через Caddy. PORT совпадает с reverse_proxy в Caddyfile.
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/node server.js
+# Перезапуск при любом падении, с паузой 3 сек (защита от бешеного рестарт-цикла).
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

@@ -18,10 +18,10 @@ const MAX_PAGES = 40;
  * периоды молча обрезаются. Возвращает сырой колоночный формат; маппинг —
  * на стороне конкретного геттера (акции/облигации отличаются набором колонок).
  *
- * `market`: `shares` — акции, `bonds` — облигации.
+ * `market`: `shares` — акции, `bonds` — облигации, `index` — индексы.
  */
 export const fetchCandlesRaw = async (
-    market: 'shares' | 'bonds',
+    market: 'shares' | 'bonds' | 'index',
     secid: string,
     from: string,
     till: string,

@@ -224,13 +224,6 @@
 }
 
 @media (min-width: 1200px) {
-    .body {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 340px;
-        gap: 28px;
-        align-items: start;
-    }
-
     .aside {
         display: block;
         position: sticky;

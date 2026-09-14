@@ -1,0 +1,29 @@
+.wrapper {
+    width: 100%;
+}
+
+.head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+// На телефоне выносим график ближе к краю экрана; шапку возвращаем в отступы.
+@media (max-width: 640px) {
+    .wrapper {
+        margin-left: -12px;
+        margin-right: -12px;
+    }
+    .head {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}

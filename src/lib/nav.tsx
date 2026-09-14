@@ -6,6 +6,7 @@ import {
     LineChartOutlined,
     PieChartOutlined,
     ReadOutlined,
+    StockOutlined,
     WalletOutlined
 } from '@ant-design/icons';
 import type { ComponentType } from 'react';
@@ -22,6 +23,7 @@ export const navItems: NavItem[] = [
     { key: '/moex', label: 'Акции', Icon: LineChartOutlined },
     { key: '/bonds', label: 'Облигации', Icon: BankOutlined },
     { key: '/funds', label: 'Фонды', Icon: PieChartOutlined },
+    { key: '/indices', label: 'Индексы', Icon: StockOutlined },
     { key: '/moex/portfolio', label: 'Портфель', Icon: WalletOutlined },
     { key: '/cryptocurrency', label: 'Крипта', Icon: DollarCircleOutlined },
     { key: '/news', label: 'Новости', Icon: ReadOutlined }
@@ -38,6 +40,7 @@ export const primaryNav: NavItem[] = [
 /** Вторичные разделы, спрятанные под вкладку «Ещё». */
 export const moreNav: NavItem[] = [
     { key: '/', label: 'Главная', Icon: HomeOutlined },
+    { key: '/indices', label: 'Индексы', Icon: StockOutlined },
     { key: '/cryptocurrency', label: 'Крипта', Icon: DollarCircleOutlined },
     { key: '/news', label: 'Новости', Icon: ReadOutlined }
 ];

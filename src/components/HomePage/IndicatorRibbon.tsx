@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import Link from 'next/link';
 import { Skeleton } from 'antd';
 import {
     BankOutlined,
@@ -21,6 +22,8 @@ export interface IndicatorTileProps {
     /** Дополнительная приглушённая подпись (дата, тикер контракта). */
     sub?: React.ReactNode;
     loading?: boolean;
+    /** Ссылка на страницу инструмента — плитка становится кликабельной. */
+    href?: string;
 }
 
 /** Цвет по знаку изменения: рост — зелёный, падение — красный, ноль — нейтральный. */
@@ -36,11 +39,12 @@ export const IndicatorTile: React.FC<IndicatorTileProps> = ({
     value,
     change,
     sub,
-    loading
+    loading,
+    href
 }) => {
     const delta = deltaClass(change);
-    return (
-        <div className={style.tile}>
+    const body = (
+        <>
             <span className={style.tileLabel}>
                 {icon}
                 {label}
@@ -63,8 +67,18 @@ export const IndicatorTile: React.FC<IndicatorTileProps> = ({
                     )}
                 </>
             )}
-        </div>
+        </>
     );
+
+    // Плитку делаем ссылкой только когда данные загружены (иначе ведёт «в никуда»).
+    if (href && !loading) {
+        return (
+            <Link href={href} className={`${style.tile} ${style.tileLink}`}>
+                {body}
+            </Link>
+        );
+    }
+    return <div className={style.tile}>{body}</div>;
 };
 
 const NUMBER_2 = new Intl.NumberFormat('ru-RU', {
@@ -100,6 +114,7 @@ const IndicatorRibbon: React.FC = () => {
                 loading={imoex.isLoading}
                 value={imoex.data ? NUMBER_2.format(imoex.data.value) : undefined}
                 change={imoex.data?.changePct}
+                href='/indices/IMOEX'
             />
             <IndicatorTile
                 label='Доллар'
@@ -108,6 +123,7 @@ const IndicatorRibbon: React.FC = () => {
                 value={usd ? formatMoney(usd.price, 'RUB') : undefined}
                 change={usd?.changePct}
                 sub={cbrSub(cbr.data?.usd)}
+                href={usd ? `/futures/${usd.secid}` : undefined}
             />
             <IndicatorTile
                 label='Юань'
@@ -116,6 +132,7 @@ const IndicatorRibbon: React.FC = () => {
                 value={cny ? formatMoney(cny.price, 'RUB') : undefined}
                 change={cny?.changePct}
                 sub={cbrSub(cbr.data?.cny)}
+                href={cny ? `/futures/${cny.secid}` : undefined}
             />
             <IndicatorTile
                 label='Нефть Brent'
@@ -124,6 +141,7 @@ const IndicatorRibbon: React.FC = () => {
                 value={brent ? `$${brent.price.toFixed(1)}` : undefined}
                 change={brent?.changePct}
                 sub={brent?.name}
+                href={brent ? `/futures/${brent.secid}` : undefined}
             />
         </div>
     );

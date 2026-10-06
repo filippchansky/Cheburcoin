@@ -18,17 +18,20 @@ const MAX_PAGES = 40;
  * периоды молча обрезаются. Возвращает сырой колоночный формат; маппинг —
  * на стороне конкретного геттера (акции/облигации отличаются набором колонок).
  *
- * `market`: `shares` — акции, `bonds` — облигации, `index` — индексы.
+ * `market`: `shares` — акции, `bonds` — облигации, `index` — индексы (все на движке
+ * `stock`); `forts` — фьючерсы срочного рынка (движок `futures`).
  */
 export const fetchCandlesRaw = async (
-    market: 'shares' | 'bonds' | 'index',
+    market: 'shares' | 'bonds' | 'index' | 'forts',
     secid: string,
     from: string,
     till: string,
     interval: string
 ): Promise<{ columns: string[]; data: unknown[][] }> => {
+    // Фьючерсы живут на отдельном движке futures, остальные бумаги — на stock.
+    const engine = market === 'forts' ? 'futures' : 'stock';
     const base =
-        `iss/engines/stock/markets/${market}/securities/${secid}/candles.json` +
+        `iss/engines/${engine}/markets/${market}/securities/${secid}/candles.json` +
         `?from=${from}&till=${till}&interval=${interval}&iss.meta=off`;
 
     let columns: string[] = [];

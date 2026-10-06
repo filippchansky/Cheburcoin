@@ -1,0 +1,42 @@
+@import '../../../app/variables';
+
+.wrapper {
+    width: 100%;
+}
+
+.row {
+    cursor: pointer;
+}
+
+.activeRow {
+    background: rgba(128, 128, 128, 0.08);
+}
+
+.nameCell {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.current {
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.mono {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.up {
+    color: $green;
+    font-weight: 600;
+}
+.down {
+    color: $red;
+    font-weight: 600;
+}
+.flat {
+    opacity: 0.5;
+}

@@ -1,0 +1,78 @@
+@import '../../app/_variables';
+
+// Состояния загрузки/ошибки страницы (сам каркас живёт в InstrumentLayout).
+.page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 0 48px;
+}
+
+.back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    opacity: 0.6;
+    margin-bottom: 20px;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.notFound {
+    font-size: 16px;
+    opacity: 0.6;
+}
+
+.price {
+    font-size: 32px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.change {
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+
+    &.up {
+        color: $green;
+        opacity: 1;
+    }
+    &.down {
+        color: $red;
+        opacity: 1;
+    }
+}
+
+// Компактная цена для липкой мини-шапки.
+.stickyPriceValue {
+    font-size: 16px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.stickyChange {
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+
+    &.up {
+        color: $green;
+        opacity: 1;
+    }
+    &.down {
+        color: $red;
+        opacity: 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .price {
+        font-size: 26px;
+    }
+}

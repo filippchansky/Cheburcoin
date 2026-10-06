@@ -118,6 +118,19 @@
     background: rgba(128, 128, 128, 0.06);
 }
 
+// Кликабельная плитка-ссылка: наследует цвет текста, подсвечивается при наведении.
+.tileLink {
+    color: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+        border-color: rgba(128, 128, 128, 0.32);
+        background: rgba(128, 128, 128, 0.1);
+        transform: translateY(-1px);
+    }
+}
+
 .tileLabel {
     display: flex;
     align-items: center;

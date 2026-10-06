@@ -2,6 +2,7 @@ import {
     AppstoreOutlined,
     BankOutlined,
     DollarCircleOutlined,
+    FundOutlined,
     HomeOutlined,
     LineChartOutlined,
     PieChartOutlined,
@@ -24,6 +25,7 @@ export const navItems: NavItem[] = [
     { key: '/bonds', label: 'Облигации', Icon: BankOutlined },
     { key: '/funds', label: 'Фонды', Icon: PieChartOutlined },
     { key: '/indices', label: 'Индексы', Icon: StockOutlined },
+    { key: '/futures', label: 'Фьючерсы', Icon: FundOutlined },
     { key: '/moex/portfolio', label: 'Портфель', Icon: WalletOutlined },
     { key: '/cryptocurrency', label: 'Крипта', Icon: DollarCircleOutlined },
     { key: '/news', label: 'Новости', Icon: ReadOutlined }
@@ -41,6 +43,7 @@ export const primaryNav: NavItem[] = [
 export const moreNav: NavItem[] = [
     { key: '/', label: 'Главная', Icon: HomeOutlined },
     { key: '/indices', label: 'Индексы', Icon: StockOutlined },
+    { key: '/futures', label: 'Фьючерсы', Icon: FundOutlined },
     { key: '/cryptocurrency', label: 'Крипта', Icon: DollarCircleOutlined },
     { key: '/news', label: 'Новости', Icon: ReadOutlined }
 ];

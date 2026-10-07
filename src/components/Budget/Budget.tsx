@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
-import { Button, Empty, Popconfirm, Segmented, Spin, Tooltip, Typography } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Empty, Popconfirm, Segmented, Space, Spin, Tooltip, Typography } from 'antd';
+import { DeleteOutlined, EditOutlined, PlusOutlined, TagsOutlined } from '@ant-design/icons';
 import { BudgetCategory, BudgetTx, sumTotals } from '@/lib/budget/types';
 import { useBudgetCategories, useBudgetTransactions, useDeleteBudgetTx } from '@/hooks/useBudget';
 import { formatAmount, intToRub } from '@/utils/formatCurrency';
@@ -13,6 +13,7 @@ import {
 } from '@/components/Portfolio/PortfolioDashboard/PaymentsList';
 import TransactionDrawer from './TransactionDrawer';
 import BudgetSummary from './BudgetSummary';
+import CategoriesDrawer from './CategoriesDrawer';
 
 const { Title, Text } = Typography;
 
@@ -52,6 +53,7 @@ const Budget: React.FC = () => {
     const deleteTx = useDeleteBudgetTx();
 
     const [drawerOpen, setDrawerOpen] = React.useState(false);
+    const [catsOpen, setCatsOpen] = React.useState(false);
     const [editing, setEditing] = React.useState<BudgetTx | null>(null);
     const [view, setView] = React.useState<BudgetView>('list');
 
@@ -126,9 +128,14 @@ const Budget: React.FC = () => {
                 <Title level={3} style={{ margin: 0 }}>
                     Бюджет
                 </Title>
-                <Button type='primary' icon={<PlusOutlined />} onClick={openNew}>
-                    Добавить
-                </Button>
+                <Space>
+                    <Tooltip title='Категории'>
+                        <Button icon={<TagsOutlined />} onClick={() => setCatsOpen(true)} />
+                    </Tooltip>
+                    <Button type='primary' icon={<PlusOutlined />} onClick={openNew}>
+                        Добавить
+                    </Button>
+                </Space>
             </div>
 
             <Segmented<BudgetView>
@@ -223,6 +230,7 @@ const Budget: React.FC = () => {
                 onClose={() => setDrawerOpen(false)}
                 editing={editing}
             />
+            <CategoriesDrawer open={catsOpen} onClose={() => setCatsOpen(false)} />
         </div>
     );
 };

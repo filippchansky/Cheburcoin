@@ -60,10 +60,13 @@ export const DEFAULT_CATEGORIES: BudgetCategory[] = [
     { id: 'shopping', name: 'Покупки', type: 'expense', icon: '🛍️', color: '#06b6d4' },
     { id: 'health', name: 'Здоровье', type: 'expense', icon: '💊', color: '#3b82f6' },
     { id: 'entertainment', name: 'Развлечения', type: 'expense', icon: '🎬', color: '#8b5cf6' },
+    { id: 'investments', name: 'Инвестиции', type: 'expense', icon: '📈', color: '#ec4899' },
     { id: 'other_expense', name: 'Прочее', type: 'expense', icon: '📦', color: '#64748b' },
     // Доходы
     { id: 'salary', name: 'Зарплата', type: 'income', icon: '💼', color: '#16a34a' },
     { id: 'side_income', name: 'Подработка', type: 'income', icon: '💰', color: '#22c55e' },
+    { id: 'dividends', name: 'Дивиденды', type: 'income', icon: '💵', color: '#0ea5e9' },
+    { id: 'coupons', name: 'Купоны', type: 'income', icon: '🧾', color: '#6366f1' },
     { id: 'gift', name: 'Подарки', type: 'income', icon: '🎁', color: '#10b981' },
     { id: 'other_income', name: 'Прочее', type: 'income', icon: '➕', color: '#14b8a6' }
 ];

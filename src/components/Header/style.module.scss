@@ -5,3 +5,117 @@
         display: none;
     }
 }
+
+.topRow {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 14px;
+}
+
+.navLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--nav-idle);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover {
+        background: var(--nav-hover);
+        color: var(--nav-text);
+    }
+}
+
+.navLinkActive {
+    color: var(--nav-primary);
+    background: var(--nav-primary-bg);
+    font-weight: 500;
+
+    &:hover {
+        color: var(--nav-primary);
+        background: var(--nav-primary-bg);
+    }
+}
+
+.triggerIcon {
+    font-size: 11px;
+    transition: transform 0.2s ease;
+}
+
+.triggerOpen .triggerIcon {
+    transform: rotate(180deg);
+}
+
+.megaPanel {
+    width: 480px;
+    max-width: calc(100vw - 32px);
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--mm-bg);
+    border: 0.5px solid var(--mm-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.mmGroupLabel {
+    padding: 2px 8px 8px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--mm-muted);
+}
+
+.mmGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+
+    &.single {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mmItem {
+    display: flex;
+    gap: 11px;
+    padding: 10px;
+    border-radius: 8px;
+    color: var(--mm-text);
+    transition: background 0.15s ease;
+
+    &:hover {
+        background: var(--mm-hover);
+    }
+}
+
+.mmItemActive {
+    background: var(--mm-hover);
+}
+
+.mmIcon {
+    margin-top: 1px;
+    font-size: 20px;
+    color: var(--mm-primary);
+}
+
+.mmTitle {
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--mm-text);
+}
+
+.mmDesc {
+    font-size: 12px;
+    line-height: 1.3;
+    color: var(--mm-muted);
+}
+
+.mmDivider {
+    height: 0.5px;
+    margin: 10px 2px;
+    background: var(--mm-border);
+}

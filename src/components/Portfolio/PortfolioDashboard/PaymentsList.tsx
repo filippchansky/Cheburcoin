@@ -61,6 +61,11 @@ interface MonthGroupedListProps<T> {
     rubAmount: (item: T) => number;
     rowKey: (item: T) => string;
     renderRow: (item: T) => React.ReactNode;
+    /**
+     * Своё содержимое липкой шапки месяца (внутри того же sticky-контейнера).
+     * Если не задано — дефолт: название месяца + знаковый рублёвый итог.
+     */
+    renderMonthHead?: (group: MonthGroup<T>) => React.ReactNode;
     /** Смена значения сбрасывает подгруженные порции — напр. при смене фильтра. */
     resetKey?: string;
     pageSize?: number;
@@ -77,6 +82,7 @@ export function MonthGroupedList<T>({
     rubAmount,
     rowKey,
     renderRow,
+    renderMonthHead,
     resetKey,
     pageSize = PAGE
 }: MonthGroupedListProps<T>) {
@@ -124,19 +130,27 @@ export function MonthGroupedList<T>({
                 return (
                     <div className={s.monthBlock} key={group.key}>
                         <div className={s.monthHead}>
-                            <span className={s.monthName}>{formatMonthTitle(group.key)}</span>
-                            <span
-                                className={s.monthTotal}
-                                style={{
-                                    color: positive ? POSITIVE_COLOR : NEGATIVE_COLOR,
-                                    background: positive
-                                        ? 'rgba(27,175,122,0.12)'
-                                        : 'rgba(226,75,74,0.12)'
-                                }}
-                            >
-                                {positive ? '+' : ''}
-                                {intToRub(group.total)}
-                            </span>
+                            {renderMonthHead ? (
+                                renderMonthHead(group)
+                            ) : (
+                                <>
+                                    <span className={s.monthName}>
+                                        {formatMonthTitle(group.key)}
+                                    </span>
+                                    <span
+                                        className={s.monthTotal}
+                                        style={{
+                                            color: positive ? POSITIVE_COLOR : NEGATIVE_COLOR,
+                                            background: positive
+                                                ? 'rgba(27,175,122,0.12)'
+                                                : 'rgba(226,75,74,0.12)'
+                                        }}
+                                    >
+                                        {positive ? '+' : ''}
+                                        {intToRub(group.total)}
+                                    </span>
+                                </>
+                            )}
                         </div>
                         <div className={s.monthCard}>
                             {group.items.map((item) => (
